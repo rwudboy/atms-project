@@ -1,7 +1,10 @@
 export async function registerUserUseCase({ username, password, email, birth, phone }) {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true", 
+    },
     body: JSON.stringify({
       username,
       email,

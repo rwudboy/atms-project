@@ -18,13 +18,14 @@ export function RegisterForm({ className, ...props }) {
     e.preventDefault();
 
     try {
-      await registerUserUseCase(
+      await registerUserUseCase({
         username,
         password,
         email,
         birth,
         phone,
-      );
+      });
+      
       console.log(username)
       console.log(password)
       console.log(email)
