@@ -6,44 +6,43 @@ import { cn } from "@/enterprise-business-rules/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
+import { ClipLoader } from "react-spinners";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
-          await loginUser(
-            email,
-            password
-          );
-          console.log(email)
-          console.log(password)
-    
-          Swal.fire({
-            icon: "success",
-            title: "Login Success!",
-            text: "You can now go in with your account.",
-            confirmButtonText: "OK",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.href = "/dashboard";
-            }
-          })
-    
-          // Optionally clear the form
-          setEmail("");
-          setPassword("");
-        } catch (error) {
-          Swal.fire({
-            icon: "error",
-            title: "Registration Failed",
-            text: error.message,
-          });
+      await loginUser(email, password);
+
+      Swal.fire({
+        icon: "success",
+        title: "Login Success!",
+        text: "You can now go in with your account.",
+        confirmButtonText: "OK",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = "/dashboard";
         }
-      };
+      });
+
+      setEmail("");
+      setPassword("");
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Login Failed",
+        text: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
@@ -83,8 +82,9 @@ export function LoginForm({ className, ...props }) {
           />
         </div>
 
-        <Button type="submit">Login</Button>
-
+        <Button type="submit" disabled={loading}>
+          {loading ? <ClipLoader size={20} color="#fff" /> : "Login"}
+        </Button>
       </div>
 
       <div className="text-center text-sm">
