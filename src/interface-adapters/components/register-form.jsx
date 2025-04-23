@@ -132,7 +132,7 @@ export function RegisterForm({ className, ...props }) {
 
       {/* Username Field */}
       <div className="grid gap-1 relative">
-        <Label htmlFor="username">Nama Lengkap</Label>
+        <Label htmlFor="username">FUll Name</Label>
         <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
         {isValid.username && (
           <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -140,6 +140,18 @@ export function RegisterForm({ className, ...props }) {
           </motion.div>
         )}
         {showErrors && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
+      </div>
+
+      {/* Email */}
+      <div className="grid gap-1 relative">
+        <Label htmlFor="email">Email</Label>
+        <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        {isValid.email && (
+          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <CheckCircle size={20} />
+          </motion.div>
+        )}
+        {showErrors && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
       </div>
 
       {/* Password Field */}
@@ -187,17 +199,6 @@ export function RegisterForm({ className, ...props }) {
         )}
       </div>
 
-      {/* Email */}
-      <div className="grid gap-1 relative">
-        <Label htmlFor="email">Email</Label>
-        <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        {isValid.email && (
-          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <CheckCircle size={20} />
-          </motion.div>
-        )}
-        {showErrors && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-      </div>
 
       {/* Birth */}
       <div className="grid gap-1">
