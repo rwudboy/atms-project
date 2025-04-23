@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
-import { CheckCircle, X } from "lucide-react";
-import { Dialog } from "@headlessui/react";
+import { CheckCircle } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/enterprise-business-rules/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
@@ -18,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/interface-adapters/components/ui/select";
-import { Eye, EyeOff } from "lucide-react";
 
 export function RegisterForm({ className, ...props }) {
   const [username, setUsername] = useState("");
@@ -31,7 +30,6 @@ export function RegisterForm({ className, ...props }) {
   const [errors, setErrors] = useState({});
   const [showErrors, setShowErrors] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
 
   const getPasswordStrength = (password) => {
     let score = 0;
@@ -106,17 +104,14 @@ export function RegisterForm({ className, ...props }) {
       Swal.fire({
         icon: "success",
         title: "Registered Successfully!",
-        text: "Please verify your OTP.",
+        text: "Redirecting to OTP verification...",
+        timer: 2000,
+        showConfirmButton: false,
       });
 
-      setShowOtpModal(true);
-      setUsername("");
-      setPassword("");
-      setEmail("");
-      setBirth("");
-      setPhone("");
-      setJabatan("");
-      setShowErrors(false);
+      setTimeout(() => {
+        window.location.href = "/otp";
+      }, 2000);
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -129,157 +124,147 @@ export function RegisterForm({ className, ...props }) {
   };
 
   return (
-    <>
-      <form onSubmit={handleRegister} className={cn("flex flex-col gap-6", className)} {...props}>
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Register to your account</h1>
-          <p className="text-muted-foreground text-sm">Enter your credentials below</p>
-        </div>
+    <form onSubmit={handleRegister} className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">Register to your account</h1>
+        <p className="text-muted-foreground text-sm">Enter your credentials below</p>
+      </div>
 
-        <div className="grid gap-1 relative">
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-          {isValid.username && (
-            <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <CheckCircle size={20} />
-            </motion.div>
-          )}
-          {showErrors && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
-        </div>
+      {/* Username Field */}
+      <div className="grid gap-1 relative">
+        <Label htmlFor="username">Username</Label>
+        <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+        {isValid.username && (
+          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <CheckCircle size={20} />
+          </motion.div>
+        )}
+        {showErrors && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
+      </div>
 
-        <div className="grid gap-1 relative">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-black"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-            {isValid.password && (
-              <motion.div
-                className="absolute right-10 top-2.5 text-green-500"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <CheckCircle size={20} />
-              </motion.div>
-            )}
-          </div>
-
-          {password && (
-            <div className="mt-1">
-              <div className="h-2 w-full bg-gray-200 rounded">
-                <div
-                  className={`${strengthColor} h-2 rounded`}
-                  style={{ width: `${(passwordStrength / 4) * 100}%` }}
-                />
-              </div>
-              <p className="text-sm text-muted-foreground mt-1">{strengthLabel}</p>
-            </div>
-          )}
-          {showErrors && errors.password && (
-            <p className="text-red-500 text-sm">{errors.password}</p>
-          )}
-        </div>
-
-
-        <div className="grid gap-1 relative">
-          <Label htmlFor="email">Email</Label>
-          <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          {isValid.email && (
-            <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <CheckCircle size={20} />
-            </motion.div>
-          )}
-          {showErrors && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
-        </div>
-
-        <div className="grid gap-1">
-          <Label htmlFor="birth">Date of Birth</Label>
-          <Input type="date" id="birth" value={birth} onChange={(e) => setBirth(e.target.value)} />
-          {showErrors && errors.birth && <p className="text-red-500 text-sm">{errors.birth}</p>}
-        </div>
-
-        <div className="grid gap-1 relative">
-          <Label htmlFor="phone">Phone (optional)</Label>
-          <Input type="number" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          {isValid.phone && (
-            <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <CheckCircle size={20} />
-            </motion.div>
-          )}
-          {showErrors && errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
-        </div>
-
-        <div className="grid gap-1">
-          <Label htmlFor="jabatan">Jabatan</Label>
-          <Select onValueChange={setJabatan}>
-            <SelectTrigger
-              id="jabatan"
-              className="w-full h-10 px-3 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            >
-              <SelectValue placeholder="Select Role" />
-            </SelectTrigger>
-            <SelectContent>
-              {[
-                "Project manager",
-                "System analyst",
-                "Solution Archi",
-                "Business analyst",
-                "Developer",
-                "IT infrastructure",
-                "Finance & Accounting staff",
-                "Supply chain",
-                "Warehouse",
-                "Quality assurance",
-                "IT support",
-                "Staf Administras",
-              ].map((role) => (
-                <SelectItem key={role} value={role}>
-                  {role}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {showErrors && errors.jabatan && (
-            <p className="text-red-500 text-sm">{errors.jabatan}</p>
-          )}
-        </div>
-
-
-        <Button type="submit" disabled={loading}>
-          {loading ? <ClipLoader size={20} color="#fff" /> : "Register"}
-        </Button>
-
-        <div className="text-center text-sm">
-          Already have an account?{" "}
-          <a href="/login" className="underline underline-offset-4">
-            Login
-          </a>
-        </div>
-      </form>
-
-      <Dialog open={showOtpModal} onClose={() => setShowOtpModal(false)} className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <Dialog.Panel className="bg-white p-0 rounded-lg overflow-hidden w-full max-w-md h-[500px] shadow-xl relative">
-          <button onClick={() => setShowOtpModal(false)} className="absolute top-3 right-3 text-gray-500 hover:text-black">
-            <X size={20} />
-          </button>
-          <iframe
-            src="/otp"
-            className="w-full h-full border-0"
-            title="OTP Form"
+      {/* Password Field */}
+      <div className="grid gap-1 relative">
+        <Label htmlFor="password">Password</Label>
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="pr-10"
           />
-        </Dialog.Panel>
-      </Dialog>
-    </>
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-2.5 text-gray-500 hover:text-black"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+          {isValid.password && (
+            <motion.div
+              className="absolute right-10 top-2.5 text-green-500"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              <CheckCircle size={20} />
+            </motion.div>
+          )}
+        </div>
+
+        {password && (
+          <div className="mt-1">
+            <div className="h-2 w-full bg-gray-200 rounded">
+              <div
+                className={`${strengthColor} h-2 rounded`}
+                style={{ width: `${(passwordStrength / 4) * 100}%` }}
+              />
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">{strengthLabel}</p>
+          </div>
+        )}
+        {showErrors && errors.password && (
+          <p className="text-red-500 text-sm">{errors.password}</p>
+        )}
+      </div>
+
+      {/* Email */}
+      <div className="grid gap-1 relative">
+        <Label htmlFor="email">Email</Label>
+        <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        {isValid.email && (
+          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <CheckCircle size={20} />
+          </motion.div>
+        )}
+        {showErrors && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+      </div>
+
+      {/* Birth */}
+      <div className="grid gap-1">
+        <Label htmlFor="birth">Date of Birth</Label>
+        <Input type="date" id="birth" value={birth} onChange={(e) => setBirth(e.target.value)} />
+        {showErrors && errors.birth && <p className="text-red-500 text-sm">{errors.birth}</p>}
+      </div>
+
+      {/* Phone */}
+      <div className="grid gap-1 relative">
+        <Label htmlFor="phone">Phone (optional)</Label>
+        <Input type="number" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        {isValid.phone && (
+          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <CheckCircle size={20} />
+          </motion.div>
+        )}
+        {showErrors && errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
+      </div>
+
+      {/* Jabatan */}
+      <div className="grid gap-1">
+        <Label htmlFor="jabatan">Jabatan</Label>
+        <Select onValueChange={setJabatan}>
+          <SelectTrigger
+            id="jabatan"
+            className="w-full h-10 px-3 border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+          >
+            <SelectValue placeholder="Select Role" />
+          </SelectTrigger>
+          <SelectContent>
+            {[
+              "Project manager",
+              "System analyst",
+              "Solution Archi",
+              "Business analyst",
+              "Developer",
+              "IT infrastructure",
+              "Finance & Accounting staff",
+              "Supply chain",
+              "Warehouse",
+              "Quality assurance",
+              "IT support",
+              "Staf Administras",
+            ].map((role) => (
+              <SelectItem key={role} value={role}>
+                {role}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {showErrors && errors.jabatan && (
+          <p className="text-red-500 text-sm">{errors.jabatan}</p>
+        )}
+      </div>
+
+      {/* Submit */}
+      <Button type="submit" disabled={loading}>
+        {loading ? <ClipLoader size={20} color="#fff" /> : "Register"}
+      </Button>
+
+      <div className="text-center text-sm">
+        Already have an account?{" "}
+        <a href="/login" className="underline underline-offset-4">
+          Login
+        </a>
+      </div>
+    </form>
   );
 }
