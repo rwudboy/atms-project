@@ -199,14 +199,6 @@ export function RegisterForm({ className, ...props }) {
         )}
       </div>
 
-
-      {/* Birth */}
-      <div className="grid gap-1">
-        <Label htmlFor="birth">Date of Birth</Label>
-        <Input type="date" id="birth" value={birth} onChange={(e) => setBirth(e.target.value)} />
-        {showErrors && errors.birth && <p className="text-red-500 text-sm">{errors.birth}</p>}
-      </div>
-
       {/* Phone */}
       <div className="grid gap-1 relative">
         <Label htmlFor="phone">Phone (optional)</Label>
@@ -218,6 +210,14 @@ export function RegisterForm({ className, ...props }) {
         )}
         {showErrors && errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
       </div>
+
+      {/* Birth */}
+      <div className="grid gap-1">
+        <Label htmlFor="birth">Date of Birth</Label>
+        <Input type="date" id="birth" value={birth} onChange={(e) => setBirth(e.target.value)} />
+        {showErrors && errors.birth && <p className="text-red-500 text-sm">{errors.birth}</p>}
+      </div>
+
 
       {/* Jabatan */}
       <div className="grid gap-1">
