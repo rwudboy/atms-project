@@ -1,4 +1,4 @@
-export async function registerUserUseCase({ username, password, email, birth, phone, jabatan }) {
+export async function registerUserUseCase({ fullName ,username, password, email, birth, phone, jabatan }) {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
     method: "POST",
     headers: {
@@ -6,7 +6,8 @@ export async function registerUserUseCase({ username, password, email, birth, ph
       "ngrok-skip-browser-warning": "true", 
     },
     body: JSON.stringify({
-      namaLengkap:username,
+      namaLengkap:fullName,
+      username,
       email,
       password,
       dateOfBirth: birth,

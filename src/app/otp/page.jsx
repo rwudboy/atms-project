@@ -5,7 +5,6 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-  InputOTPSeparator,
 } from "@/interface-adapters/components/ui/input-otp";
 import { otpUserUseCase } from "@/app/usecases/otpUser";
 import Swal from "sweetalert2";
@@ -48,15 +47,12 @@ export default function OTPPage() {
         <p className="text-center text-sm text-muted-foreground">
           We’ve sent a 5-digit code to your email/phone.
         </p>
-
-        {/* Centering the OTP input group */}
         <div className="flex justify-center">
           <InputOTP maxLength={5} value={otp} onChange={handleChange}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
               <InputOTPSlot index={2} />
-              <InputOTPSeparator />
               <InputOTPSlot index={3} />
               <InputOTPSlot index={4} />
             </InputOTPGroup>

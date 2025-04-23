@@ -21,6 +21,7 @@ import {
 
 export function RegisterForm({ className, ...props }) {
   const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -46,6 +47,7 @@ export function RegisterForm({ className, ...props }) {
 
   const isValid = {
     username: username && !errors.username,
+    fullName: fullName && !errors.fullName,
     password: password && !errors.password,
     email: email && !errors.email,
     phone: phone && !errors.phone,
@@ -53,6 +55,7 @@ export function RegisterForm({ className, ...props }) {
 
   const validateInputs = () => {
     const newErrors = {};
+    if (!fullName) newErrors.fullName = "Data can't be empty";
     if (!username) newErrors.username = "Data can't be empty";
     if (!password) newErrors.password = "Data can't be empty";
     if (!email) newErrors.email = "Data can't be empty";
@@ -61,6 +64,10 @@ export function RegisterForm({ className, ...props }) {
 
     if (username && (!/[a-zA-Z]/.test(username) || username.length < 3)) {
       newErrors.username = "Username must include letters and be at least 3 characters.";
+    }
+
+    if (username && (!/[a-zA-Z]/.test(username) || username.length < 3)) {
+      newErrors.username = "Full Name must include letters and be at least 3 characters.";
     }
 
     if (password && (!/[A-Z]/.test(password) || !/[^a-zA-Z0-9]/.test(password) || password.length < 6)) {
@@ -93,6 +100,7 @@ export function RegisterForm({ className, ...props }) {
 
     try {
       await registerUserUseCase({
+        fullName,
         username,
         password,
         email,
@@ -130,9 +138,22 @@ export function RegisterForm({ className, ...props }) {
         <p className="text-muted-foreground text-sm">Enter your credentials below</p>
       </div>
 
-      {/* Username Field */}
+      {/* Full Name */}
       <div className="grid gap-1 relative">
-        <Label htmlFor="username">Full Name</Label>
+        <Label htmlFor="fullName">Full Name</Label>
+        <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+        {isValid.fullName && (
+          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <CheckCircle size={20} />
+          </motion.div>
+        )}
+        {showErrors && errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
+      </div>
+
+
+      {/* Username */}
+      <div className="grid gap-1 relative">
+        <Label htmlFor="username">Username</Label>
         <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
         {isValid.username && (
           <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
