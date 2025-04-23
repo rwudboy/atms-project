@@ -132,7 +132,7 @@ export function RegisterForm({ className, ...props }) {
 
       {/* Username Field */}
       <div className="grid gap-1 relative">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="username">Nama Lengkap</Label>
         <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
         {isValid.username && (
           <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
