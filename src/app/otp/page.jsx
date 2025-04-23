@@ -36,7 +36,7 @@ export default function OTPPage() {
         </div>
 
         <div className="flex justify-center">
-          <InputOTP maxLength={6} value={otp} onChange={handleChange}>
+          <InputOTP maxLength={5} value={otp} onChange={handleChange}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -44,7 +44,6 @@ export default function OTPPage() {
               <InputOTPSeparator />
               <InputOTPSlot index={3} />
               <InputOTPSlot index={4} />
-              <InputOTPSlot index={5} />
             </InputOTPGroup>
           </InputOTP>
         </div>

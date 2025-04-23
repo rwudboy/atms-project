@@ -32,13 +32,13 @@ export default function OTPPage() {
           We’ve sent a 6-digit code to your email/phone.
         </p>
 
-        <InputOTP maxLength={6} value={otp} onChange={handleChange}>
+        <InputOTP maxLength={5} value={otp} onChange={handleChange}>
           <InputOTPGroup>
             <InputOTPSlot index={0} />
             <InputOTPSlot index={1} />
             <InputOTPSlot index={2} />
-            <InputOTPSeparator />
             <InputOTPSlot index={3} />
+            <InputOTPSeparator />
             <InputOTPSlot index={4} />
             <InputOTPSlot index={5} />
           </InputOTPGroup>
