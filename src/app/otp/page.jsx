@@ -7,34 +7,49 @@ import {
   InputOTPSlot,
   InputOTPSeparator,
 } from "@/interface-adapters/components/ui/input-otp";
+import { otpUserUseCase } from "@/app/usecases/otpUser";
+import Swal from "sweetalert2";
 
 export default function OTPPage() {
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (value) => {
     setOtp(value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`Your entered email OTP is: ${otp}`);
-    // Here you can add email OTP verification logic or navigation
+
+    if (otp.length !== 5) {
+      Swal.fire("Invalid OTP", "OTP must be 5 digits", "error");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await otpUserUseCase({ otp });
+      await Swal.fire("Success", "OTP verified successfully!", "success");
+      window.location.href = "/login";
+    } catch (error) {
+      Swal.fire("Error", error.message || "Verification failed", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-lg"
+        className="w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-md"
       >
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold text-gray-800">Email Verification</h1>
-          <p className="text-sm text-gray-500">
-            We've sent a 6-digit verification code to your email. <br />
-            Please enter it below to continue.
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-center">Enter OTP</h1>
+        <p className="text-center text-sm text-muted-foreground">
+          We’ve sent a 5-digit code to your email/phone.
+        </p>
 
+        {/* Centering the OTP input group */}
         <div className="flex justify-center">
           <InputOTP maxLength={5} value={otp} onChange={handleChange}>
             <InputOTPGroup>
@@ -50,14 +65,15 @@ export default function OTPPage() {
 
         <button
           type="submit"
-          className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
+          disabled={loading}
+          className={`w-full rounded-md px-4 py-2 text-white transition ${
+            loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          Verify Email
+          {loading ? "Verifying..." : "Verify"}
         </button>
-
-        <p className="text-center text-xs text-gray-400">
-          Didn’t receive the code? <a href="#" className="text-blue-600 hover:underline">Resend</a>
-        </p>
       </form>
     </main>
   );
