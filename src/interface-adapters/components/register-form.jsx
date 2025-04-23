@@ -236,12 +236,12 @@ export function RegisterForm({ className, ...props }) {
               "Solution Archi",
               "Business Analyst",
               "Developer",
-              "IT infrastructure",
+              "IT Infrastructure",
               "Finance & Accounting staff",
               "Supply Chain",
               "Warehouse",
-              "Quality assurance",
-              "IT support",
+              "Quality Assurance",
+              "IT Support",
               "Staf Administrator",
             ].map((role) => (
               <SelectItem key={role} value={role}>
