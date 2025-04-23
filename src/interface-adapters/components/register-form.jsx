@@ -230,18 +230,18 @@ export function RegisterForm({ className, ...props }) {
           </SelectTrigger>
           <SelectContent>
             {[
-              "Project manager",
-              "System analyst",
+              "Project Manager",
+              "System Analyst",
               "Solution Archi",
-              "Business analyst",
+              "Business Analyst",
               "Developer",
               "IT infrastructure",
               "Finance & Accounting staff",
-              "Supply chain",
+              "Supply Chain",
               "Warehouse",
               "Quality assurance",
               "IT support",
-              "Staf Administras",
+              "Staf Administrator",
             ].map((role) => (
               <SelectItem key={role} value={role}>
                 {role}
