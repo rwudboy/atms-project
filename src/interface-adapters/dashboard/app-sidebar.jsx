@@ -1,9 +1,10 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
+import { useState, useEffect } from "react";
+import { getUserDetail } from "@/app/usecases/getUserDetail";
 import {
   IconCamera,
-  IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
@@ -12,17 +13,22 @@ import {
   IconFolder,
   IconHelp,
   IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
   IconSettings,
   IconUsers,
-} from "@tabler/icons-react"
+  IconCalendarWeek,
+  IconReport,
+  IconListDetails,
+  IconChevronDown,
+  IconChevronUp,
+  IconCirclePlus,
+  IconListCheck,
+  IconInbox,
+  IconFlag,
+  IconList,
+} from "@tabler/icons-react";
 
-import { NavDocuments } from "@/interface-adapters/components/nav-documents"
-import { NavMain } from "@/interface-adapters/components/nav-main"
-import { NavSecondary } from "@/interface-adapters/components/nav-secondary"
-import { NavUser } from "@/interface-adapters/components/nav-user"
+import { NavSecondary } from "@/interface-adapters/components/nav-secondary";
+import { NavUser } from "@/interface-adapters/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -31,150 +37,142 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/interface-adapters/components/ui/sidebar"
+} from "@/interface-adapters/components/ui/sidebar";
 
-const data = {
-  user: {
-    name: "admin",
-    email: "admin@admin.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: IconDashboard,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
-    },
-  ],
-}
+export function AppSidebar(props) {
+  const [name, setName] = useState("Loading...");
+  const [email, setEmail] = useState("Loading...");
+  const [hydrated, setHydrated] = useState(false);
+  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
 
-export function AppSidebar({
-  ...props
-}) {
+  useEffect(() => {
+    setHydrated(true);
+    const fetchUser = async () => {
+      try {
+        const userDetail = await getUserDetail();
+        const userName = userDetail?.user?.username || "Guest";
+        const userEmail = userDetail?.user?.email || "no-email@example.com";
+        setName(userName);
+        setEmail(userEmail);
+      } catch (error) {
+        console.error("Error fetching user detail:", error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const navSecondary = [
+    { title: "Settings", url: "#", icon: IconSettings },
+    { title: "Get Help", url: "#", icon: IconHelp },
+  ];
+
+  const projectSubItems = [
+    { title: "New Project", url: "#", icon: IconCirclePlus },
+    { title: "All Project", url: "#", icon: IconFolder },
+    { title: "New Milestone", url: "#", icon: IconFlag },
+    { title: "Milestones", url: "#", icon: IconList },
+    { title: "Tasks", url: "#", icon: IconListCheck },
+    { title: "Inbox", url: "#", icon: IconInbox },
+  ];
+
+  if (!hydrated) return null;
+
   return (
-    (<Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold"> ATMS.</span>
+                <span className="text-base font-semibold">ATMS.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <SidebarMenu className="px-4">
+
+          {/* Dashboard */}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <a href="#" className="flex items-center gap-2">
+                <IconDashboard className="size-5" />
+                Dashboard
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {/* Projects - Collapsible */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
+              <IconFolder className="mr-2 size-5" />
+              <span>Projects</span>
+              {isProjectsOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {isProjectsOpen && projectSubItems.map((item, index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuButton asChild>
+                <a href={item.url} className="flex items-center gap-2 pl-8">
+                  <item.icon className="size-4" />
+                  {item.title}
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+
+          {/* Other Main Items */}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <a href="#" className="flex items-center gap-2">
+                <IconUsers className="size-5" />
+                Team
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <a href="#" className="flex items-center gap-2">
+                <IconCalendarWeek className="size-5" />
+                Calendar
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <a href="#" className="flex items-center gap-2">
+                <IconReport className="size-5" />
+                Reports
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <a href="#" className="flex items-center gap-2">
+                <IconListDetails className="size-5" />
+                My Task
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
+
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={{ name, email }} />
       </SidebarFooter>
-    </Sidebar>)
+    </Sidebar>
   );
 }

@@ -1,24 +1,42 @@
-import { AppSidebar } from "@/interface-adapters/dashboard/app-sidebar"
-import { ChartAreaInteractive } from "@/interface-adapters/dashboard/chart-area-interactive"
-import { DataTable } from "@/interface-adapters/dashboard/data-table"
-import { SectionCards } from "@/interface-adapters/dashboard/section-cards"
-import { SiteHeader } from "@/interface-adapters/dashboard/site-header"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/interface-adapters/components/ui/sidebar"
+"use client";
 
-import data from "./data.json"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { isTokenValid } from "@/framework-drivers/token/checkToken";
 
-export default function Page() {
+import { AppSidebar } from "@/interface-adapters/dashboard/app-sidebar";
+import { ChartAreaInteractive } from "@/interface-adapters/dashboard/chart-area-interactive";
+import { DataTable } from "@/interface-adapters/dashboard/data-table";
+import { SectionCards } from "@/interface-adapters/dashboard/section-cards";
+import { SiteHeader } from "@/interface-adapters/dashboard/site-header";
+import { SidebarInset, SidebarProvider } from "@/interface-adapters/components/ui/sidebar";
+
+import data from "./data.json";
+
+export default function DashboardPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isTokenValid()) {
+      router.push("/login");
+    }
+  }, []);
+
+  if (!isTokenValid()) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    (<SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)"
-        }
-      }>
+    <SidebarProvider
+      style={{
+        "--sidebar-width": "calc(var(--spacing) * 72)",
+        "--header-height": "calc(var(--spacing) * 12)",
+      }}
+    >
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
@@ -34,6 +52,6 @@ export default function Page() {
           </div>
         </div>
       </SidebarInset>
-    </SidebarProvider>)
+    </SidebarProvider>
   );
 }
