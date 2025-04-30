@@ -12,9 +12,30 @@ export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    email: "",
+    password: "",
+  });
+
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const newErrors = { email: "", password: "" };
+
+    if (!isValidEmail(email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+
+    if (password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters.";
+    }
+
+    setErrors(newErrors);
+
+    // If any error exists, do not proceed
+    if (newErrors.email || newErrors.password) return;
+
     setLoading(true);
 
     try {
@@ -54,19 +75,19 @@ export function LoginForm({ className, ...props }) {
       </div>
 
       <div className="grid gap-6">
-        <div className="grid gap-3">
+        <div className="grid gap-1.5">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
-            type="email"
+            type="text"
             placeholder="m@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
           />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
 
-        <div className="grid gap-3">
+        <div className="grid gap-1.5">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
             <a href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
@@ -78,8 +99,8 @@ export function LoginForm({ className, ...props }) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
           />
+          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
 
         <Button type="submit" disabled={loading}>
