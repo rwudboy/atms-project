@@ -2,7 +2,7 @@
 import Swal from "sweetalert2";
 import { useState } from "react";
 import { loginUser } from "@/app/usecases/loginUser";
-import { cn } from "@/enterprise-business-rules/lib/utils";
+import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";

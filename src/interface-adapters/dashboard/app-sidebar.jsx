@@ -25,6 +25,12 @@ import {
   IconInbox,
   IconFlag,
   IconList,
+  IconBook,
+  IconFileText,
+  IconManualGearbox,
+  IconFileSearch,
+  IconBulb,
+  IconArchive,
 } from "@tabler/icons-react";
 
 import { NavSecondary } from "@/interface-adapters/components/nav-secondary";
@@ -44,6 +50,8 @@ export function AppSidebar(props) {
   const [email, setEmail] = useState("Loading...");
   const [hydrated, setHydrated] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
+  const [isReferenceOpen, setIsReferenceOpen] = useState(false);
+
 
   useEffect(() => {
     setHydrated(true);
@@ -75,6 +83,15 @@ export function AppSidebar(props) {
     { title: "Inbox", url: "#", icon: IconInbox },
   ];
 
+  const referenceItems = [
+    { title: "Customers", url: "/customer", icon: IconUsers },
+    { title: "Documentation", url: "#", icon: IconFileText },
+    { title: "Manuals", url: "#", icon: IconManualGearbox },
+    { title: "Search Files", url: "#", icon: IconFileSearch },
+    { title: "Tips & Tricks", url: "#", icon: IconBulb },
+    { title: "Archives", url: "#", icon: IconArchive },
+  ];
+
   if (!hydrated) return null;
 
   return (
@@ -98,7 +115,7 @@ export function AppSidebar(props) {
           {/* Dashboard */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <a href="#" className="flex items-center gap-2">
+              <a href="/dashboard" className="flex items-center gap-2">
                 <IconDashboard className="size-5" />
                 Dashboard
               </a>
@@ -129,16 +146,33 @@ export function AppSidebar(props) {
             </SidebarMenuItem>
           ))}
 
-          {/* Other Main Items */}
+
+          {/* Reference - Collapsible */}
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <a href="#" className="flex items-center gap-2">
-                <IconUsers className="size-5" />
-                Team
-              </a>
+            <SidebarMenuButton onClick={() => setIsReferenceOpen(!isReferenceOpen)}>
+              <IconBook className="mr-2 size-5" />
+              <span>Reference</span>
+              {isReferenceOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
 
+          {isReferenceOpen && referenceItems.map((item, index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuButton asChild>
+                <a href={item.url} className="flex items-center gap-2 pl-8">
+                  <item.icon className="size-4" />
+                  {item.title}
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+
+
+          {/* Other Main Items */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a href="#" className="flex items-center gap-2">

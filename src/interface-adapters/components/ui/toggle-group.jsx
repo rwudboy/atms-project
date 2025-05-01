@@ -2,7 +2,7 @@
 import * as React from "react"
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
 
-import { cn } from "@/enterprise-business-rules/lib/utils"
+import { cn } from "@/interface-adapters/lib/utils"
 import { toggleVariants } from "@/interface-adapters/components/ui/toggle"
 
 const ToggleGroupContext = React.createContext({

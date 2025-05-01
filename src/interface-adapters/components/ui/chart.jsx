@@ -2,7 +2,7 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
-import { cn } from "@/enterprise-business-rules/lib/utils"
+import { cn } from "@/interface-adapters/lib/utils"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = {

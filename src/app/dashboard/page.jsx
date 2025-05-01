@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { isTokenValid } from "@/framework-drivers/token/checkToken";
+import  useAuthGuard  from "@/interface-adapters/hooks/useAuthGuard";
 
 import { AppSidebar } from "@/interface-adapters/dashboard/app-sidebar";
 import { ChartAreaInteractive } from "@/interface-adapters/dashboard/chart-area-interactive";
@@ -14,15 +12,9 @@ import { SidebarInset, SidebarProvider } from "@/interface-adapters/components/u
 import data from "./data.json";
 
 export default function DashboardPage() {
-  const router = useRouter();
+  const loading = useAuthGuard();
 
-  useEffect(() => {
-    if (!isTokenValid()) {
-      router.push("/login");
-    }
-  }, []);
-
-  if (!isTokenValid()) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <p>Loading...</p>

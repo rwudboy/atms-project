@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
-import { cn } from "@/enterprise-business-rules/lib/utils";
+import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";

@@ -3,7 +3,6 @@
 import {
   IconCreditCard,
   IconDotsVertical,
-  IconLogout,
   IconNotification,
   IconUserCircle,
   IconUserFilled,
@@ -95,10 +94,15 @@ export function NavUser({ user }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <IconLogout />
+            <DropdownMenuItem
+              onSelect={() => {
+                localStorage.removeItem("authToken"); 
+                window.location.href = "/login"; 
+              }}
+            >
               Log out
             </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

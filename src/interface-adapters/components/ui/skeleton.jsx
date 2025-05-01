@@ -1,4 +1,4 @@
-import { cn } from "@/enterprise-business-rules/lib/utils"
+import { cn } from "@/interface-adapters/lib/utils"
 
 function Skeleton({
   className,
