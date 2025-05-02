@@ -1,26 +1,34 @@
-import { customerApi } from "./customer-api";
+import { getToken } from "@/framework-drivers/token/tokenService";
 
 export async function getCustomers() {
-  try {
-    const response = await customerApi.fetchCustomers();
+  const token = getToken();
+  if (!token) {
+    console.error("No token found.");
+    return [];
+  }
 
-    if (response.data && Array.isArray(response.data)) {
-      return response.data;
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customers`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Accept": "application/json",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch customers");
+    }
+
+    if (data.user) {
+      return [data.user];
     }
 
     return [];
   } catch (error) {
     console.error("Error fetching customers:", error);
     return [];
-  }
-}
-
-export async function deleteCustomer(id) {
-  try {
-    const response = await customerApi.deleteCustomer(id);
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting customer:", error);
-    return { success: false, error: "Failed to delete customer" };
   }
 }
