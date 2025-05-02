@@ -62,6 +62,10 @@ export function RegisterForm({ className, ...props }) {
     if (!birth) newErrors.birth = "Data can't be empty";
     if (!jabatan) newErrors.jabatan = "Please select a role";
 
+    if (fullName && (!/[a-zA-Z]/.test(fullName) || fullName.length < 3)) {
+      newErrors.username = "Username must include letters and be at least 3 characters.";
+    }
+
     if (username && (!/[a-zA-Z]/.test(username) || username.length < 3)) {
       newErrors.username = "Username must include letters and be at least 3 characters.";
     }
