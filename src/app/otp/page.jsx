@@ -6,7 +6,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/interface-adapters/components/ui/input-otp";
-import { otpUserUseCase } from "@/app/usecases/otpUser";
+import { otpUserUseCase } from "@/interface-adapters/usecases/otpUser";
 import Swal from "sweetalert2";
 
 export default function OTPPage() {

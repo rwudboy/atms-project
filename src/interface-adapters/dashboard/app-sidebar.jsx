@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { getUserDetail } from "@/app/usecases/getUserDetail";
+import { getUserDetail } from "@/interface-adapters/usecases/getUserDetail";
 import {
   IconCamera,
   IconDashboard,

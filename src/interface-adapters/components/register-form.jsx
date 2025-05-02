@@ -9,7 +9,7 @@ import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { registerUserUseCase } from "@/app/usecases/registerUser";
+import { registerUserUseCase } from "@/interface-adapters/usecases/registerUser";
 import { ClipLoader } from "react-spinners";
 import {
   Select,
@@ -142,11 +142,6 @@ export function RegisterForm({ className, ...props }) {
       <div className="grid gap-1 relative">
         <Label htmlFor="fullName">Full Name</Label>
         <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} />
-        {isValid.fullName && (
-          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <CheckCircle size={20} />
-          </motion.div>
-        )}
         {showErrors && errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
       </div>
 
@@ -155,23 +150,14 @@ export function RegisterForm({ className, ...props }) {
       <div className="grid gap-1 relative">
         <Label htmlFor="username">Username</Label>
         <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-        {isValid.username && (
-          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <CheckCircle size={20} />
-          </motion.div>
-        )}
+  
         {showErrors && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
       </div>
 
       {/* Email */}
       <div className="grid gap-1 relative">
         <Label htmlFor="email">Email</Label>
-        <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        {isValid.email && (
-          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <CheckCircle size={20} />
-          </motion.div>
-        )}
+        <Input type="text" id="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         {showErrors && errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
       </div>
 
@@ -193,15 +179,6 @@ export function RegisterForm({ className, ...props }) {
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
-          {isValid.password && (
-            <motion.div
-              className="absolute right-10 top-2.5 text-green-500"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <CheckCircle size={20} />
-            </motion.div>
-          )}
         </div>
 
         {password && (
@@ -224,11 +201,6 @@ export function RegisterForm({ className, ...props }) {
       <div className="grid gap-1 relative">
         <Label htmlFor="phone">Phone (optional)</Label>
         <Input type="number" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-        {isValid.phone && (
-          <motion.div className="absolute top-8 right-3 text-green-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <CheckCircle size={20} />
-          </motion.div>
-        )}
         {showErrors && errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
       </div>
 
