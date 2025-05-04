@@ -1,7 +1,7 @@
 "use client";
 import Swal from "sweetalert2";
 import { useState } from "react";
-import { loginUser } from "@/interface-adapters/usecases/loginUser";
+import { loginUser } from "@/interface-adapters/usecases/login/loginUser";
 import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";

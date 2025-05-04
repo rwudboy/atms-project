@@ -2,12 +2,13 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { getUserDetail } from "@/interface-adapters/usecases/getUserDetail";
+import { getUserDetail } from "@/interface-adapters/usecases/token/getUserDetail";
 import {
   IconCamera,
   IconDashboard,
   IconDatabase,
   IconFileAi,
+  IconUsersGroup,
   IconFileDescription,
   IconFileWord,
   IconFolder,
@@ -85,7 +86,7 @@ export function AppSidebar(props) {
 
   const referenceItems = [
     { title: "Customers", url: "/customer", icon: IconUsers },
-    { title: "Documentation", url: "#", icon: IconFileText },
+    { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
     { title: "Manuals", url: "#", icon: IconManualGearbox },
     { title: "Search Files", url: "#", icon: IconFileSearch },
     { title: "Tips & Tricks", url: "#", icon: IconBulb },

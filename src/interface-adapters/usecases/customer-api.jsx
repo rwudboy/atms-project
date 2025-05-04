@@ -22,7 +22,6 @@ export async function getCustomers() {
       throw new Error(data.message || "Failed to fetch customers");
     }
 
-    // Normalize different possible shapes
     if (Array.isArray(data)) {
       return data.map((item) => item.user).filter(Boolean);
     }

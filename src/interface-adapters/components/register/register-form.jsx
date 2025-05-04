@@ -9,7 +9,7 @@ import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { registerUserUseCase } from "@/interface-adapters/usecases/registerUser";
+import { registerUserUseCase } from "@/interface-adapters/usecases/register/registerUser";
 import { ClipLoader } from "react-spinners";
 import {
   Select,

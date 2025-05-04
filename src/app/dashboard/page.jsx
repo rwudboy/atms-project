@@ -2,11 +2,11 @@
 
 import  useAuthGuard  from "@/interface-adapters/hooks/useAuthGuard";
 
-import { AppSidebar } from "@/interface-adapters/dashboard/app-sidebar";
+import { AppSidebar } from "@/interface-adapters/components/sidebar/app-sidebar";
 import { ChartAreaInteractive } from "@/interface-adapters/dashboard/chart-area-interactive";
 import { DataTable } from "@/interface-adapters/dashboard/data-table";
 import { SectionCards } from "@/interface-adapters/dashboard/section-cards";
-import { SiteHeader } from "@/interface-adapters/dashboard/site-header";
+import { SiteHeader } from "@/interface-adapters/components/header/site-header";
 import { SidebarInset, SidebarProvider } from "@/interface-adapters/components/ui/sidebar";
 
 import data from "./data.json";
