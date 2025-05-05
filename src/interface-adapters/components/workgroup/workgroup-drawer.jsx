@@ -4,7 +4,7 @@ import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { addWorkgroup } from "@/interface-adapters/usecases/workgroup/workgroup-usecase";
 import { useIsMobile } from "@/interface-adapters/hooks/use-mobile"; 
-import Swal from 'sweetalert2';
+import { toast } from "sonner";
 
 export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
   const [openDrawer, setOpenDrawer] = useState(false);
@@ -19,38 +19,29 @@ export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
 
   const handleAddWorkgroup = async () => {
     if (!formData.name || !formData.status) {
-      Swal.fire({
-        title: 'Error!',
-        text: 'Please complete the form.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
+      toast.warning("Please complete the form before submitting.");
       return;
     }
-
+  
     console.log("Form Data before API call:", formData);
-
+  
     setLoading(true);
     setError(null);
-
+  
     try {
       const newWorkgroup = await addWorkgroup(formData);
-
+  
       console.log("New Workgroup:", newWorkgroup);
-
+  
       onWorkgroupAdded(newWorkgroup);
       setFormData({ name: "", status: "" });
       setOpenDrawer(false);
-
+  
+      toast.success("Workgroup added successfully!");
     } catch (err) {
       setError("Failed to add workgroup");
-
-      Swal.fire({
-        title: 'Error!',
-        text: 'Something went wrong. Please try again.',
-        icon: 'error',
-        confirmButtonText: 'OK',
-      });
+  
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

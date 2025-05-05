@@ -49,9 +49,6 @@ export default function WorkgroupsPage() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
-  const handleViewWorkgroup = (id) => {
-    router.push(`/reference/workgroups/${id}`);
-  };
 
   const handleDeleteClick = (id) => {
     setWorkgroupToDelete(id);
@@ -147,7 +144,6 @@ export default function WorkgroupsPage() {
                     <TableCell>{wg.status}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleViewWorkgroup(wg.uuid)}>View</Button>
                         <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(wg.uuid)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>

@@ -8,8 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2 } from "lucide-react";
-import { getCustomers } from "@/interface-adapters/usecases/customer/customer-usecase";
+import { getCustomers, deleteCustomer } from "@/interface-adapters/usecases/customer/customer-usecase";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
+import { toast } from "sonner"; // Import sonner for notifications
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -32,10 +33,6 @@ export default function CustomersPage() {
     return () => clearTimeout(delayDebounce); // Cleanup
   }, [searchTerm]);
 
-  const handleViewCustomer = (id) => {
-    router.push(`/reference/customers/${id}`);
-  };
-
   const handleDeleteClick = (id) => {
     setCustomerToDelete(id);
     setShowDeleteDialog(true);
@@ -45,17 +42,31 @@ export default function CustomersPage() {
 
   const handleDeleteCustomer = async () => {
     if (confirmDeleteStep) {
-      setCustomers(customers.filter((c) => c.id !== customerToDelete));
-      setShowDeleteDialog(false);
-      setCustomerToDelete(null);
-      setConfirmDeleteStep(false);
+      try {
+        // Call deleteCustomer from usecase
+        await deleteCustomer(customerToDelete);
+
+        // Remove the deleted customer from the local state
+        setCustomers(customers.filter((c) => c.uuid !== customerToDelete));
+
+        // Show success notification
+        toast.success("Customer deleted successfully!");
+        setShowDeleteDialog(false);
+        setCustomerToDelete(null);
+        setConfirmDeleteStep(false);
+      } catch (error) {
+        // Handle error and show notification
+        setDeleteError(error.message || "An error occurred while deleting the customer.");
+        toast.error("Failed to delete customer.");
+      }
     } else {
       setConfirmDeleteStep(true);
     }
   };
 
-  const handleCustomerAdded = (newCustomer) => {
-    setCustomers((prevCustomers) => [...prevCustomers, newCustomer]);
+  const handleCustomerAdded = async () => {
+    const updatedCustomers = await getCustomers();
+    setCustomers(updatedCustomers);
   };
 
   return (
@@ -67,7 +78,10 @@ export default function CustomersPage() {
             <CardDescription>Manage and view all customer data.</CardDescription>
           </div>
           {/* Add Customer Button with Drawer trigger */}
-          <AddCustomerDrawer onCustomerAdded={handleCustomerAdded} trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Customer</Button>} />
+          <AddCustomerDrawer
+            trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Customer</Button>}
+            onCustomerAdded={handleCustomerAdded}
+          />
         </CardHeader>
       </Card>
 
@@ -126,7 +140,6 @@ export default function CustomersPage() {
                     <TableCell>{customer.country}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handleViewCustomer(customer.uuid)}>View</Button>
                         <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(customer.uuid)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
