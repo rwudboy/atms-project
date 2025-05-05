@@ -23,12 +23,15 @@ export default function WorkgroupsPage() {
   const [workgroupToDelete, setWorkgroupToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
+  const [fullWorkgroups, setFullWorkgroups] = useState([]);
+
 
   useEffect(() => {
     const fetchWorkgroups = async () => {
       try {
         const result = await getWorkgroups("");
-        setWorkgroups(result);
+        setFullWorkgroups(result);
+        setWorkgroups(result); // Initialize with full list
       } catch (error) {
         console.error("Error fetching workgroups:", error);
       } finally {
@@ -37,17 +40,15 @@ export default function WorkgroupsPage() {
     };
     fetchWorkgroups();
   }, []);
-
+  
   useEffect(() => {
-    const delayDebounce = setTimeout(async () => {
-      setLoading(true);
-      const result = await getWorkgroups(searchTerm);
-      setWorkgroups(result);
-      setLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm]);
+    const filtered = fullWorkgroups.filter((wg) =>
+      wg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      wg.status.toLowerCase().includes(searchTerm.toLowerCase()) // assuming `status` is the project name
+    );
+    setWorkgroups(filtered);
+  }, [searchTerm, fullWorkgroups]);
+  
 
 
   const handleDeleteClick = (id) => {
