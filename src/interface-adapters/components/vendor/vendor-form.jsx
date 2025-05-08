@@ -2,212 +2,168 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/interface-adapters/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/interface-adapters/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
+import { Search, Plus, Trash2, Edit } from "lucide-react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/interface-adapters/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/interface-adapters/components/ui/card";
-import { Plus, Trash, Search, Edit } from "lucide-react";  // Removed Eye icon
-import {
-  getVendors as getVendorsUseCase,
-  deleteVendor as deleteVendorUseCase,
-  addVendor as addVendorUseCase,
-  updateVendor as updateVendorUseCase,
+  getVendors,
+  deleteVendor,
+  addVendor,
+  updateVendor
 } from "@/interface-adapters/usecases/vendor/vendor-usecase";
-import { toast } from "sonner";
 import AddVendorDrawer from "@/interface-adapters/components/vendor/vendor-drawer";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/interface-adapters/components/ui/dialog";
+import { toast } from "sonner";
 
 export default function VendorPage() {
   const [vendors, setVendors] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-
-  const [modalState, setModalState] = useState({
-    open: false,
-    mode: "add",
-    vendor: null,
-  });
-
+  const [loading, setLoading] = useState(true);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deleteVendor, setDeleteVendor] = useState(null);
-  const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
+  const [vendorToDelete, setVendorToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
+  const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
+  const [allVendors, setAllVendors] = useState([]);
 
-  // Load vendors on mount
   useEffect(() => {
-    const loadVendors = async () => {
-      setIsLoading(true);
+    const fetchVendors = async () => {
       try {
-        const result = await getVendorsUseCase(searchTerm);
-        setVendors(result || []);
+        const result = await getVendors("");
+        setAllVendors(result);
+        setVendors(result);
       } catch (error) {
-        console.error("Failed to fetch vendors:", error.message);
+        console.error("Error fetching vendors:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
+    fetchVendors();
+  }, []);
 
-    loadVendors();
-  }, [searchTerm]);
+  useEffect(() => {
+    const filtered = allVendors.filter((vendor) =>
+      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vendor.address.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setVendors(filtered);
+  }, [searchTerm, allVendors]);
 
-  const handleSaveVendor = async (formData) => {
-    try {
-      if (modalState.mode === "add") {
-        const addedVendor = await addVendorUseCase(formData);
-        setVendors((prev) => [...prev, addedVendor]);
-        toast.success("Vendor added successfully");
-      } else if (modalState.mode === "edit" && modalState.vendor?.uuid) {
-        const updatedVendor = await updateVendorUseCase(modalState.vendor.uuid, formData);
-        setVendors(
-          vendors.map((v) => (v.uuid === updatedVendor.uuid ? updatedVendor : v))
-        );
-        toast.success("Vendor updated successfully");
-      }
-    } catch (error) {
-      console.error("Error saving vendor:", error.message);
-      toast.error("Failed to save vendor");
-    } finally {
-      setModalState({ open: false, mode: "add", vendor: null });
-    }
+  const handleDeleteClick = (id) => {
+    setVendorToDelete(id);
+    setShowDeleteDialog(true);
+    setDeleteError(null);
+    setConfirmDeleteStep(false);
   };
 
   const handleDeleteVendor = async () => {
     try {
-      if (deleteVendor?.uuid) {
-        await deleteVendorUseCase(deleteVendor.uuid);
-        setVendors(vendors.filter((v) => v.uuid !== deleteVendor.uuid));
-        toast.success("Vendor deleted successfully");
-      }
-    } catch (error) {
-      console.error("Failed to delete vendor:", error.message);
-      setDeleteError("Failed to delete vendor");
-      toast.error("Failed to delete vendor");
-    } finally {
-      setDeleteVendor(null);
-      setConfirmDeleteStep(false); // Reset to first step
+      await deleteVendor(vendorToDelete);
+      setVendors(vendors.filter((v) => v.uuid !== vendorToDelete));
       setShowDeleteDialog(false);
+      setConfirmDeleteStep(false);
+      toast.success("Vendor deleted successfully.");
+    } catch (error) {
+      setDeleteError("Failed to delete the vendor.");
+      toast.error("There was an error deleting the vendor.");
     }
   };
 
-  const filteredVendors = vendors.filter(
-    (vendor) =>
-      vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleDeleteDialogClose = () => {
-    setShowDeleteDialog(false);
-    setDeleteError(null);
-    setConfirmDeleteStep(false); // Reset confirmation steps
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vendor References</h1>
-          <p className="text-muted-foreground">Manage your vendor references</p>
-        </div>
-        {/* Replaced Modal Button with AddVendorDrawer */}
-        <AddVendorDrawer
-          trigger={
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Vendor
-            </Button>
-          }
-          onVendorAdded={() => {
-            // Re-fetch vendors after adding new one
-            setIsLoading(true);
-            getVendorsUseCase(searchTerm)
-              .then((result) => setVendors(result || []))
-              .finally(() => setIsLoading(false));
-          }}
-        />
-      </div>
+    <div className="container mx-auto py-10">
+      <Card className="mb-6">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <CardTitle>Vendor References</CardTitle>
+            <CardDescription>Manage and view all vendor data.</CardDescription>
+          </div>
+          <AddVendorDrawer
+            trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Vendor</Button>}
+            onVendorAdded={(newVendor) => {
+              toast.success("Vendor added successfully");
+              setVendors((prev) => [...prev, newVendor]);
+            }}
+          />
+        </CardHeader>
+      </Card>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Vendors</CardTitle>
-          <CardDescription>A list of all vendors in the system.</CardDescription>
-          <div className="flex w-full max-w-sm items-center space-x-2 mt-4">
+          <CardTitle>Search Vendors</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search vendors..."
+              placeholder="Search by name or address..."
+              className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Button type="button" size="icon">
-              <Search className="h-4 w-4" />
-            </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Vendor List</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <p>Loading vendors...</p>
-          ) : (
-            <Table>
-              <TableHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>City</TableHead>
+                <TableHead>Country</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Address</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>City</TableHead>
-                  <TableHead>Country</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={6} className="text-center py-4">
+                    Loading...
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredVendors.map((vendor) => (
+              ) : vendors.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-4">
+                    No vendors found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                vendors.map((vendor) => (
                   <TableRow key={vendor.uuid}>
-                    <TableCell className="font-medium">{vendor.name}</TableCell>
+                    <TableCell>{vendor.name}</TableCell>
                     <TableCell>{vendor.address}</TableCell>
                     <TableCell>{vendor.status}</TableCell>
                     <TableCell>{vendor.city}</TableCell>
                     <TableCell>{vendor.country}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setModalState({ open: true, mode: "edit", vendor })}
-                        >
-                          <Edit className="h-4 w-4" />  {/* Pencil/pen icon for editing */}
+                        <Button variant="outline" size="icon" onClick={() => {
+                          toast("Edit feature is not yet implemented");
+                        }}>
+                          <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setDeleteVendor(vendor);
-                            setShowDeleteDialog(true);
-                          }}
-                        >
-                          <Trash className="h-4 w-4" />
+                        <Button variant="destructive" size="icon" onClick={() => handleDeleteClick(vendor.uuid)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                ))
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={handleDeleteDialogClose}>
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Vendor</DialogTitle>
@@ -226,22 +182,19 @@ export default function VendorPage() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={handleDeleteDialogClose}>
+            <Button variant="outline" onClick={() => {
+              setShowDeleteDialog(false);
+              setConfirmDeleteStep(false);
+            }}>
               Cancel
             </Button>
 
             {!confirmDeleteStep ? (
-              <Button
-                variant="destructive"
-                onClick={() => setConfirmDeleteStep(true)}
-              >
+              <Button variant="destructive" onClick={() => setConfirmDeleteStep(true)}>
                 Delete
               </Button>
             ) : (
-              <Button
-                variant="destructive"
-                onClick={handleDeleteVendor}
-              >
+              <Button variant="destructive" onClick={handleDeleteVendor}>
                 Yes, Delete Permanently
               </Button>
             )}
