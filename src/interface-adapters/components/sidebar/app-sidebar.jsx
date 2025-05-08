@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
+import  useAuthGuard  from "@/interface-adapters/hooks/useAuthGuard";
 import { useState, useEffect } from "react";
 import { getUserDetail } from "@/interface-adapters/usecases/token/getUserDetail";
 import {
-  IconCamera,
+  IconBuildingWarehouse,
   IconDashboard,
   IconUsersGroup,
   IconFolder,
@@ -43,20 +44,20 @@ import {
 } from "@/interface-adapters/components/ui/sidebar";
 
 export function AppSidebar(props) {
+  
   const [name, setName] = useState("Loading...");
   const [email, setEmail] = useState("Loading...");
   const [hydrated, setHydrated] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
 
-
   useEffect(() => {
     setHydrated(true);
     const fetchUser = async () => {
       try {
-        const userDetail = await getUserDetail();
-        const userName = userDetail?.user?.username || "Guest";
-        const userEmail = userDetail?.user?.email || "no-email@example.com";
+        const { data } = await getUserDetail(); // destructure `data` from return
+        const userName = data?.user?.username || "Guest";
+        const userEmail = data?.user?.email || "no-email@example.com";
         setName(userName);
         setEmail(userEmail);
       } catch (error) {
@@ -66,6 +67,15 @@ export function AppSidebar(props) {
     fetchUser();
   }, []);
 
+  const loading = useAuthGuard();
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+      </div>
+    );
+  }
+  
   const navSecondary = [
     { title: "Settings", url: "#", icon: IconSettings },
     { title: "Get Help", url: "#", icon: IconHelp },
@@ -84,7 +94,7 @@ export function AppSidebar(props) {
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
     { title: "Role", url: "#", icon: IconUserEdit },
-    { title: "Search Files", url: "#", icon: IconFileSearch },
+    { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
     { title: "Tips & Tricks", url: "#", icon: IconBulb },
     { title: "Archives", url: "#", icon: IconArchive },
   ];

@@ -1,5 +1,4 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
-
 export async function getUserDetail() {
   const token = getToken();
   if (!token) {
@@ -7,24 +6,47 @@ export async function getUserDetail() {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/`, {
+    
+    const firstResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/`, {
       method: "GET",
       headers: {
-        "Accept": "*/*",
-        "Authorization": `Bearer ${token}`,
+        Accept: "*/*",
+        Authorization: `Bearer ${token}`,
       },
     });
 
-    const data = await response.json();
+    const first = await firstResponse.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to fetch user data");
+    if (!firstResponse.ok) {
+      throw new Error(first.message || "Failed to fetch initial user data");
     }
 
-    return data
+    const username = first?.user?.[0]?.username;
+    if (!username) {
+      throw new Error("Username not found in initial user data");
+    }
+    
+    const secondResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/user?username=${username}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await secondResponse.json();
+
+    if (!secondResponse.ok) {
+      throw new Error(data.message || "Failed to fetch user detail by username");
+    }
+
+    return { first, data }; // Returning both responses
   } catch (error) {
-    console.error("Error fetching user role:", error);
-    throw new Error("Error fetching user role");
+    console.error("Error fetching user details:", error);
+    throw new Error("Error fetching user details");
   }
 }
 

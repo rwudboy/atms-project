@@ -5,11 +5,13 @@ import { loginUser } from "@/interface-adapters/usecases/login/loginUser";
 import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
+import { Eye, EyeOff } from "lucide-react";
 import { Label } from "@/interface-adapters/components/ui/label";
 import { ClipLoader } from "react-spinners";
 
 export function LoginForm({ className, ...props }) {
   const [email, setEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -87,7 +89,7 @@ export function LoginForm({ className, ...props }) {
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
 
-        <div className="grid gap-1.5">
+        <div className="grid gap-1.5 relative">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
             <a href="#" className="ml-auto text-sm underline-offset-4 hover:underline">
@@ -96,12 +98,20 @@ export function LoginForm({ className, ...props }) {
           </div>
           <Input
             id="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-9 text-gray-500 hover:text-black"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
+
 
         <Button type="submit" disabled={loading}>
           {loading ? <ClipLoader size={20} color="#fff" /> : "Login"}
