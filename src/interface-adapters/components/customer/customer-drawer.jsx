@@ -45,8 +45,8 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
     setFieldErrors({});
 
     try {
-      await addCustomer(formData); // don't need returned object
-      await onCustomerAdded(); // refetch customer list
+      await addCustomer(formData); 
+      await onCustomerAdded(); 
       setFormData({ name: "", address: "", city: "", country: "" });
       setOpenDrawer(false);
       toast.success("Customer added!");

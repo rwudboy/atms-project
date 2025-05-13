@@ -93,7 +93,7 @@ export function AppSidebar(props) {
   const referenceItems = [
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
-    { title: "Role", url: "#", icon: IconUserEdit },
+    { title: "Role", url: "/roles", icon: IconUserEdit },
     { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
     { title: "Tips & Tricks", url: "#", icon: IconBulb },
     { title: "Archives", url: "#", icon: IconArchive },

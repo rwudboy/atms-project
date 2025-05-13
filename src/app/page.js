@@ -4,6 +4,7 @@ import DashboardPage from "@/app/dashboard/page";
 import OtpPage from "@/app/otp/page";
 import Customer from "@/app/customer/page";
 import Workgroup from "@/app/workgroup/page";
+import Role from "@/app/roles/page";
 
 export default function Page({ params }) {
   const pages = {
@@ -11,7 +12,8 @@ export default function Page({ params }) {
     dashboard: <DashboardPage />,
     otp: <OtpPage />,
     customer: <Customer />,
-    workgroup: <Workgroup />
+    workgroup: <Workgroup />,
+    roles: <Role />
   };
 
   return pages[params?.slug] || <LoginPage />;

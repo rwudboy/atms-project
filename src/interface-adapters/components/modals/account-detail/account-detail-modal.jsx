@@ -69,8 +69,6 @@ export default function AccountDetailModal({ isOpen, onOpenChange, defaultValues
   }, [isOpen]);
      
 
-  // console.log(fullName, "nmnmnm")
-
 
   const handleSave = () => {
     if (onSave) {
@@ -86,7 +84,7 @@ export default function AccountDetailModal({ isOpen, onOpenChange, defaultValues
     }
 
     if (onOpenChange) {
-      onOpenChange(false); // Close modal after saving
+      onOpenChange(false); 
     }
   };
 
