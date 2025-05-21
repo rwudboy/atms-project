@@ -17,13 +17,15 @@ export async function getProjects() {
     });
 
     const result = await response.json();
+    console.log(result.data)
 
     if (!response.ok) {
       throw new Error(result.message || "Failed to fetch projects");
     }
 
-    // ✅ Return just the array inside `data`
     return Array.isArray(result.data) ? result.data : [];
+
+    
   } catch (error) {
     console.error("Error fetching projects:", error);
     return [];

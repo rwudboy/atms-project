@@ -31,8 +31,16 @@ export default function ProjectInstancePage() {
   useEffect(() => {
     const fetchInstances = async () => {
       try {
+        setLoading(true);
         const result = await getProjects();
-        const projectData = result.data || []; 
+        
+        // In case the API returns data in a different format
+        // Make sure we're handling the data correctly
+        const projectData = Array.isArray(result) ? result : 
+                          Array.isArray(result.data) ? result.data : [];
+        
+        console.log("Fetched project data:", projectData);
+        
         setAllInstances(projectData);
         setInstances(projectData);
       } catch (error) {
@@ -42,19 +50,31 @@ export default function ProjectInstancePage() {
         setLoading(false);
       }
     };
+    
     fetchInstances();
   }, []);
 
   useEffect(() => {
-    const filtered = allInstances.filter((instance) =>
-      instance.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      instance.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (!searchTerm.trim()) {
+      setInstances(allInstances);
+      return;
+    }
+    
+    const searchTermLower = searchTerm.toLowerCase();
+    const filtered = allInstances.filter((instance) => {
+      const nameMatch = instance.name?.toLowerCase().includes(searchTermLower);
+      const keyMatch = instance.key?.toLowerCase().includes(searchTermLower);
+      const descMatch = instance.description?.toLowerCase().includes(searchTermLower);
+      
+      return nameMatch || keyMatch || descMatch;
+    });
+    
     setInstances(filtered);
   }, [searchTerm, allInstances]);
 
-  const handleClaim = (instanceName) => {
-    toast.success(`You have claimed ${instanceName}`);
+  const handleClaim = (instance) => {
+    toast.success(`You have started ${instance.name}`);
+    // Additional logic for claiming can go here
   };
 
   return (
@@ -77,7 +97,7 @@ export default function ProjectInstancePage() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search by name or description..."
+              placeholder="Search by name or key..."
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -89,37 +109,44 @@ export default function ProjectInstancePage() {
       <Card>
         <CardHeader>
           <CardTitle>Project Instance List</CardTitle>
+          <CardDescription>
+            Showing {instances.length} of {allInstances.length} project instances
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>Key</TableHead>
+                <TableHead>Version</TableHead>
+                <TableHead>Resource</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4">
-                    Loading...
+                  <TableCell colSpan={5} className="text-center py-4">
+                    Loading project instances...
                   </TableCell>
                 </TableRow>
               ) : instances.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4">
+                  <TableCell colSpan={5} className="text-center py-4">
                     No project instances found
                   </TableCell>
                 </TableRow>
               ) : (
                 instances.map((instance) => (
                   <TableRow key={instance.id}>
-                    <TableCell>{instance.name}</TableCell>
-                    <TableCell>{instance.description || "No description"}</TableCell>
+                    <TableCell className="font-medium">{instance.name || "Unnamed"}</TableCell>
+                    <TableCell>{instance.key}</TableCell>
+                    <TableCell>{instance.version} {instance.versionTag ? `(${instance.versionTag})` : ""}</TableCell>
+                    <TableCell>{instance.resource}</TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleClaim(instance.name)}>
-                        Claim
+                      <Button onClick={() => handleClaim(instance)}>
+                       Start
                       </Button>
                     </TableCell>
                   </TableRow>
