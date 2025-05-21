@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { motion } from "framer-motion";
-import { CheckCircle } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
@@ -19,6 +17,9 @@ import {
   SelectValue,
 } from "@/interface-adapters/components/ui/select";
 
+import { validateUserRegistration } from "@/enterprise-business-rules/validation/regisUserValidation";
+import { getPasswordStrength } from "@/enterprise-business-rules/validation/getPasswordStrength";
+
 export function RegisterForm({ className, ...props }) {
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
@@ -32,69 +33,26 @@ export function RegisterForm({ className, ...props }) {
   const [showErrors, setShowErrors] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const getPasswordStrength = (password) => {
-    let score = 0;
-    if (password.length >= 6) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-    if (password.length >= 10) score++;
-    return score;
-  };
-
   const passwordStrength = getPasswordStrength(password);
-  const strengthLabel = ["Weak", "Fair", "Good", "Strong"][passwordStrength - 1] || "";
-  const strengthColor = ["bg-red-400", "bg-yellow-400", "bg-blue-400", "bg-green-500"][passwordStrength - 1] || "bg-gray-200";
+  const strengthLabel = passwordStrength.label;
+  const strengthColor = passwordStrength.color;
 
-  const isValid = {
-    username: username && !errors.username,
-    fullName: fullName && !errors.fullName,
-    password: password && !errors.password,
-    email: email && !errors.email,
-    phone: phone && !errors.phone,
-  };
-
-  const validateInputs = () => {
-    const newErrors = {};
-    if (!fullName) newErrors.fullName = "Data can't be empty";
-    if (!username) newErrors.username = "Data can't be empty";
-    if (!password) newErrors.password = "Data can't be empty";
-    if (!email) newErrors.email = "Data can't be empty";
-    if (!birth) newErrors.birth = "Data can't be empty";
-    if (!jabatan) newErrors.jabatan = "Please select a role";
-
-    if (fullName && (!/[a-zA-Z]/.test(fullName) || fullName.length < 3)) {
-      newErrors.username = "Username must include letters and be at least 3 characters.";
-    }
-
-    if (username && (!/[a-zA-Z]/.test(username) || username.length < 3)) {
-      newErrors.username = "Username must include letters and be at least 3 characters.";
-    }
-
-    if (username && (!/[a-zA-Z]/.test(username) || username.length < 3)) {
-      newErrors.username = "Full Name must include letters and be at least 3 characters.";
-    }
-
-    if (password && (!/[A-Z]/.test(password) || !/[^a-zA-Z0-9]/.test(password) || password.length < 6)) {
-      newErrors.password = "Password must be at least 6 characters, with 1 capital and 1 symbol.";
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Invalid email address.";
-    }
-
-    if (phone && !/^\d{10,13}$/.test(phone)) {
-      newErrors.phone = "Phone number must be 10–13 digits if filled.";
-    }
-
-    return newErrors;
-  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setShowErrors(true);
     setLoading(true);
 
-    const newErrors = validateInputs();
+    const newErrors = validateUserRegistration({
+      fullName,
+      username,
+      password,
+      email,
+      birth,
+      phone,
+      jabatan,
+    });
+
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) {
@@ -149,12 +107,10 @@ export function RegisterForm({ className, ...props }) {
         {showErrors && errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
       </div>
 
-
       {/* Username */}
       <div className="grid gap-1 relative">
         <Label htmlFor="username">Username</Label>
         <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-  
         {showErrors && errors.username && <p className="text-red-500 text-sm">{errors.username}</p>}
       </div>
 
@@ -190,15 +146,13 @@ export function RegisterForm({ className, ...props }) {
             <div className="h-2 w-full bg-gray-200 rounded">
               <div
                 className={`${strengthColor} h-2 rounded`}
-                style={{ width: `${(passwordStrength / 4) * 100}%` }}
+                style={{ width: `${passwordStrength.percentage}%` }}
               />
             </div>
             <p className="text-sm text-muted-foreground mt-1">{strengthLabel}</p>
           </div>
         )}
-        {showErrors && errors.password && (
-          <p className="text-red-500 text-sm">{errors.password}</p>
-        )}
+        {showErrors && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
       </div>
 
       {/* Phone */}
@@ -214,7 +168,6 @@ export function RegisterForm({ className, ...props }) {
         <Input type="date" id="birth" value={birth} onChange={(e) => setBirth(e.target.value)} />
         {showErrors && errors.birth && <p className="text-red-500 text-sm">{errors.birth}</p>}
       </div>
-
 
       {/* Jabatan */}
       <div className="grid gap-1">
@@ -247,9 +200,7 @@ export function RegisterForm({ className, ...props }) {
             ))}
           </SelectContent>
         </Select>
-        {showErrors && errors.jabatan && (
-          <p className="text-red-500 text-sm">{errors.jabatan}</p>
-        )}
+        {showErrors && errors.jabatan && <p className="text-red-500 text-sm">{errors.jabatan}</p>}
       </div>
 
       {/* Submit */}

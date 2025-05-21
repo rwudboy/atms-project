@@ -3,8 +3,8 @@ import { getToken } from "@/framework-drivers/token/tokenService";
 // Helper function to decode JWT token
 function decodeToken(token) {
   try {
-    const payload = token.split(".")[1]; // Get the payload part
-    const decodedPayload = atob(payload); // Decode from Base64
+    const payload = token.split(".")[1]; 
+    const decodedPayload = atob(payload); 
     return JSON.parse(decodedPayload);
   } catch (error) {
     throw new Error("Failed to decode token");

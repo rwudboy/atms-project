@@ -12,8 +12,12 @@ export function SiteHeader() {
   const [hydrated, setHydrated] = useState(false);
   const pathname = usePathname();
 
-  const pageTitle = pathname.split("/").filter(Boolean).shift() || "Home";
-  const formattedTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
+  const pageSlug = pathname.split("/").filter(Boolean).shift() || "home";
+  const formattedTitle = pageSlug
+    .replace(/-/g, " ")
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
   useEffect(() => {
     setHydrated(true);
@@ -22,9 +26,9 @@ export function SiteHeader() {
       try {
         const { data } = await getUserDetail();
         const roleString = data?.user?.Role || "";
-        const roleArray = roleString.split(",").map((r) => r.trim());
-        const lastRole = roleArray.at(-1) || "Guest";
-        setRole(lastRole);
+        const roleArray = roleString.split(",").map(r => r.trim());
+        const firstRole = roleArray[0] || "Guest";
+        setRole(firstRole);
       } catch (error) {
         console.error("Error fetching role:", error);
       }

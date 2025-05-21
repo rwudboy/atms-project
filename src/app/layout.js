@@ -16,8 +16,14 @@ const geistMono = Geist_Mono({
 
 export default function RootLayout({ children }) {
   const pathname = usePathname();
-  const pageTitle = pathname.split("/").filter(Boolean)[0] || "Home";
-  const formattedTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
+  const pageSlug = pathname.split("/").filter(Boolean)[0] || "home";
+
+  // Format the title: replace '-' with space and capitalize each word
+  const formattedTitle = pageSlug
+    .replace(/-/g, " ")
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 
   return (
     <html lang="en">

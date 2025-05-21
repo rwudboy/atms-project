@@ -83,7 +83,7 @@ export function AppSidebar(props) {
 
   const projectSubItems = [
     { title: "New Project", url: "#", icon: IconCirclePlus },
-    { title: "All Project", url: "#", icon: IconFolder },
+    { title: "Project Instance", url: "/project-instance", icon: IconFolder },
     { title: "New Milestone", url: "#", icon: IconFlag },
     { title: "Milestones", url: "#", icon: IconList },
     { title: "Tasks", url: "#", icon: IconListCheck },

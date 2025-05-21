@@ -2,15 +2,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
-import debounce from "lodash.debounce";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/interface-adapters/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2 } from "lucide-react";
-import { getCustomers, deleteCustomer } from "@/interface-adapters/usecases/customer/customer-usecase";
+import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
+import { deleteCustomer } from "@/interface-adapters/usecases/customer/delete-customer";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
-import { toast } from "sonner"; // Import sonner for notifications
+import { toast } from "sonner";
 
 export default function CustomersPage() {
   const router = useRouter();
