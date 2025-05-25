@@ -84,10 +84,9 @@ export function AppSidebar(props) {
   const projectSubItems = [
     { title: "New Project", url: "#", icon: IconCirclePlus },
     { title: "Project Instance", url: "/project-instance", icon: IconFolder },
-    { title: "New Milestone", url: "#", icon: IconFlag },
-    { title: "Milestones", url: "#", icon: IconList },
     { title: "Tasks", url: "#", icon: IconListCheck },
     { title: "Inbox", url: "#", icon: IconInbox },
+    { title: "Archives", url: "/archives", icon: IconArchive },
   ];
 
   const referenceItems = [
@@ -95,8 +94,7 @@ export function AppSidebar(props) {
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
     { title: "Role", url: "/roles", icon: IconUserEdit },
     { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
-    { title: "Tips & Tricks", url: "#", icon: IconBulb },
-    { title: "Archives", url: "#", icon: IconArchive },
+
   ];
 
   if (!hydrated) return null;
@@ -180,16 +178,8 @@ export function AppSidebar(props) {
 
 
           {/* Other Main Items */}
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <a href="#" className="flex items-center gap-2">
-                <IconCalendarWeek className="size-5" />
-                Calendar
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
+          
+          {/* <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a href="#" className="flex items-center gap-2">
                 <IconReport className="size-5" />
@@ -205,7 +195,7 @@ export function AppSidebar(props) {
                 My Task
               </a>
             </SidebarMenuButton>
-          </SidebarMenuItem>
+          </SidebarMenuItem> */}
         </SidebarMenu>
 
         <NavSecondary items={navSecondary} className="mt-auto" />

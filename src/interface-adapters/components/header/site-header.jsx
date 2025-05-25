@@ -23,16 +23,18 @@ export function SiteHeader() {
     setHydrated(true);
 
     const fetchRole = async () => {
-      try {
-        const { data } = await getUserDetail();
-        const roleString = data?.user?.Role || "";
-        const roleArray = roleString.split(",").map(r => r.trim());
-        const firstRole = roleArray[0] || "Guest";
-        setRole(firstRole);
-      } catch (error) {
-        console.error("Error fetching role:", error);
-      }
-    };
+  try {
+    const { data } = await getUserDetail();
+    const roleString = data?.user?.Role || "";
+    const roleArray = roleString.split(",").map(r => r.trim());
+    const firstRoleRaw = roleArray[0] || "Guest";
+    const firstRole = firstRoleRaw.charAt(0).toUpperCase() + firstRoleRaw.slice(1).toLowerCase();
+    setRole(firstRole);
+  } catch (error) {
+    console.error("Error fetching role:", error);
+  }
+};
+
 
     fetchRole();
   }, []);
@@ -47,7 +49,7 @@ export function SiteHeader() {
         <h1 className="text-base font-medium">{formattedTitle}</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="ghost" size="sm" className="sm:flex dark:text-foreground">
-            {`Role: ${role}`}
+            {`${role}`}
           </Button>
         </div>
       </div>

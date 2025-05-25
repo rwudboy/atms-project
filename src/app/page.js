@@ -6,6 +6,7 @@ import Customer from "@/app/customer/page";
 import Workgroup from "@/app/workgroup/page";
 import Role from "@/app/roles/page";
 import ProjectInstance from "@/app/project-instance/page";
+import ArchivesPage from "@/app/archives/page";
 
 export default function Page({ params }) {
   const pages = {
@@ -15,7 +16,8 @@ export default function Page({ params }) {
     customer: <Customer />,
     workgroup: <Workgroup />,
     roles: <Role />,
-    "project-instance" :<ProjectInstance /> 
+    "project-instance" :<ProjectInstance />,
+    archives :<ArchivesPage /> 
   };
 
   return pages[params?.slug] || <LoginPage />;
