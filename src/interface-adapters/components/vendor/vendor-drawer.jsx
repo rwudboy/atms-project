@@ -26,6 +26,7 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
     address: "",
     city: "",
     country: "",
+    category: "",
   });
   const [errors, setErrors] = useState({});
 
@@ -39,26 +40,28 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
     if (!formData.address) errs.address = "Address is required";
     if (!formData.city) errs.city = "City is required";
     if (!formData.country) errs.country = "Country is required";
+    if (!formData.category) errs.category = "Category is required";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleAddVendor = async () => {
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
-      await addVendor(formData);
-      toast.success("Vendor added successfully");
-      setFormData({ name: "", address: "", city: "", country: "" });
-      setOpenDrawer(false);
-      onVendorAdded?.();
-    } catch (error) {
-      toast.error(error.message || "Failed to add vendor");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    const newVendor = await addVendor(formData);
+    toast.success("Vendor added successfully");
+    setFormData({ name: "", address: "", city: "", country: "", category: "" });
+    setOpenDrawer(false);
+    onVendorAdded?.(newVendor); // ✅ send vendor back to parent
+  } catch (error) {
+    toast.error(error.message || "Failed to add vendor");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <Drawer open={openDrawer} onOpenChange={setOpenDrawer} direction={isMobile ? "bottom" : "right"}>
@@ -70,7 +73,7 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
             <DrawerDescription>Fill in the vendor details below.</DrawerDescription>
           </DrawerHeader>
           <div className="grid gap-4 py-4">
-            {["name", "address", "city", "country"].map((field) => (
+            {["name", "address", "city", "country", "category"].map((field) => (
               <div key={field}>
                 <Input
                   placeholder={field.charAt(0).toUpperCase() + field.slice(1)}

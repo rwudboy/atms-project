@@ -42,12 +42,15 @@ export default function WorkgroupsPage() {
   }, []);
   
   useEffect(() => {
-    const filtered = fullWorkgroups.filter((wg) =>
-      wg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      wg.status.toLowerCase().includes(searchTerm.toLowerCase()) // assuming `status` is the project name
-    );
-    setWorkgroups(filtered);
-  }, [searchTerm, fullWorkgroups]);
+      const delayDebounce = setTimeout(async () => {
+        setLoading(true);
+        const result = await getWorkgroups(searchTerm);
+        setWorkgroups(result);
+        setLoading(false);
+      }, 1000); // 1 second debounce
+  
+      return () => clearTimeout(delayDebounce); // Cleanup
+    }, [searchTerm]);
   
 
 
@@ -126,34 +129,39 @@ export default function WorkgroupsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4">
-                    Loading...
-                  </TableCell>
-                </TableRow>
-              ) : workgroups.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4">
-                    No workgroups found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                workgroups.map((wg) => (
-                  <TableRow key={wg.uuid}>
-                    <TableCell className="font-medium">{wg.name}</TableCell>
-                    <TableCell>{wg.status}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(wg.uuid)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
+  {loading ? (
+    <TableRow>
+      <TableCell colSpan={3} className="text-center py-4">
+        Loading...
+      </TableCell>
+    </TableRow>
+  ) : workgroups.length === 0 ? (
+    <TableRow>
+      <TableCell colSpan={3} className="text-center py-4">
+        No workgroups found
+      </TableCell>
+    </TableRow>
+  ) : (
+    workgroups.map((wg) => (
+      <TableRow key={wg.uuid}>
+        <TableCell className="font-medium">{wg.name}</TableCell>
+        <TableCell>{wg.status || "—"}</TableCell> {/* Use project_name or fallback */}
+        <TableCell className="text-right">
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDeleteClick(wg.uuid)} // Use uuid here
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    ))
+  )}
+</TableBody>
+
           </Table>
         </CardContent>
       </Card>

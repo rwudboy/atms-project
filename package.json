@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sonar": "npx sonarqube-scanner -Dsonar.login=sqp_7313673c6d06f4e0db54c3f4cf0fe84509db0975 -Dsonar.host.url=http://localhost:9002"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -44,6 +45,7 @@
     "react-hook-form": "^7.56.1",
     "react-spinners": "^0.16.1",
     "recharts": "^2.15.1",
+    "sonarqube-scanner": "^4.3.0",
     "sonner": "^2.0.3",
     "sweetalert2": "^11.19.0",
     "tailwind-merge": "^3.0.2",

@@ -2,17 +2,39 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/interface-adapters/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/interface-adapters/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/interface-adapters/components/ui/dialog";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit } from "lucide-react";
 import {
   getVendors,
   deleteVendor,
-  addVendor,
-  updateVendor
 } from "@/interface-adapters/usecases/vendor/vendor-usecase";
 import AddVendorDrawer from "@/interface-adapters/components/vendor/vendor-drawer";
 import { toast } from "sonner";
@@ -25,13 +47,11 @@ export default function VendorPage() {
   const [vendorToDelete, setVendorToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
-  const [allVendors, setAllVendors] = useState([]);
 
   useEffect(() => {
     const fetchVendors = async () => {
       try {
         const result = await getVendors("");
-        setAllVendors(result);
         setVendors(result);
       } catch (error) {
         console.error("Error fetching vendors:", error);
@@ -43,12 +63,20 @@ export default function VendorPage() {
   }, []);
 
   useEffect(() => {
-    const filtered = allVendors.filter((vendor) =>
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.address.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setVendors(filtered);
-  }, [searchTerm, allVendors]);
+    const delayDebounce = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const result = await getVendors(searchTerm);
+        setVendors(result);
+      } catch (error) {
+        console.error("Search error:", error);
+      } finally {
+        setLoading(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
 
   const handleDeleteClick = (id) => {
     setVendorToDelete(id);
@@ -60,13 +88,22 @@ export default function VendorPage() {
   const handleDeleteVendor = async () => {
     try {
       await deleteVendor(vendorToDelete);
-      setVendors(vendors.filter((v) => v.uuid !== vendorToDelete));
+      setVendors((prev) => prev.filter((v) => v.uuid !== vendorToDelete));
       setShowDeleteDialog(false);
       setConfirmDeleteStep(false);
       toast.success("Vendor deleted successfully.");
     } catch (error) {
       setDeleteError("Failed to delete the vendor.");
       toast.error("There was an error deleting the vendor.");
+    }
+  };
+
+  const refreshVendors = async () => {
+    try {
+      const result = await getVendors("");
+      setVendors(result);
+    } catch (error) {
+      console.error("Failed to refresh vendor list:", error);
     }
   };
 
@@ -79,25 +116,26 @@ export default function VendorPage() {
             <CardDescription>Manage and view all vendor data.</CardDescription>
           </div>
           <AddVendorDrawer
-            trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Vendor</Button>}
-            onVendorAdded={(newVendor) => {
-              toast.success("Vendor added successfully");
-              setVendors((prev) => [...prev, newVendor]);
-            }}
+            trigger={
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add Vendor
+              </Button>
+            }
+            onVendorAdded={refreshVendors}
           />
         </CardHeader>
       </Card>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Search Vendors</CardTitle>
+          <CardTitle>Search Vendor</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search by name or address..."
+              placeholder="Search by name..."
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -119,38 +157,48 @@ export default function VendorPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>City</TableHead>
                 <TableHead>Country</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : vendors.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4">
                     No vendors found
                   </TableCell>
                 </TableRow>
               ) : (
                 vendors.map((vendor) => (
-                  <TableRow key={vendor.uuid}>
+                  <TableRow key={vendor.uuid || vendor.name}>
                     <TableCell>{vendor.name}</TableCell>
                     <TableCell>{vendor.address}</TableCell>
                     <TableCell>{vendor.status}</TableCell>
                     <TableCell>{vendor.city}</TableCell>
                     <TableCell>{vendor.country}</TableCell>
+                    <TableCell>{vendor.category}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="icon" onClick={() => {
-                          toast("Edit feature is not yet implemented");
-                        }}>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() =>
+                            toast("Edit feature is not yet implemented")
+                          }
+                        >
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="destructive" size="icon" onClick={() => handleDeleteClick(vendor.uuid)}>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDeleteClick(vendor.uuid)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -182,15 +230,21 @@ export default function VendorPage() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowDeleteDialog(false);
-              setConfirmDeleteStep(false);
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setConfirmDeleteStep(false);
+              }}
+            >
               Cancel
             </Button>
 
             {!confirmDeleteStep ? (
-              <Button variant="destructive" onClick={() => setConfirmDeleteStep(true)}>
+              <Button
+                variant="destructive"
+                onClick={() => setConfirmDeleteStep(true)}
+              >
                 Delete
               </Button>
             ) : (

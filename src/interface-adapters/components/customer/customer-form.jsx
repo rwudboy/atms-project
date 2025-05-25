@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
@@ -13,7 +12,6 @@ import AddCustomerDrawer from "@/interface-adapters/components/customer/customer
 import { toast } from "sonner";
 
 export default function CustomersPage() {
-  const router = useRouter();
   const [customers, setCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,7 +45,7 @@ export default function CustomersPage() {
         await deleteCustomer(customerToDelete);
 
         // Remove the deleted customer from the local state
-        setCustomers(customers.filter((c) => c.uuid !== customerToDelete));
+        setCustomers(customers.filter((c) => c.id !== customerToDelete));
 
         // Show success notification
         toast.success("Customer deleted successfully!");
@@ -133,14 +131,14 @@ export default function CustomersPage() {
                 </TableRow>
               ) : (
                 customers.map((customer) => (
-                  <TableRow key={customer.uuid}>
+                  <TableRow key={customer.id}>
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{customer.address}</TableCell>
                     <TableCell>{customer.city}</TableCell>
                     <TableCell>{customer.country}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(customer.uuid)}>
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(customer.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

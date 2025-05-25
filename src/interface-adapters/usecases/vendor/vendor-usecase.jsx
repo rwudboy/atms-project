@@ -9,7 +9,7 @@ export async function getVendors(searchTerm = "") {
 
   try {
     const query = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : "";
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendor`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendor${query}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
