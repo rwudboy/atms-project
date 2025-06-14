@@ -20,7 +20,10 @@ import {
 } from "@/interface-adapters/components/ui/table";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
+
 import { getProjects } from "@/interface-adapters/usecases/project-instance/get-project";
+import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
+import ProjectInstanceModal from "@/interface-adapters/components/modals/project-instance/project-instance-modal";
 
 export default function ProjectInstancePage() {
   const [instances, setInstances] = useState([]);
@@ -28,19 +31,46 @@ export default function ProjectInstancePage() {
   const [loading, setLoading] = useState(true);
   const [allInstances, setAllInstances] = useState([]);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInstance, setSelectedInstance] = useState(null);
+
+  const [selectedKey, setSelectedKey] = useState("");
+  const [projectName, setProjectName] = useState("");
+  const [contractNumber, setContractNumber] = useState("");
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [customerOpen, setCustomerOpen] = useState(false);
+
+  const handleClaim = (instance) => {
+    setSelectedInstance(instance);
+    setSelectedKey(instance.key || "");
+    setProjectName(instance.name || "");
+    setContractNumber("");
+    setSelectedCustomer("");
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedInstance(null);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    toast.success(`Project "${projectName}" started with contract #${contractNumber}`);
+    closeModal();
+  };
+
   useEffect(() => {
     const fetchInstances = async () => {
       try {
         setLoading(true);
         const result = await getProjects();
-        
-        // In case the API returns data in a different format
-        // Make sure we're handling the data correctly
-        const projectData = Array.isArray(result) ? result : 
-                          Array.isArray(result.data) ? result.data : [];
-        
-        console.log("Fetched project data:", projectData);
-        
+        const projectData = Array.isArray(result)
+          ? result
+          : Array.isArray(result.data)
+          ? result.data
+          : [];
         setAllInstances(projectData);
         setInstances(projectData);
       } catch (error) {
@@ -50,8 +80,26 @@ export default function ProjectInstancePage() {
         setLoading(false);
       }
     };
-    
+
     fetchInstances();
+  }, []);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const data = await getCustomers();
+        const options = data.map((c) => ({
+          label: c.name,
+          value: c.id,
+        }));
+        setCustomers(options);
+      } catch (error) {
+        console.error("Failed to fetch customers:", error);
+        toast.error("Could not load customers.");
+      }
+    };
+
+    fetchCustomers();
   }, []);
 
   useEffect(() => {
@@ -59,23 +107,17 @@ export default function ProjectInstancePage() {
       setInstances(allInstances);
       return;
     }
-    
-    const searchTermLower = searchTerm.toLowerCase();
+
+    const lower = searchTerm.toLowerCase();
     const filtered = allInstances.filter((instance) => {
-      const nameMatch = instance.name?.toLowerCase().includes(searchTermLower);
-      const keyMatch = instance.key?.toLowerCase().includes(searchTermLower);
-      const descMatch = instance.description?.toLowerCase().includes(searchTermLower);
-      
+      const nameMatch = instance.name?.toLowerCase().includes(lower);
+      const keyMatch = instance.key?.toLowerCase().includes(lower);
+      const descMatch = instance.description?.toLowerCase().includes(lower);
       return nameMatch || keyMatch || descMatch;
     });
-    
+
     setInstances(filtered);
   }, [searchTerm, allInstances]);
-
-  const handleClaim = (instance) => {
-    toast.success(`You have started ${instance.name}`);
-    // Additional logic for claiming can go here
-  };
 
   return (
     <div className="container mx-auto py-10">
@@ -142,12 +184,13 @@ export default function ProjectInstancePage() {
                   <TableRow key={instance.id}>
                     <TableCell className="font-medium">{instance.name || "Unnamed"}</TableCell>
                     <TableCell>{instance.key}</TableCell>
-                    <TableCell>{instance.version} {instance.versionTag ? `(${instance.versionTag})` : ""}</TableCell>
+                    <TableCell>
+                      {instance.version}
+                      {instance.versionTag ? ` (${instance.versionTag})` : ""}
+                    </TableCell>
                     <TableCell>{instance.resource}</TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleClaim(instance)}>
-                       Start
-                      </Button>
+                      <Button onClick={() => handleClaim(instance)}>Start</Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -156,6 +199,23 @@ export default function ProjectInstancePage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Modal Component */}
+      <ProjectInstanceModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubmit={handleSubmit}
+        selectedKey={selectedKey}
+        projectName={projectName}
+        setProjectName={setProjectName}
+        contractNumber={contractNumber}
+        setContractNumber={setContractNumber}
+        customers={customers}
+        selectedCustomer={selectedCustomer}
+        setSelectedCustomer={setSelectedCustomer}
+        customerOpen={customerOpen}
+        setCustomerOpen={setCustomerOpen}
+      />
     </div>
   );
 }
