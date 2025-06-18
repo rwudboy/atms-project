@@ -93,13 +93,12 @@ export function AppSidebar(props) {
   const referenceItems = [
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
-    
     { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
 
   ];
 
   const userManagement = [
-    { title: "User Profile", url: "/customer", icon: IconUsers },
+    { title: "User Profile", url: "/user-profile", icon: IconUsers },
     { title: "User Role", url: "/roles", icon: IconUserEdit },
 
   ];

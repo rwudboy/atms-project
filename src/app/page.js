@@ -5,6 +5,7 @@ import OtpPage from "@/app/otp/page";
 import Customer from "@/app/customer/page";
 import Workgroup from "@/app/workgroup/page";
 import Role from "@/app/roles/page";
+import UserProfile from "@/app/user-profile/page";
 import ProjectInstance from "@/app/project-instance/page";
 import ArchivesPage from "@/app/archives/page";
 
@@ -16,6 +17,7 @@ export default function Page({ params }) {
     customer: <Customer />,
     workgroup: <Workgroup />,
     roles: <Role />,
+    "user-profile": < UserProfile/>,
     "project-instance" :<ProjectInstance />,
     archives :<ArchivesPage /> 
   };
