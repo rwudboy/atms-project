@@ -20,28 +20,28 @@ import {
 } from "@/interface-adapters/components/ui/table"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
+
 import {
   RoleModal,
   RoleViewModal,
   RoleDeleteModal,
 } from "@/interface-adapters/components/modals/roles/roles-modal"
-import {
-  getRoles,
-  createRole,
-  updateRole,
-  deleteRole,
-} from "@/interface-adapters/usecases/roles/roles-usecase"
+
+import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase"
+import { viewRoles } from "@/interface-adapters/usecases/roles/view-roles"
+
+import AddRoleDrawer from "@/interface-adapters/components/roles/roles-drawer"
 
 export default function RolesPage() {
   const [roles, setRoles] = useState([])
   const [allRoles, setAllRoles] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedRole, setSelectedRole] = useState(null)
-  const [modalOpen, setModalOpen] = useState(false)
   const [viewModalOpen, setViewModalOpen] = useState(false)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [roleToDelete, setRoleToDelete] = useState(null)
   const [roleToView, setRoleToView] = useState(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedRole, setSelectedRole] = useState(null)
+  const [roleToDelete, setRoleToDelete] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -53,7 +53,6 @@ export default function RolesPage() {
     setIsLoading(true)
     try {
       const response = await getRoles()
-
       if (response.workgroup?.status) {
         const grouped = groupRoles(response.workgroup.role || [])
         setRoles(grouped)
@@ -117,59 +116,35 @@ export default function RolesPage() {
     setRoles(filtered)
   }, [searchTerm, allRoles])
 
-  const handleCreateClick = () => {
-    setSelectedRole(null)
-    setModalOpen(true)
-  }
-
-  const handleEditClick = (role) => {
-    setSelectedRole(role)
-    setModalOpen(true)
-  }
-
-  const handleViewClick = (role) => {
-    const users = Array(role.userCount).fill().map((_, i) => ({
-      id: i,
-      name: `User ${i + 1}`,
-      email: `user${i + 1}@example.com`,
-    }))
-    setRoleToView({ ...role, users, permissions: ["read", "write"] })
-    setViewModalOpen(true)
-  }
-
-  const handleDeleteClick = (role) => {
-    setRoleToDelete(role)
-    setDeleteModalOpen(true)
-  }
-
-  const handleDeleteRole = async () => {
-    if (!roleToDelete) return
-    setIsDeleting(true)
+  const handleViewClick = async (role) => {
     try {
-      await deleteRole(roleToDelete.uuid)
-      toast.success(`Role "${roleToDelete.name}" deleted.`)
-      fetchRoles()
-    } catch {
-      toast.error("Failed to delete role.")
-    } finally {
-      setDeleteModalOpen(false)
-      setIsDeleting(false)
-    }
-  }
+      const response = await viewRoles(role.name)
+      const userData = response?.workgroup?.user
 
-  const handleSaveRole = async (uuid, roleData) => {
-    try {
-      if (uuid) {
-        await updateRole(uuid, roleData)
-        toast.success("Role updated.")
-      } else {
-        await createRole(roleData)
-        toast.success("Role created.")
+      if (!userData || !Array.isArray(userData.userName) || !Array.isArray(userData.email)) {
+        toast.error("Invalid role data.")
+        return
       }
-      setModalOpen(false)
-      fetchRoles()
-    } catch {
-      toast.error("Failed to save role.")
+
+      const users = userData.userName.map((username, index) => ({
+        id: index,
+        name: username,
+        email: userData.email[index] || "N/A",
+      }))
+
+      const permissions = ["read", "write"]
+
+      setRoleToView({
+        ...role,
+        users,
+        permissions,
+        status: userData.status || role.status,
+      })
+
+      setViewModalOpen(true)
+    } catch (error) {
+      console.error("Error viewing role:", error)
+      toast.error("Failed to load role details.")
     }
   }
 
@@ -206,7 +181,10 @@ export default function RolesPage() {
             <CardTitle>Roles List</CardTitle>
             <CardDescription>Showing {roles.length} of {allRoles.length} roles</CardDescription>
           </div>
-          <Button onClick={handleCreateClick}>Add Role</Button>
+          <AddRoleDrawer
+            trigger={<Button>Add Role</Button>}
+            onRoleAdded={fetchRoles}
+          />
         </CardHeader>
         <CardContent>
           <Table>
@@ -241,8 +219,8 @@ export default function RolesPage() {
                     <TableCell>{role.created}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleViewClick(role)}>View</Button>
-                      <Button variant="outline" size="sm" onClick={() => handleEditClick(role)}>Edit</Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(role)}>Delete</Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedRole(role)}>Edit</Button>
+                      <Button variant="destructive" size="sm" onClick={() => setRoleToDelete(role)}>Delete</Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -256,7 +234,7 @@ export default function RolesPage() {
         open={modalOpen}
         role={selectedRole}
         onClose={() => setModalOpen(false)}
-        onSave={handleSaveRole}
+        onSave={() => {}}
       />
       <RoleViewModal
         isOpen={viewModalOpen}
@@ -266,7 +244,7 @@ export default function RolesPage() {
       <RoleDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onDelete={handleDeleteRole}
+        onDelete={() => {}}
         role={roleToDelete}
         isDeleting={isDeleting}
       />
