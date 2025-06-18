@@ -15,6 +15,8 @@ import { Check } from "lucide-react";
 import { cn } from "@/interface-adapters/lib/utils";
 import { useState, useEffect } from "react";
 import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
+import { createProjects } from "@/interface-adapters/usecases/project-instance/create-project";
+import { toast } from "sonner"; // Optional for feedback
 
 export default function ProjectInstanceModal({
   isOpen,
@@ -26,13 +28,11 @@ export default function ProjectInstanceModal({
   setContractNumber,
   selectedCustomer,
   setSelectedCustomer,
-  onSubmit,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Debounced customer search
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
       setLoading(true);
@@ -43,10 +43,29 @@ export default function ProjectInstanceModal({
       }));
       setCustomers(mapped);
       setLoading(false);
-    }, 1000); // 1 second debounce
+    }, 1000);
 
-    return () => clearTimeout(delayDebounce); // Cleanup
+    return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const result = await createProjects({
+      key: selectedKey,
+      businessKey: contractNumber,
+      name: projectName,
+      customer: selectedCustomer,
+    });
+
+    if (result?.status === true) {
+      toast.success(`Project ${contractNumber} started successfully`);
+      onClose();
+    } else {
+      toast.error(`Failed to start project ${contractNumber}`);
+    }
+
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -58,20 +77,7 @@ export default function ProjectInstanceModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            console.log("Start Process clicked with values:", {
-              selectedKey,
-              projectName,
-              contractNumber,
-              selectedCustomer,
-            });
-            onSubmit(e);
-          }}
-          className="space-y-4"
-        >
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="key">Key</Label>
             <Input id="key" value={selectedKey} disabled className="bg-muted" />

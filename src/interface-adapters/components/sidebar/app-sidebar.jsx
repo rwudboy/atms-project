@@ -49,6 +49,7 @@ export function AppSidebar(props) {
   const [email, setEmail] = useState("Loading...");
   const [hydrated, setHydrated] = useState(false);
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
+  const [isUserManagementOpen, setIsUserManagmentOpen] = useState(false);
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
 
   useEffect(() => {
@@ -92,8 +93,14 @@ export function AppSidebar(props) {
   const referenceItems = [
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
-    { title: "Role", url: "/roles", icon: IconUserEdit },
+    
     { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
+
+  ];
+
+  const userManagement = [
+    { title: "User Profile", url: "/customer", icon: IconUsers },
+    { title: "User Role", url: "/roles", icon: IconUserEdit },
 
   ];
 
@@ -141,6 +148,30 @@ export function AppSidebar(props) {
           </SidebarMenuItem>
 
           {isProjectsOpen && projectSubItems.map((item, index) => (
+            <SidebarMenuItem key={index}>
+              <SidebarMenuButton asChild>
+                <a href={item.url} className="flex items-center gap-2 pl-8">
+                  <item.icon className="size-4" />
+                  {item.title}
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+
+           {/* User Management - Collapsible */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
+              <IconUsers className="mr-2 size-5" />
+              <span>User Management</span>
+              {isUserManagementOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {isUserManagementOpen && userManagement.map((item, index) => (
             <SidebarMenuItem key={index}>
               <SidebarMenuButton asChild>
                 <a href={item.url} className="flex items-center gap-2 pl-8">

@@ -68,8 +68,6 @@ export default function AccountDetailModal({ isOpen, onOpenChange, defaultValues
     };
   }, [isOpen]);
      
-
-
   const handleSave = () => {
     if (onSave) {
       onSave({
