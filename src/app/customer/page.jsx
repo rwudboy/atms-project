@@ -3,10 +3,9 @@
 import { AppSidebar } from "@/interface-adapters/components/sidebar/app-sidebar";
 import { SiteHeader } from "@/interface-adapters/components/header/site-header";
 import { SidebarInset, SidebarProvider } from "@/interface-adapters/components/ui/sidebar";
-import  CustomerForm  from "@/interface-adapters/components/customer/customer-form";
-import { Toaster } from 'sonner';
-
-
+import CustomerForm from "@/interface-adapters/components/customer/customer-form";
+import { Toaster } from "sonner";
+import { Footer } from "@/interface-adapters/components/footer/footer";
 
 export default function CustomerFormPage() {
   return (
@@ -19,10 +18,14 @@ export default function CustomerFormPage() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
-        <div className="p-6 flex justify-center">
-          <CustomerForm />
-          <Toaster />
+        <div className="flex flex-col min-h-screen">
+          <main className="flex-grow p-6 flex justify-center">
+            <CustomerForm />
+          </main>
+
+          <Footer/>
         </div>
+        <Toaster />
       </SidebarInset>
     </SidebarProvider>
   );
