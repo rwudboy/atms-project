@@ -47,8 +47,8 @@ export function SiteHeader() {
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
         <h1 className="text-base font-medium">{formattedTitle}</h1>
-        <div className="ml-auto flex items-center gap-2 rounded-full">
-          <Button variant="ghost" size="sm" className="sm:flex dark:text-foreground rounded-full" >
+        <div className="ml-auto flex items-center gap-2 bg-amber-50 rounded-full">
+          <Button variant="ghost" size="sm" className="sm:flex dark:text-foreground rounded-full">
             {`${role}`}
           </Button>
         </div>
