@@ -219,7 +219,7 @@ export default function RolesPage() {
                     <TableCell>{role.created}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleViewClick(role)}>View</Button>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedRole(role)}>Edit</Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedRole(role)}>Add People</Button>
                       <Button variant="destructive" size="sm" onClick={() => setRoleToDelete(role)}>Delete</Button>
                     </TableCell>
                   </TableRow>

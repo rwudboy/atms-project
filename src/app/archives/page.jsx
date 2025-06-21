@@ -3,7 +3,7 @@
 import { AppSidebar } from "@/interface-adapters/components/sidebar/app-sidebar";
 import { SiteHeader } from "@/interface-adapters/components/header/site-header";
 import { SidebarInset, SidebarProvider } from "@/interface-adapters/components/ui/sidebar";
-import  CustomerForm  from "@/interface-adapters/components/customer/customer-form";
+import  TaskListPage  from "@/interface-adapters/components/archive/archive-page";
 import { Toaster } from 'sonner';
 
 
@@ -20,7 +20,7 @@ export default function ArchivesPages() {
       <SidebarInset>
         <SiteHeader />
         <div className="p-6 flex justify-center">
-          <CustomerForm />
+          <TaskListPage />
           <Toaster />
         </div>
       </SidebarInset>

@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { Footer } from "@/interface-adapters/components/footer/footer";
 
 export default function CustomerFormPage() {
+  
   return (
     <SidebarProvider
       style={{

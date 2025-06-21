@@ -54,8 +54,8 @@ export default function WorkgroupsPage() {
   
 
 
-  const handleDeleteClick = (id) => {
-    setWorkgroupToDelete(id);
+  const handleDeleteClick = (uuid) => {
+    setWorkgroupToDelete(uuid);
     setShowDeleteDialog(true);
     setDeleteError(null);
     setConfirmDeleteStep(false);

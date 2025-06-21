@@ -1,6 +1,6 @@
 "use client";
 
-import  useAuthGuard  from "@/interface-adapters/hooks/useAuthGuard";
+
 
 import { AppSidebar } from "@/interface-adapters/components/sidebar/app-sidebar";
 import { ChartAreaInteractive } from "@/interface-adapters/dashboard/chart-area-interactive";
@@ -12,15 +12,6 @@ import { SidebarInset, SidebarProvider } from "@/interface-adapters/components/u
 import data from "./data.json";
 
 export default function DashboardPage() {
-  const loading = useAuthGuard();
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <SidebarProvider
