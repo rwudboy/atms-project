@@ -9,7 +9,7 @@ export async function getTasks(searchTerm = "") {
 
   try {
      const query = searchTerm ? `?businessKey=${encodeURIComponent(searchTerm)}` : "";
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/task${query}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek${query}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
