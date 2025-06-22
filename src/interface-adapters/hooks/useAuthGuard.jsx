@@ -10,7 +10,7 @@ const useAuthGuard = () => {
 
   useEffect(() => {
     const valid = isTokenValid();
-    console.log(valid)
+
     if (!valid) {
       router.push("/login");
     } else {

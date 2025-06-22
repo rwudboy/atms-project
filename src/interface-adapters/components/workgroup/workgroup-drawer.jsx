@@ -23,7 +23,7 @@ export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
       return;
     }
   
-    console.log("Form Data before API call:", formData);
+ 
   
     setLoading(true);
     setError(null);
@@ -31,7 +31,7 @@ export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
     try {
       const newWorkgroup = await addWorkgroup(formData);
   
-      console.log("New Workgroup:", newWorkgroup);
+  
   
       onWorkgroupAdded(newWorkgroup);
       setFormData({ name: "", status: "" });

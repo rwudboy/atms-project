@@ -8,6 +8,7 @@ import Role from "@/app/roles/page";
 import UserProfile from "@/app/user-profile/page";
 import ProjectInstance from "@/app/project-instance/page";
 import ArchivesPage from "@/app/archives/page";
+import UnassignTask from "@/app/unassign-task/page";
 
 export default function Page({ params }) {
   const pages = {
@@ -19,7 +20,8 @@ export default function Page({ params }) {
     roles: <Role />,
     "user-profile": < UserProfile/>,
     "project-instance" :<ProjectInstance />,
-    archives :<ArchivesPage /> 
+    archives :<ArchivesPage />,
+    "unassign-task" :<UnassignTask /> 
   };
 
   return pages[params?.slug] || <LoginPage />;

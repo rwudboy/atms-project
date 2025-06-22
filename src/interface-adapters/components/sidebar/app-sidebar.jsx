@@ -21,6 +21,7 @@ import {
   IconCirclePlus,
   IconListCheck,
   IconInbox,
+  IconFolderDown,
   IconFlag,
   IconList,
   IconBook,
@@ -77,16 +78,17 @@ export function AppSidebar(props) {
     );
   }
   
-  const navSecondary = [
-    { title: "Settings", url: "#", icon: IconSettings },
-    { title: "Get Help", url: "#", icon: IconHelp },
-  ];
+  // const navSecondary = [
+  //   { title: "Settings", url: "#", icon: IconSettings },
+  //   { title: "Get Help", url: "#", icon: IconHelp },
+  // ];
 
   const projectSubItems = [
     { title: "Project Instance", url: "/project-instance", icon: IconFolder },
-    { title: "Tasks", url: "#", icon: IconListCheck },
-    { title: "Inbox", url: "#", icon: IconInbox },
     { title: "Archives", url: "/archives", icon: IconArchive },
+    { title: "Unassign Task", url: "/unassign-task", icon: IconListCheck },
+    { title: "Assign Task", url: "#", icon: IconInbox },
+
   ];
 
   const referenceItems = [
@@ -227,7 +229,7 @@ export function AppSidebar(props) {
           </SidebarMenuItem> */}
         </SidebarMenu>
 
-        <NavSecondary items={navSecondary} className="mt-auto" />
+        {/* <NavSecondary items={navSecondary} className="mt-auto" /> */}
       </SidebarContent>
 
       <SidebarFooter>

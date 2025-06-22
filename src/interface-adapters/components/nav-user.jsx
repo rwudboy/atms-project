@@ -58,8 +58,6 @@ export function NavUser({ user }) {
         dateOfBirth: user.TanggalLahir || "",
         position: user.Role || "",
       });
-
-      console.log('test')
     }
   }, [user]);
   const [defaultValues, setDefaultValues] = useState({
@@ -165,7 +163,7 @@ export function NavUser({ user }) {
         }}
         defaultValues={defaultValues}
         onSave={(data) => {
-          console.log("Saved data:", data);
+
         }}
       />
     </>

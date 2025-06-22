@@ -1,6 +1,6 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
 
-export async function getProjects() {
+export async function getTasks() {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -8,7 +8,8 @@ export async function getProjects() {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek/definition`, {
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/task`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,

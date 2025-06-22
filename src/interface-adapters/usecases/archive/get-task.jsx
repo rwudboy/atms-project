@@ -18,7 +18,7 @@ export async function getTasks(searchTerm = "") {
     });
 
     const result = await response.json();
-    console.log(result)
+
 
     if (!response.ok) {
       throw new Error(result.message || "Failed to fetch projects");
