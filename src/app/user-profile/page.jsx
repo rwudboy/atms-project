@@ -1,33 +1,7 @@
-
-
 "use client";
 
-import { AppSidebar } from "@/interface-adapters/components/sidebar/app-sidebar";
-import { Toaster } from "sonner";
-import { SiteHeader } from "@/interface-adapters/components/header/site-header";
-import {
-  SidebarProvider,
-  SidebarInset,
-} from "@/interface-adapters/components/ui/sidebar";
+import UsersPage from "@/interface-adapters/components/user-profile/user-profile-page";
 
-import RolePage from "@/interface-adapters/components/roles/role-page"; // Your vendor component
-
-export default function UserProfile() {
-  return (
-    <SidebarProvider
-      style={{
-        "--sidebar-width": "calc(var(--spacing) * 72)",
-        "--header-height": "calc(var(--spacing) * 12)",
-      }}
-    >
-      <AppSidebar variant="inset" />
-      <SidebarInset>
-        <SiteHeader />
-        <div className="p-6">
-          <RolePage />
-          <Toaster />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
-  );
+export default function Page() {
+  return <UsersPage />;
 }

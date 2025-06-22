@@ -1,6 +1,6 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
 
-export async function getProjects() {
+export async function getUsers() {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -18,15 +18,13 @@ export async function getProjects() {
 
     const result = await response.json();
 
-    if (!response.ok) {
-      throw new Error(result.message || "Failed to fetch projects");
+    if (!response.ok || !result.status || !Array.isArray(result.user)) {
+      throw new Error(result.message || "Failed to fetch users");
     }
 
-    return Array.isArray(result.data) ? result.data : [];
-
-    
+    return result.user;
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("Error fetching users:", error);
     return [];
   }
 }

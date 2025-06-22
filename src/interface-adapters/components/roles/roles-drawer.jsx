@@ -32,7 +32,7 @@ export default function AddRoleDrawer({ onRoleAdded, trigger }) {
     setError("");
 
     try {
-      await createRole({ name: roleName }); // adjust field name if your API expects a different key
+      await createRole({ RoleName: roleName });
       await onRoleAdded();
       setRoleName("");
       setOpenDrawer(false);

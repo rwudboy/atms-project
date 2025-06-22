@@ -95,12 +95,14 @@ export function AppSidebar(props) {
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
     { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
+    { title: "Roles", url: "/roles", icon: IconUserEdit },
+    
 
   ];
 
   const userManagement = [
     { title: "User Profile", url: "/user-profile", icon: IconUsers },
-    { title: "User Role", url: "/roles", icon: IconUserEdit },
+    { title: "User Role", url: "/#", icon: IconUserEdit },
 
   ];
 
