@@ -1,6 +1,7 @@
 "use client";
-
+import TaskModal from "@/interface-adapters/components/modals/unassign-task/unassign-task-modal";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import {
   Card,
@@ -20,47 +21,18 @@ import {
 } from "@/interface-adapters/components/ui/table";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
-import TaskModal from "@/interface-adapters/components/modals/unassign-task/unassign-task-modal";
-
-import { getTaskById } from "@/interface-adapters/usecases/unassign-task/get-task-by-id";
 import { getTasks } from "@/interface-adapters/usecases/unassign-task/get-task";
-
 
 export default function UnassignTaskPage() {
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [allTasks, setAllTasks] = useState([]);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
-  const [taskName, setTaskName] = useState("");
 
-  const handleClaim = async (task) => {
-    try {
-      const fullTask = await getTaskById(task.id);
-      if (fullTask) {
-        setSelectedTask(fullTask);
-        setIsModalOpen(true);
-      } else {
-        toast.error("Failed to load task details.");
-      }
-    } catch (error) {
-      toast.error("Error loading task details.");
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedTask(null);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    toast.success(`Task "${taskName}" has been claimed.`);
-    closeModal();
-  };
+  const router = useRouter();
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -70,8 +42,8 @@ export default function UnassignTaskPage() {
         const taskData = Array.isArray(result)
           ? result
           : Array.isArray(result.data)
-            ? result.data
-            : [];
+          ? result.data
+          : [];
         setAllTasks(taskData);
         setTasks(taskData);
       } catch (error) {
@@ -96,8 +68,16 @@ export default function UnassignTaskPage() {
       task.name?.toLowerCase().includes(lower)
     );
 
+   
+
+
     setTasks(filtered);
   }, [searchTerm, allTasks]);
+
+  const handleViewDetail = (taskId) => {
+    setSelectedTaskId(taskId);
+  setIsModalOpen(true);
+  };
 
   return (
     <div className="container mx-auto py-10">
@@ -169,7 +149,7 @@ export default function UnassignTaskPage() {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleClaim(task)}>Detail</Button>
+                      <Button onClick={() => handleViewDetail(task.id)}>Detail</Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -178,18 +158,13 @@ export default function UnassignTaskPage() {
           </Table>
         </CardContent>
       </Card>
-
-      <TaskModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        taskId={selectedTask?.id}
-        onClaim={(id) => {
-          toast.success(`Claimed task with ID: ${id}`);
-          closeModal();
-        }}
-      />
-
-
+      {selectedTaskId && (
+        <TaskModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          taskId={selectedTaskId}
+        />
+      )}
     </div>
   );
 }
