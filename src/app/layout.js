@@ -23,6 +23,8 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }) {
   const pathname = usePathname();
   const pageSlug = pathname.split("/").filter(Boolean)[0] || "home";
+  const excludedRoutes = ["/otp", "/login", "/register"];
+  const isExcludedRoute = excludedRoutes.includes(pathname);
 
   const formattedTitle = pageSlug
     .replace(/-/g, " ")
@@ -36,22 +38,29 @@ export default function RootLayout({ children }) {
         <title>{formattedTitle}</title>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SidebarProvider
-          style={{
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-            "--header-height": "calc(var(--spacing) * 12)",
-          }}
-        >
-          <AppSidebar variant="inset" />
-          <SidebarInset>
-            <SiteHeader />
-            <div className="flex flex-col min-h-screen">
-              <main className="flex-grow p-6">{children}</main>
-              <Footer />
-            </div>
+        {isExcludedRoute ? (
+          <>
+            {children}
             <Toaster />
-          </SidebarInset>
-        </SidebarProvider>
+          </>
+        ) : (
+          <SidebarProvider
+            style={{
+              "--sidebar-width": "calc(var(--spacing) * 72)",
+              "--header-height": "calc(var(--spacing) * 12)",
+            }}
+          >
+            <AppSidebar variant="inset" />
+            <SidebarInset>
+              <SiteHeader />
+              <div className="flex flex-col min-h-screen">
+                <main className="flex-grow p-6">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </SidebarInset>
+          </SidebarProvider>
+        )}
       </body>
     </html>
   );
