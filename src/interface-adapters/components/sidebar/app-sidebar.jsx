@@ -87,7 +87,7 @@ export function AppSidebar(props) {
     { title: "Project Instance", url: "/project-instance", icon: IconFolder },
     { title: "Archives", url: "/archives", icon: IconArchive },
     { title: "Unassign Task", url: "/unassign-task", icon: IconListCheck },
-    { title: "Assign Task", url: "#", icon: IconInbox },
+    { title: "Assign Task", url: "/assign-task", icon: IconInbox },
 
   ];
 
