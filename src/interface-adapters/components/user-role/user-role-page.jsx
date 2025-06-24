@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/interface-adapters/components/ui/table"
+import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
@@ -65,7 +66,9 @@ export default function UserRolePage() {
     const filtered = allUsers.filter((user) =>
       user.username.toLowerCase().includes(lower) ||
       user.email.toLowerCase().includes(lower) ||
-      user.Role.toLowerCase().includes(lower)
+      (Array.isArray(user.Role)
+        ? user.Role.join(", ").toLowerCase().includes(lower)
+        : user.Role?.toLowerCase().includes(lower))
     )
     setUsers(filtered)
   }, [searchTerm, allUsers])
@@ -76,6 +79,19 @@ export default function UserRolePage() {
 
   const handleRemove = (user) => {
     // TODO: Show confirmation and call delete role API
+  }
+
+  const getBadgeVariant = (role) => {
+    switch (role.toLowerCase()) {
+      case "admin":
+        return "destructive"
+      case "manager":
+        return "secondary"
+      case "user":
+        return "outline"
+      default:
+        return "default"
+    }
   }
 
   return (
@@ -142,7 +158,17 @@ export default function UserRolePage() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{user.email || "-"}</TableCell>
-                    <TableCell>{user.Role || "-"}</TableCell>
+                    <TableCell className="flex flex-wrap gap-1">
+                      {Array.isArray(user.Role) && user.Role.length > 0 ? (
+                        user.Role.map((role, idx) => (
+                          <Badge key={idx} variant={getBadgeVariant(role)}>
+                            {role}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="default">-</Badge>
+                      )}
+                    </TableCell>
                     <TableCell>{user.posisi || "-"}</TableCell>
                     <TableCell>{user.status || "active"}</TableCell>
                     <TableCell className="flex gap-2">
@@ -151,7 +177,7 @@ export default function UserRolePage() {
                         size="sm"
                         onClick={() => handleEdit(user)}
                       >
-                        Edit
+                        Add Role
                       </Button>
                       <Button
                         variant="destructive"

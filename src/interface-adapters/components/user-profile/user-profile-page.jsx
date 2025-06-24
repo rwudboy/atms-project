@@ -18,15 +18,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/interface-adapters/components/ui/table"
+import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
+import UserDetailModal from "@/interface-adapters/components/modals/user-profile/user-profile-page"
 
 export default function UsersPage() {
   const [users, setUsers] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -36,8 +40,6 @@ export default function UsersPage() {
     setIsLoading(true)
     try {
       const response = await getUsers()
-
-      // Since the response is a plain array now
       if (Array.isArray(response)) {
         setUsers(response)
         setAllUsers(response)
@@ -56,7 +58,6 @@ export default function UsersPage() {
     }
   }
 
-
   useEffect(() => {
     if (!searchTerm.trim()) {
       setUsers(allUsers)
@@ -67,17 +68,33 @@ export default function UsersPage() {
     const filtered = allUsers.filter((user) =>
       user.username.toLowerCase().includes(lower) ||
       user.email.toLowerCase().includes(lower) ||
-      user.Role.toLowerCase().includes(lower)
+      (Array.isArray(user.Role)
+        ? user.Role.join(", ").toLowerCase().includes(lower)
+        : user.Role?.toLowerCase().includes(lower))
     )
     setUsers(filtered)
   }, [searchTerm, allUsers])
 
   const handleEdit = (user) => {
-    // TODO: Show edit modal or navigate to edit page
+    setSelectedUser(user)
+    setIsModalOpen(true)
   }
 
   const handleRemove = (user) => {
     // TODO: Show confirmation and call delete API
+  }
+
+  const getBadgeVariant = (role) => {
+    switch (role.toLowerCase()) {
+      case "admin":
+        return "destructive"
+      case "manager":
+        return "secondary"
+      case "user":
+        return "outline"
+      default:
+        return "default"
+    }
   }
 
   return (
@@ -111,7 +128,9 @@ export default function UsersPage() {
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>User List</CardTitle>
-            <CardDescription>Showing {users.length} of {allUsers.length} users</CardDescription>
+            <CardDescription>
+              Showing {users.length} of {allUsers.length} users
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -122,7 +141,7 @@ export default function UsersPage() {
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Jabatan</TableHead>
-                <TableHead>Status</TableHead> {/* Added */}
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -144,9 +163,19 @@ export default function UsersPage() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{user.email || "-"}</TableCell>
-                    <TableCell>{user.Role || "-"}</TableCell>
+                    <TableCell className="flex flex-wrap gap-1">
+                      {Array.isArray(user.Role) && user.Role.length > 0 ? (
+                        user.Role.map((role, idx) => (
+                          <Badge key={idx} variant={getBadgeVariant(role)}>
+                            {role}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="default">-</Badge>
+                      )}
+                    </TableCell>
                     <TableCell>{user.posisi || "-"}</TableCell>
-                    <TableCell>{user.status || "active"}</TableCell> {/* Displaying status */}
+                    <TableCell>{user.status || "active"}</TableCell>
                     <TableCell className="flex gap-2">
                       <Button
                         variant="outline"
@@ -167,10 +196,17 @@ export default function UsersPage() {
                 ))
               )}
             </TableBody>
-
           </Table>
         </CardContent>
       </Card>
+      {selectedUser && (
+        <UserDetailModal
+          user={selectedUser}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
+      )}
+
     </div>
   )
 }

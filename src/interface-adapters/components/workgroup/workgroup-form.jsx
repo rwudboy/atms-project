@@ -3,16 +3,43 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/interface-adapters/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/interface-adapters/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/interface-adapters/components/ui/dialog";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2 } from "lucide-react";
-import { getWorkgroups, deleteWorkgroup } from "@/interface-adapters/usecases/workgroup/workgroup-usecase";
+import {
+  getWorkgroups,
+  deleteWorkgroup,
+} from "@/interface-adapters/usecases/workgroup/workgroup-usecase";
 import AddWorkgroupDrawer from "@/interface-adapters/components/workgroup/workgroup-drawer";
-import { toast } from 'sonner';
-
+import AddUserModal from "@/interface-adapters/components/modals/workgroup/workgroup-modal";
+import { toast } from "sonner";
 
 export default function WorkgroupsPage() {
   const router = useRouter();
@@ -25,6 +52,8 @@ export default function WorkgroupsPage() {
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
   const [fullWorkgroups, setFullWorkgroups] = useState([]);
 
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
+  const [selectedWorkgroupForUser, setSelectedWorkgroupForUser] = useState(null);
 
   useEffect(() => {
     const fetchWorkgroups = async () => {
@@ -40,19 +69,17 @@ export default function WorkgroupsPage() {
     };
     fetchWorkgroups();
   }, []);
-  
-  useEffect(() => {
-      const delayDebounce = setTimeout(async () => {
-        setLoading(true);
-        const result = await getWorkgroups(searchTerm);
-        setWorkgroups(result);
-        setLoading(false);
-      }, 1000); // 1 second debounce
-  
-      return () => clearTimeout(delayDebounce); // Cleanup
-    }, [searchTerm]);
-  
 
+  useEffect(() => {
+    const delayDebounce = setTimeout(async () => {
+      setLoading(true);
+      const result = await getWorkgroups(searchTerm);
+      setWorkgroups(result);
+      setLoading(false);
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(delayDebounce); // Cleanup
+  }, [searchTerm]);
 
   const handleDeleteClick = (uuid) => {
     setWorkgroupToDelete(uuid);
@@ -74,7 +101,6 @@ export default function WorkgroupsPage() {
       toast.error("There was an error deleting the workgroup.");
     }
   };
-  
 
   const handleWorkgroupAdded = (newWorkgroup) => {
     toast.success("Add Workgroup success");
@@ -88,11 +114,17 @@ export default function WorkgroupsPage() {
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Workgroup References</CardTitle>
-            <CardDescription>Manage and view all workgroup data.</CardDescription>
+            <CardDescription>
+              Manage and view all workgroup data.
+            </CardDescription>
           </div>
           <AddWorkgroupDrawer
             onWorkgroupAdded={handleWorkgroupAdded}
-            trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Workgroup</Button>}
+            trigger={
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> Add Workgroup
+              </Button>
+            }
           />
         </CardHeader>
       </Card>
@@ -129,39 +161,48 @@ export default function WorkgroupsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-  {loading ? (
-    <TableRow>
-      <TableCell colSpan={3} className="text-center py-4">
-        Loading...
-      </TableCell>
-    </TableRow>
-  ) : workgroups.length === 0 ? (
-    <TableRow>
-      <TableCell colSpan={3} className="text-center py-4">
-        No workgroups found
-      </TableCell>
-    </TableRow>
-  ) : (
-    workgroups.map((wg) => (
-      <TableRow key={wg.uuid}>
-        <TableCell className="font-medium">{wg.name}</TableCell>
-        <TableCell>{wg.status || "—"}</TableCell> {/* Use project_name or fallback */}
-        <TableCell className="text-right">
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleDeleteClick(wg.uuid)} // Use uuid here
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </TableCell>
-      </TableRow>
-    ))
-  )}
-</TableBody>
-
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-4">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : workgroups.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center py-4">
+                    No workgroups found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                workgroups.map((wg) => (
+                  <TableRow key={wg.uuid}>
+                    <TableCell className="font-medium">{wg.name}</TableCell>
+                    <TableCell>{wg.status || "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedWorkgroupForUser(wg.uuid);
+                            setShowAddUserModal(true);
+                          }}
+                        >
+                          Add User
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteClick(wg.uuid)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
           </Table>
         </CardContent>
       </Card>
@@ -185,15 +226,21 @@ export default function WorkgroupsPage() {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setShowDeleteDialog(false);
-              setConfirmDeleteStep(false);
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setConfirmDeleteStep(false);
+              }}
+            >
               Cancel
             </Button>
 
             {!confirmDeleteStep ? (
-              <Button variant="destructive" onClick={() => setConfirmDeleteStep(true)}>
+              <Button
+                variant="destructive"
+                onClick={() => setConfirmDeleteStep(true)}
+              >
                 Delete
               </Button>
             ) : (
@@ -204,6 +251,17 @@ export default function WorkgroupsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AddUserModal
+        open={showAddUserModal}
+        onOpenChange={setShowAddUserModal}
+        workgroups={fullWorkgroups}
+        preSelectedWorkgroup={selectedWorkgroupForUser}
+        onUserAdded={(user, workgroupId) => {
+          toast.success(`${user.namaLengkap} added to the workgroup`);
+          setShowAddUserModal(false);
+        }}
+      />
     </div>
   );
 }

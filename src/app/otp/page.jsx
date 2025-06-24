@@ -25,22 +25,28 @@ export default function OTPPage() {
   const [resending, setResending] = useState(false);
 
   const handleSubmit = async () => {
-    if (otp.length !== 5) {
-      Swal.fire("Invalid OTP", "OTP must be 5 digits", "error");
-      return;
-    }
+  if (otp.length !== 5) {
+    Swal.fire("Invalid OTP", "OTP must be 5 digits", "error");
+    return;
+  }
 
-    setLoading(true);
-    try {
-      await otpUserUseCase({ otp });
+  setLoading(true);
+  try {
+    const response = await otpUserUseCase({ otp });
+
+    if (response?.status === true || response?.message?.status === "success") {
       await Swal.fire("Success", "OTP verified successfully!", "success");
       window.location.href = "/login";
-    } catch (error) {
-      Swal.fire("Error", error.message || "Verification failed", "error");
-    } finally {
-      setLoading(false);
+    } else {
+      throw new Error("OTP verification failed");
     }
-  };
+  } catch (error) {
+    Swal.fire("Error", error.message || "Verification failed", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
  
 

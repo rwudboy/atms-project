@@ -108,9 +108,6 @@ export default function AssignDetailedTask({ taskId }) {
 
           <div>
             <h1 className="text-xl font-semibold">{task.task_name || "Task Detail"}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Created • {formatDate(task.created)}
-            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
