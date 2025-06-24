@@ -1,6 +1,6 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
 
-export async function getTasks(searchTerm = "") {
+export async function getProject() {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -8,8 +8,8 @@ export async function getTasks(searchTerm = "") {
   }
 
   try {
-     const query = searchTerm ? `?businessKey=${encodeURIComponent(searchTerm)}` : "";
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek${query}`, {
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/task/${id}`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -17,18 +17,15 @@ export async function getTasks(searchTerm = "") {
       },
     });
 
-    const result = await response.json();
-
+    const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.message || "Failed to fetch projects");
+      throw new Error(data.message || "Failed to fetch project");
     }
 
-    return Array.isArray(result.data) ? result.data : [];
-
-    
+    return Array.isArray(data.data) ? data.data : [];
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    console.error("Error fetching project:", error);
     return [];
   }
 }

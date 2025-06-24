@@ -69,7 +69,7 @@ export default function AssignedTaskPage() {
   }, [searchTerm, allTasks]);
 
   const handleViewDetail = (taskId) => {
-    console.log("Selected Task ID:", taskId); // For future wiring
+    router.push(`/assignTask/${taskId}`); // For future wiring
   };
 
   return (

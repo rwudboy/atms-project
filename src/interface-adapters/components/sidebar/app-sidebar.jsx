@@ -86,8 +86,8 @@ export function AppSidebar(props) {
   const projectSubItems = [
     { title: "Project Instance", url: "/project-instance", icon: IconFolder },
     { title: "Archives", url: "/archives", icon: IconArchive },
-    { title: "Unassign Task", url: "/unassign-task", icon: IconListCheck },
-    { title: "Assign Task", url: "/assign-task", icon: IconInbox },
+    { title: "Unassign Task", url: "/unassignTask", icon: IconListCheck },
+    { title: "Assign Task", url: "/assignTask", icon: IconInbox },
 
   ];
 
@@ -102,7 +102,7 @@ export function AppSidebar(props) {
 
   const userManagement = [
     { title: "User Profile", url: "/user-profile", icon: IconUsers },
-    { title: "User Role", url: "/#", icon: IconUserEdit },
+    { title: "User Role", url: "/userRole", icon: IconUserEdit },
 
   ];
 

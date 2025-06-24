@@ -1,5 +1,5 @@
 "use client";
-import TaskModal from "@/interface-adapters/components/modals/unassign-task/unassign-task-modal";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
@@ -28,9 +28,6 @@ export default function UnassignTaskPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [allTasks, setAllTasks] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
-
 
   const router = useRouter();
 
@@ -68,15 +65,11 @@ export default function UnassignTaskPage() {
       task.name?.toLowerCase().includes(lower)
     );
 
-   
-
-
     setTasks(filtered);
   }, [searchTerm, allTasks]);
 
   const handleViewDetail = (taskId) => {
-    setSelectedTaskId(taskId);
-  setIsModalOpen(true);
+    router.push(`/unassignTask/${taskId}`);
   };
 
   return (
@@ -84,8 +77,8 @@ export default function UnassignTaskPage() {
       <Card className="mb-6">
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <CardTitle>Task List</CardTitle>
-            <CardDescription>View and claim available tasks.</CardDescription>
+            <CardTitle>Unassigned Tasks</CardTitle>
+            <CardDescription>View and manage your unassigned tasks.</CardDescription>
           </div>
         </CardHeader>
       </Card>
@@ -158,13 +151,6 @@ export default function UnassignTaskPage() {
           </Table>
         </CardContent>
       </Card>
-      {selectedTaskId && (
-        <TaskModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          taskId={selectedTaskId}
-        />
-      )}
     </div>
   );
 }
