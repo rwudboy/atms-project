@@ -6,5 +6,8 @@ import AssignDetailedTask from "@/interface-adapters/components/assign-task/assi
 export default function AssignedTaskPageWrapper() {
   const { assigntaskId } = useParams();
 
-  return <AssignDetailedTask taskId={assigntaskId} />;
+  // Safely extract the ID from "uuid__task-name"
+  const taskId = assigntaskId?.split("__")[0];
+
+  return <AssignDetailedTask taskId={taskId} />;
 }

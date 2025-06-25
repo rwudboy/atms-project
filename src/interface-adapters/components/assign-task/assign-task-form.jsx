@@ -68,9 +68,10 @@ export default function AssignedTaskPage() {
     setTasks(filtered);
   }, [searchTerm, allTasks]);
 
-  const handleViewDetail = (taskId) => {
-    router.push(`/assignTask/${taskId}`); // For future wiring
-  };
+  const handleViewDetail = (task) => {
+  const slug = task.name?.toLowerCase().replace(/\s+/g, "-") || "task";
+  router.push(`/assignTask/${task.id}__${slug}`);
+};
 
   return (
     <div className="container mx-auto py-10">
@@ -144,7 +145,7 @@ export default function AssignedTaskPage() {
                       {task.due_date ? new Date(task.due_date).toLocaleString() : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleViewDetail(task.id)}>Detail</Button>
+                      <Button onClick={() => handleViewDetail(task)}>Detail</Button>
                     </TableCell>
                   </TableRow>
                 ))

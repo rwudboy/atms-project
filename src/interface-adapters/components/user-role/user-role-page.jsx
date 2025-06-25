@@ -19,11 +19,13 @@ import {
   TableRow,
 } from "@/interface-adapters/components/ui/table"
 import { Badge } from "@/interface-adapters/components/ui/badge"
+import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
 
 export default function UserRolePage() {
+  const router = useRouter()
   const [users, setUsers] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -74,7 +76,9 @@ export default function UserRolePage() {
   }, [searchTerm, allUsers])
 
   const handleEdit = (user) => {
-    // TODO: Show edit modal or navigate to edit user role page
+    if (user.username) {
+      router.push(`/userRole/${user.username}`)
+    }
   }
 
   const handleRemove = (user) => {

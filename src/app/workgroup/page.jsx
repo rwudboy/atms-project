@@ -1,7 +1,7 @@
 "use client";
 
-import WorkgroupsPage from "@/interface-adapters/components/workgroup/workgroup-form";
+import WorkgroupssPage from "@/interface-adapters/components/workgroup/workgroup-from2";
 
 export default function Page() {
-  return <WorkgroupsPage />;
+  return <WorkgroupssPage />;
 }

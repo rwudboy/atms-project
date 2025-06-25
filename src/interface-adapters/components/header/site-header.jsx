@@ -11,8 +11,9 @@ export function SiteHeader() {
   const [role, setRole] = useState(null);
   const [hydrated, setHydrated] = useState(false);
   const pathname = usePathname();
-  const pageSlug = pathname.split("/").filter(Boolean).pop() || "home";
-  const formattedTitle = pageSlug
+  const rawSlug = pathname.split("/").filter(Boolean).pop() || "home";
+  const slugPart = rawSlug.includes("__") ? rawSlug.split("__")[1] : rawSlug;
+  const formattedTitle = slugPart
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
     .replace(/-/g, " ")
@@ -20,20 +21,21 @@ export function SiteHeader() {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
+
   useEffect(() => {
     setHydrated(true);
     const fetchRole = async () => {
-  try {
-    const { data } = await getUserDetail(); 
-    const user = data.user;               
-    const roles = user?.role || [];
-    const selectedRole = roles[0] || "guest";
-    const capitalizedRole = selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1);
-    setRole(capitalizedRole);
-  } catch (error) {
-    console.error("Error fetching user detail:", error);
-  }
-};
+      try {
+        const { data } = await getUserDetail();
+        const user = data.user;
+        const roles = user?.role || [];
+        const selectedRole = roles[0] || "guest";
+        const capitalizedRole = selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1);
+        setRole(capitalizedRole);
+      } catch (error) {
+        console.error("Error fetching user detail:", error);
+      }
+    };
 
 
     fetchRole();

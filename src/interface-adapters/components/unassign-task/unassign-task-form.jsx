@@ -39,8 +39,8 @@ export default function UnassignTaskPage() {
         const taskData = Array.isArray(result)
           ? result
           : Array.isArray(result.data)
-          ? result.data
-          : [];
+            ? result.data
+            : [];
         setAllTasks(taskData);
         setTasks(taskData);
       } catch (error) {
@@ -68,9 +68,10 @@ export default function UnassignTaskPage() {
     setTasks(filtered);
   }, [searchTerm, allTasks]);
 
-  const handleViewDetail = (taskId) => {
-    router.push(`/unassignTask/${taskId}`);
-  };
+  const handleViewDetail = (task) => {
+  const slug = task.name?.toLowerCase().replace(/\s+/g, "-") || "task";
+  router.push(`/unassignTask/${task.id}__${slug}`);
+};
 
   return (
     <div className="container mx-auto py-10">
@@ -142,7 +143,7 @@ export default function UnassignTaskPage() {
                         : "—"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleViewDetail(task.id)}>Detail</Button>
+                      <Button onClick={() => handleViewDetail(task)}>Detail</Button>
                     </TableCell>
                   </TableRow>
                 ))

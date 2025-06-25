@@ -51,7 +51,7 @@ export default function UnassignDetailedTask({ taskId }) {
     const result = await ClaimTask(taskId);
     if (result.status) {
       toast.success(`Task "${task.task_name}" successfully claimed!`);
-      router.push("/assignTask"); // navigate back to the list
+      router.push("/unassignTask"); // navigate back to the list
     } else {
       toast.error(result.message || "Failed to claim task.");
     }
@@ -77,20 +77,10 @@ export default function UnassignDetailedTask({ taskId }) {
             >
               ← Back to List
             </Button>
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => toast("Delegated task " + task.task_name)}
-            >
-              Delegate
-            </Button>
           </div>
 
           <div>
             <h1 className="text-xl font-semibold">{task.task_name || "Task Detail"}</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Created • {formatDate(task.created)}
-            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -125,19 +115,6 @@ export default function UnassignDetailedTask({ taskId }) {
                 </div>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <Textarea
-                placeholder="Write your report..."
-                value={reportText}
-                onChange={(e) => setReportText(e.target.value)}
-                className="min-h-[120px] resize-none"
-              />
-              <Button variant="outline" size="sm" className="w-full">
-                <Paperclip className="h-4 w-4 mr-2" />
-                Add Attachment
-              </Button>
-            </div>
           </div>
 
           <Separator />
@@ -159,7 +136,7 @@ export default function UnassignDetailedTask({ taskId }) {
                   <div key={index} className="flex gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs">
-                        {comment.author
+                        {comment.user
                           ?.split(" ")
                           .map((n) => n[0])
                           .join("") || "U"}
@@ -168,14 +145,15 @@ export default function UnassignDetailedTask({ taskId }) {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-sm">
-                          {comment.author || "Unknown"}
+                          {comment.user || "Unknown"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {comment.time || "-"}
+                          {/* No time field provided in API */}
+                          -
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        {comment.content || ""}
+                        {comment.description || ""}
                       </p>
                     </div>
                   </div>

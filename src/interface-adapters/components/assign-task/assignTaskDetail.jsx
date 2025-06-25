@@ -7,17 +7,21 @@ import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Textarea } from "@/interface-adapters/components/ui/textarea";
 import { Separator } from "@/interface-adapters/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/interface-adapters/components/ui/avatar";
-import { Paperclip } from "lucide-react";
+import { Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/interface-adapters/usecases/assign-task/get-detailed-task";
+import { sendTaskFiles } from "@/interface-adapters/usecases/assign-task/post-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
+import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 
 export default function AssignDetailedTask({ taskId }) {
   const router = useRouter();
   const [task, setTask] = useState(null);
+  const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +32,7 @@ export default function AssignDetailedTask({ taskId }) {
       setIsLoading(true);
       const result = await getTaskById(taskId);
       if (isMounted) {
-        setTask(result || null); 
+        setTask(result || null);
         setIsLoading(false);
       }
     };
@@ -58,8 +62,37 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleSend = async () => {
-    toast.success("Send file success");
-  };
+  if (files.length === 0) {
+    toast.error("Please attach at least one file");
+    return;
+  }
+
+  const variables = task?.VariablesTask || {};
+  const firstVariableKey = Object.keys(variables)[0];
+
+  if (!firstVariableKey) {
+    toast.error("No variable field found in task data");
+    return;
+  }
+
+  setIsSending(true);
+  try {
+    const result = await sendTaskFiles(taskId, files, firstVariableKey);
+
+    if (result?.success) {
+      toast.success(result.message || "Files sent successfully");
+      setFiles([]);
+    } else {
+      toast.error(result.message || "Failed to send files");
+    }
+  } catch (error) {
+    toast.error("Unexpected error occurred");
+  } finally {
+    setIsSending(false);
+  }
+};
+
+
 
   const handleAttachmentClick = () => {
     if (fileInputRef.current) {
@@ -68,18 +101,32 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleFileChange = (e) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      toast.success(`Selected: ${selectedFile.name}`);
+    const selectedFiles = Array.from(e.target.files || []);
+    const newFiles = [...files, ...selectedFiles];
+    setFiles(newFiles);
+
+    if (selectedFiles.length === 1) {
+      toast.success(`Added: ${selectedFiles[0].name}`);
+    } else {
+      toast.success(`Added ${selectedFiles.length} files`);
     }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const removeFile = (indexToRemove) => {
+    const newFiles = files.filter((_, index) => index !== indexToRemove);
+    setFiles(newFiles);
+    toast.success("File removed");
   };
 
   const isAttachmentRequired =
     task?.VariablesTask?.requireDocument?.value !== undefined;
 
   const reportValue =
-    task?.VariablesTask?.Requirement_Specification_Report?.value || ""; 
+    task?.VariablesTask?.Requirement_Specification_Report?.value || "";
 
   return (
     <div className="container mx-auto py-10">
@@ -100,7 +147,7 @@ export default function AssignDetailedTask({ taskId }) {
             <Button
               size="sm"
               className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => toast("Delegated task " + task.task_name)}
+              onClick={() => setIsDelegateOpen(true)}
             >
               Delegate
             </Button>
@@ -144,16 +191,11 @@ export default function AssignDetailedTask({ taskId }) {
             </div>
 
             <div className="space-y-3">
-              <Textarea
-                placeholder="Write your report..."
-                value={reportText}
-                onChange={(e) => setReportText(e.target.value)}
-                className="min-h-[120px] resize-none"
-              />
               <input
                 ref={fileInputRef}
                 type="file"
                 className="hidden"
+                multiple
                 onChange={handleFileChange}
                 disabled={!isAttachmentRequired}
               />
@@ -165,8 +207,29 @@ export default function AssignDetailedTask({ taskId }) {
                 disabled={!isAttachmentRequired}
               >
                 <Paperclip className="h-4 w-4 mr-2" />
-                {file ? file.name : "Add Attachment"}
+                Add Attachment ({files.length})
               </Button>
+
+              {files.length > 0 && (
+                <div className="space-y-2">
+                  {files.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded-md text-xs"
+                    >
+                      <span className="truncate flex-1">{file.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 ml-2"
+                        onClick={() => removeFile(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -226,12 +289,21 @@ export default function AssignDetailedTask({ taskId }) {
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button variant="secondary" onClick={handleSend}>
-              Send
+            <Button
+              variant="secondary"
+              onClick={handleSend}
+              disabled={files.length === 0 || isSending}
+            >
+              {isSending ? "Sending..." : "Send"}
             </Button>
           </div>
         </div>
       )}
+      <DelegateTaskDialog
+        taskId={taskId}
+        open={isDelegateOpen}
+        onOpenChange={setIsDelegateOpen}
+      />
     </div>
   );
 }
