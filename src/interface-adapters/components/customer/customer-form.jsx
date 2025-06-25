@@ -113,6 +113,7 @@ export default function CustomersPage() {
                 <TableHead>Address</TableHead>
                 <TableHead>City</TableHead>
                 <TableHead>Country</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -136,6 +137,7 @@ export default function CustomersPage() {
                     <TableCell>{customer.address}</TableCell>
                     <TableCell>{customer.city}</TableCell>
                     <TableCell>{customer.country}</TableCell>
+                    <TableCell>{customer.status}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(customer.id)}>

@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
+import { DeleteUserRoleDialog } from "@/interface-adapters/components/modals/user-role/remove-role-modal"
 
 export default function UserRolePage() {
   const router = useRouter()
@@ -183,13 +184,10 @@ export default function UserRolePage() {
                       >
                         Add Role
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemove(user)}
-                      >
-                        Remove
-                      </Button>
+                      <DeleteUserRoleDialog username={user.username}>
+  <Button variant="destructive" size="sm">Remove</Button>
+</DeleteUserRoleDialog>
+
                     </TableCell>
                   </TableRow>
                 ))
