@@ -3,7 +3,7 @@ import RegisterPage from "@/app/register/page";
 import DashboardPage from "@/app/dashboard/page";
 import OtpPage from "@/app/otp/page";
 import Customer from "@/app/customer/page";
-import Workwgroup from "@/app/workgroup/page";
+import Workgroup from "@/app/workgroup/page";
 import Role from "@/app/roles/page";
 import UserProfile from "@/app/user-profile/page";
 import ProjectInstance from "@/app/project-instance/page";
