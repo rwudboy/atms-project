@@ -1,6 +1,6 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
 
-export async function getProject() {
+export async function getTasks() {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
