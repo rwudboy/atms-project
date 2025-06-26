@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Button } from "@/interface-adapters/components/ui/button"
+import { useEffect, useState } from "react";
+import { Button } from "@/interface-adapters/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/interface-adapters/components/ui/card"
-import { Input } from "@/interface-adapters/components/ui/input"
+} from "@/interface-adapters/components/ui/card";
+import { Input } from "@/interface-adapters/components/ui/input";
 import {
   Table,
   TableBody,
@@ -17,100 +17,96 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/interface-adapters/components/ui/table"
-import { Badge } from "@/interface-adapters/components/ui/badge"
-import { useRouter } from "next/navigation"
-import { Search } from "lucide-react"
-import { toast } from "sonner"
-import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
-import { DeleteUserRoleDialog } from "@/interface-adapters/components/modals/user-role/remove-role-modal"
+} from "@/interface-adapters/components/ui/table";
+import { Badge } from "@/interface-adapters/components/ui/badge";
+import { Search } from "lucide-react";
+import { toast } from "sonner";
+import { getUsers } from "@/interface-adapters/usecases/user/getUserList";
+import UserDetailModal from "@/interface-adapters/components/modals/user-role/user-detail-modal";
+import { DeleteUserRoleDialog } from "@/interface-adapters/components/modals/user-role/remove-role-modal";
 
-export default function UserRolePage() {
-  const router = useRouter()
-  const [users, setUsers] = useState([])
-  const [allUsers, setAllUsers] = useState([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
+export default function UsersPage() {
+  const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
 
   const fetchUsers = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await getUsers()
-
+      const response = await getUsers();
       if (Array.isArray(response)) {
-        setUsers(response)
-        setAllUsers(response)
+        setUsers(response);
+        setAllUsers(response);
       } else {
-        toast.error("Invalid response format.")
-        setUsers([])
-        setAllUsers([])
+        toast.error("Invalid response format.");
+        setUsers([]);
+        setAllUsers([]);
       }
     } catch (error) {
-      console.error("Error fetching users:", error)
-      toast.error("Failed to load user roles.")
-      setUsers([])
-      setAllUsers([])
+      console.error("Error fetching users:", error);
+      toast.error("Failed to load users.");
+      setUsers([]);
+      setAllUsers([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (!searchTerm.trim()) {
-      setUsers(allUsers)
-      return
+      setUsers(allUsers);
+      return;
     }
 
-    const lower = searchTerm.toLowerCase()
+    const lower = searchTerm.toLowerCase();
     const filtered = allUsers.filter((user) =>
       user.username.toLowerCase().includes(lower) ||
       user.email.toLowerCase().includes(lower) ||
       (Array.isArray(user.Role)
         ? user.Role.join(", ").toLowerCase().includes(lower)
         : user.Role?.toLowerCase().includes(lower))
-    )
-    setUsers(filtered)
-  }, [searchTerm, allUsers])
+    );
+    setUsers(filtered);
+  }, [searchTerm, allUsers]);
 
   const handleEdit = (user) => {
-    if (user.username) {
-      router.push(`/userRole/${user.username}`)
-    }
-  }
-
-  const handleRemove = (user) => {
-    // TODO: Show confirmation and call delete role API
-  }
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
 
   const getBadgeVariant = (role) => {
     switch (role.toLowerCase()) {
       case "admin":
-        return "destructive"
+        return "destructive";
       case "manager":
-        return "secondary"
+        return "secondary";
       case "user":
-        return "outline"
+        return "outline";
       default:
-        return "default"
+        return "default";
     }
-  }
+  };
 
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>User Role Management</CardTitle>
-          <CardDescription>Manage system users and their roles</CardDescription>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>Manage system users and their profiles</CardDescription>
         </CardHeader>
       </Card>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Search User Roles</CardTitle>
+          <CardTitle>Search Users</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -129,8 +125,10 @@ export default function UserRolePage() {
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <CardTitle>User Role List</CardTitle>
-            <CardDescription>Showing {users.length} of {allUsers.length} user roles</CardDescription>
+            <CardTitle>User List</CardTitle>
+            <CardDescription>
+              Showing {users.length} of {allUsers.length} users
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -149,13 +147,13 @@ export default function UserRolePage() {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-4">
-                    Loading user roles...
+                    Loading users...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-4">
-                    No user roles found.
+                    No users found.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -182,12 +180,13 @@ export default function UserRolePage() {
                         size="sm"
                         onClick={() => handleEdit(user)}
                       >
-                        Add Role
+                        Edit
                       </Button>
                       <DeleteUserRoleDialog username={user.username}>
-  <Button variant="destructive" size="sm">Remove</Button>
-</DeleteUserRoleDialog>
-
+                        <Button variant="destructive" size="sm">
+                          Remove
+                        </Button>
+                      </DeleteUserRoleDialog>
                     </TableCell>
                   </TableRow>
                 ))
@@ -196,6 +195,14 @@ export default function UserRolePage() {
           </Table>
         </CardContent>
       </Card>
+
+      {selectedUser && (
+        <UserDetailModal
+          user={selectedUser}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
+      )}
     </div>
-  )
+  );
 }

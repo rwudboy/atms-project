@@ -20,7 +20,7 @@ export default function Page({ params }) {
     customer: <Customer />,
     workgroup: <Workgroup />,
     roles: <Role />,
-    "user-profile": < UserProfile/>,
+    userProfile: < UserProfile/>,
     projectInstances :<ProjectInstance />,
     archives :<ArchivesPage />,
     unassignTask:<UnassignTask />,

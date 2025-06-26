@@ -101,7 +101,7 @@ export function AppSidebar(props) {
   ];
 
   const userManagement = [
-    { title: "User Profile", url: "/user-profile", icon: IconUsers },
+    { title: "User Profile", url: "/userProfile", icon: IconUsers },
     { title: "User Role", url: "/userRole", icon: IconUserEdit },
 
   ];

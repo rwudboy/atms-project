@@ -7,6 +7,13 @@ import { Button } from "@/interface-adapters/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Input } from "@/interface-adapters/components/ui/input"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/interface-adapters/components/ui/select"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -33,22 +40,35 @@ import {
   Save,
   X,
   Lock,
+  Unlock,
+  AlertCircle,
 } from "lucide-react"
 
 export default function UserProfilePage({ username, onBack }) {
-      const router = useRouter()
+  const router = useRouter()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editedUser, setEditedUser] = useState(null)
+  const [passwordData, setPasswordData] = useState({
+    newPassword: "",
+    confirmPassword: ""
+  })
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [passwordError, setPasswordError] = useState("")
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await getUserDetails(username)
         if (res?.status && res?.user) {
+          console.log("User ID from getUserDetails:", res.user.id) // Log the user ID
           setUser(res.user)
-          setEditedUser({ ...res.user, password: "" })
+          setEditedUser({ 
+            ...res.user, 
+            status: res.user.status || "unlocked" // Default to unlocked if no status
+          })
+          setPhoneNumber(res.user.phoneNumber || "")
         }
       } catch (error) {
         console.error("Failed to load user:", error)
@@ -76,38 +96,104 @@ export default function UserProfilePage({ username, onBack }) {
     }
   }
 
+  const getStatusBadgeVariant = (status) => {
+    return status === "locked" ? "destructive" : "default"
+  }
+
   const handleEdit = () => {
     setIsEditing(true)
+    setPasswordData({ newPassword: "", confirmPassword: "" })
+    setPhoneNumber(user.phoneNumber || "")
+    setPasswordError("")
   }
 
   const handleCancel = () => {
-    setEditedUser({ ...user, password: "" })
+    setEditedUser({ 
+      ...user, 
+      status: user.status || "unlocked"
+    })
+    setPasswordData({ newPassword: "", confirmPassword: "" })
+    setPhoneNumber(user.phoneNumber || "")
+    setPasswordError("")
     setIsEditing(false)
   }
 
+  const validatePasswords = () => {
+    if (passwordData.newPassword || passwordData.confirmPassword) {
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        setPasswordError("Passwords do not match")
+        return false
+      }
+      if (passwordData.newPassword.length < 6) {
+        setPasswordError("Password must be at least 6 characters long")
+        return false
+      }
+    }
+    setPasswordError("")
+    return true
+  }
+
   const handleSave = async () => {
-    // Here you would typically call an API to save the changes
+    if (!validatePasswords()) {
+      return
+    }
+
     try {
-      // Example: await updateUserDetails(editedUser)
-      setUser(editedUser)
+      // Prepare form data in the requested format
+      const formData = {
+        status: editedUser.status, // "locked" or "unlocked" based on selected
+        user: {}
+      }
+
+      // Only add password if it was changed
+      if (passwordData.newPassword) {
+        formData.user.password = passwordData.newPassword
+      }
+
+      // Only add phone number if it was changed
+      if (phoneNumber !== (user.phoneNumber || "")) {
+        formData.user.phoneNumber = phoneNumber
+      }
+
+      console.log("Form data:", formData) // Log the form data
+
+      // Example: await updateUserDetails(formData)
+      setUser({
+        ...user,
+        status: editedUser.status,
+        ...(phoneNumber !== (user.phoneNumber || "") && { phoneNumber }),
+        ...(passwordData.newPassword && { password: passwordData.newPassword })
+      })
       setIsEditing(false)
-      console.log("User updated:", editedUser)
+      setPasswordData({ newPassword: "", confirmPassword: "" })
+      console.log("User updated successfully")
     } catch (error) {
       console.error("Failed to update user:", error)
     }
   }
 
-  const handleInputChange = (field, value) => {
+  const handleStatusChange = (newStatus) => {
     setEditedUser(prev => ({
+      ...prev,
+      status: newStatus
+    }))
+  }
+
+  const handlePasswordChange = (field, value) => {
+    setPasswordData(prev => ({
       ...prev,
       [field]: value
     }))
+    // Clear error when user starts typing
+    if (passwordError) {
+      setPasswordError("")
+    }
   }
 
   if (loading) return <p className="p-6 text-slate-500">Loading profile...</p>
   if (!user) return <p className="p-6 text-red-500">User not found.</p>
 
-  const displayUser = isEditing ? editedUser : user
+  const displayUser = user
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -117,7 +203,7 @@ export default function UserProfilePage({ username, onBack }) {
             <Button 
               variant="ghost" 
               size="sm" 
-             onClick={() => router.push("/userRole")}
+             onClick={() => router.push("/userProfile")}
               className="hover:bg-slate-200"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -233,15 +319,14 @@ export default function UserProfilePage({ username, onBack }) {
                           <User className="w-4 h-4" />
                           <span>Full Name</span>
                         </label>
-                        {isEditing ? (
-                          <Input
-                            value={editedUser.fullName}
-                            onChange={(e) => handleInputChange('fullName', e.target.value)}
-                            className="bg-slate-50 border-slate-200"
-                          />
-                        ) : (
+                        {!isEditing ? (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                             <p className="text-slate-900 font-medium">{displayUser.fullName}</p>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <p className="text-slate-700 font-medium">{displayUser.fullName}</p>
+                            <p className="text-xs text-slate-500 mt-1">This field cannot be edited</p>
                           </div>
                         )}
                       </div>
@@ -253,22 +338,20 @@ export default function UserProfilePage({ username, onBack }) {
                           <Mail className="w-4 h-4" />
                           <span>Email Address</span>
                         </label>
-                        {isEditing ? (
-                          <Input
-                            type="email"
-                            value={editedUser.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            className="bg-slate-50 border-slate-200 font-mono"
-                          />
-                        ) : (
+                        {!isEditing ? (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                             <p className="text-slate-900 font-mono">{displayUser.email}</p>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <p className="text-slate-700 font-mono">{displayUser.email}</p>
+                            <p className="text-xs text-slate-500 mt-1">This field cannot be edited</p>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {displayUser.phoneNumber && (
+                    {(displayUser.phoneNumber || isEditing) && (
                       <div className="space-y-2">
                         <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
                           <Phone className="w-4 h-4" />
@@ -276,13 +359,14 @@ export default function UserProfilePage({ username, onBack }) {
                         </label>
                         {isEditing ? (
                           <Input
-                            value={editedUser.phoneNumber}
-                            onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
                             className="bg-slate-50 border-slate-200 font-mono"
+                            placeholder="Enter phone number"
                           />
                         ) : (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                            <p className="text-slate-900 font-mono">{displayUser.phoneNumber}</p>
+                            <p className="text-slate-900 font-mono">{displayUser.phoneNumber || "Not provided"}</p>
                           </div>
                         )}
                       </div>
@@ -294,14 +378,7 @@ export default function UserProfilePage({ username, onBack }) {
                           <Calendar className="w-4 h-4" />
                           <span>Date of Birth</span>
                         </label>
-                        {isEditing ? (
-                          <Input
-                            type="date"
-                            value={editedUser.TanggalLahir ? new Date(editedUser.TanggalLahir).toISOString().split('T')[0] : ''}
-                            onChange={(e) => handleInputChange('TanggalLahir', e.target.value)}
-                            className="bg-slate-50 border-slate-200"
-                          />
-                        ) : (
+                        {!isEditing ? (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                             <p className="text-slate-900">
                               {new Date(displayUser.TanggalLahir).toLocaleDateString("en-US", {
@@ -311,24 +388,58 @@ export default function UserProfilePage({ username, onBack }) {
                               })}
                             </p>
                           </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <p className="text-slate-700">
+                              {new Date(displayUser.TanggalLahir).toLocaleDateString("en-US", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                              })}
+                            </p>
+                            <p className="text-xs text-slate-500 mt-1">This field cannot be edited</p>
+                          </div>
                         )}
                       </div>
                     )}
 
+                    {/* Password Fields - Only show in edit mode */}
                     {isEditing && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                          <Lock className="w-4 h-4" />
-                          <span>Password</span>
-                        </label>
-                        <Input
-                          type="password"
-                          value={editedUser.password}
-                          onChange={(e) => handleInputChange('password', e.target.value)}
-                          placeholder="Enter new password (leave blank to keep current)"
-                          className="bg-slate-50 border-slate-200"
-                        />
-                      </div>
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                            <Lock className="w-4 h-4" />
+                            <span>New Password</span>
+                          </label>
+                          <Input
+                            type="password"
+                            value={passwordData.newPassword}
+                            onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                            placeholder="Enter new password (optional)"
+                            className="bg-slate-50 border-slate-200"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                            <Lock className="w-4 h-4" />
+                            <span>Confirm New Password</span>
+                          </label>
+                          <Input
+                            type="password"
+                            value={passwordData.confirmPassword}
+                            onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                            placeholder="Confirm new password"
+                            className={`bg-slate-50 border-slate-200 ${passwordError ? 'border-red-300' : ''}`}
+                          />
+                          {passwordError && (
+                            <div className="flex items-center space-x-2 text-red-600 text-sm">
+                              <AlertCircle className="w-4 h-4" />
+                              <span>{passwordError}</span>
+                            </div>
+                          )}
+                        </div>
+                      </>
                     )}
 
                     {Array.isArray(displayUser.role) && displayUser.role.length > 0 && (
@@ -337,15 +448,28 @@ export default function UserProfilePage({ username, onBack }) {
                           <Shield className="w-4 h-4" />
                           <span>User Roles</span>
                         </label>
-                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                          <div className="flex flex-wrap gap-2">
-                            {displayUser.role.map((role, index) => (
-                              <Badge key={index} variant={getRoleBadgeVariant(role)} className="text-xs">
-                                {role.charAt(0).toUpperCase() + role.slice(1)}
-                              </Badge>
-                            ))}
+                        {!isEditing ? (
+                          <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                            <div className="flex flex-wrap gap-2">
+                              {displayUser.role.map((role, index) => (
+                                <Badge key={index} variant={getRoleBadgeVariant(role)} className="text-xs">
+                                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <div className="flex flex-wrap gap-2">
+                              {displayUser.role.map((role, index) => (
+                                <Badge key={index} variant={getRoleBadgeVariant(role)} className="text-xs opacity-80">
+                                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                                </Badge>
+                              ))}
+                            </div>
+                            <p className="text-xs text-slate-500 mt-2">This field cannot be edited</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -357,15 +481,14 @@ export default function UserProfilePage({ username, onBack }) {
                           <Globe className="w-4 h-4" />
                           <span>Username</span>
                         </label>
-                        {isEditing ? (
-                          <Input
-                            value={editedUser.username}
-                            onChange={(e) => handleInputChange('username', e.target.value)}
-                            className="bg-slate-50 border-slate-200 font-mono"
-                          />
-                        ) : (
+                        {!isEditing ? (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                             <p className="text-slate-900 font-mono">@{displayUser.username}</p>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <p className="text-slate-700 font-mono">@{displayUser.username}</p>
+                            <p className="text-xs text-slate-500 mt-1">This field cannot be edited</p>
                           </div>
                         )}
                       </div>
@@ -377,34 +500,22 @@ export default function UserProfilePage({ username, onBack }) {
                           <Briefcase className="w-4 h-4" />
                           <span>Position</span>
                         </label>
-                        {isEditing ? (
-                          <Input
-                            value={editedUser.posisi}
-                            onChange={(e) => handleInputChange('posisi', e.target.value)}
-                            className="bg-slate-50 border-slate-200"
-                          />
-                        ) : (
+                        {!isEditing ? (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                             <p className="text-slate-900 font-medium">{displayUser.posisi}</p>
                             {displayUser.department && (
                               <p className="text-sm text-slate-600">{displayUser.department}</p>
                             )}
                           </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <p className="text-slate-700 font-medium">{displayUser.posisi}</p>
+                            {displayUser.department && (
+                              <p className="text-sm text-slate-600">{displayUser.department}</p>
+                            )}
+                            <p className="text-xs text-slate-500 mt-1">This field cannot be edited</p>
+                          </div>
                         )}
-                      </div>
-                    )}
-
-                    {displayUser.department && isEditing && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                          <Building2 className="w-4 h-4" />
-                          <span>Department</span>
-                        </label>
-                        <Input
-                          value={editedUser.department}
-                          onChange={(e) => handleInputChange('department', e.target.value)}
-                          className="bg-slate-50 border-slate-200"
-                        />
                       </div>
                     )}
 
@@ -414,34 +525,80 @@ export default function UserProfilePage({ username, onBack }) {
                           <Building2 className="w-4 h-4" />
                           <span>Address</span>
                         </label>
-                        {isEditing ? (
-                          <Input
-                            value={editedUser.address}
-                            onChange={(e) => handleInputChange('address', e.target.value)}
-                            className="bg-slate-50 border-slate-200"
-                          />
-                        ) : (
+                        {!isEditing ? (
                           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                             <p className="text-slate-900 leading-relaxed">{displayUser.address}</p>
+                          </div>
+                        ) : (
+                          <div className="p-3 bg-slate-100 rounded-lg border border-slate-200 opacity-60">
+                            <p className="text-slate-700 leading-relaxed">{displayUser.address}</p>
+                            <p className="text-xs text-slate-500 mt-1">This field cannot be edited</p>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {displayUser.status && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-                          <Building2 className="w-4 h-4" />
-                          <span>Account Status</span>
-                        </label>
+                    {/* Account Status Field */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                        {(isEditing ? editedUser.status : displayUser.status) === "locked" ? (
+                          <Lock className="w-4 h-4" />
+                        ) : (
+                          <Unlock className="w-4 h-4" />
+                        )}
+                        <span>Account Status</span>
+                      </label>
+                      {isEditing ? (
+                        <Select
+                          value={editedUser.status}
+                          onValueChange={handleStatusChange}
+                        >
+                          <SelectTrigger className="bg-slate-50 border-slate-200">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unlocked">
+                              <div className="flex items-center space-x-2">
+                                <Unlock className="w-4 h-4 text-green-600" />
+                                <span>Unlocked</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="locked">
+                              <div className="flex items-center space-x-2">
+                                <Lock className="w-4 h-4 text-red-600" />
+                                <span>Locked</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
                         <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center">
-                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                            {displayUser.status}
+                          <Badge 
+                            variant={getStatusBadgeVariant(displayUser.status)} 
+                            className={`flex items-center w-fit ${
+                              displayUser.status === "locked" 
+                                ? "bg-red-50 text-red-700 border-red-200" 
+                                : "bg-green-50 text-green-700 border-green-200"
+                            }`}
+                          >
+                            <div className={`w-2 h-2 rounded-full mr-2 ${
+                              displayUser.status === "locked" ? "bg-red-500" : "bg-green-500"
+                            }`}></div>
+                            {displayUser.status === "locked" ? (
+                              <>
+                                <Lock className="w-3 h-3 mr-1" />
+                                Locked
+                              </>
+                            ) : (
+                              <>
+                                <Unlock className="w-3 h-3 mr-1" />
+                                Unlocked
+                              </>
+                            )}
                           </Badge>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -458,6 +615,7 @@ export default function UserProfilePage({ username, onBack }) {
                     <Button 
                       onClick={handleSave}
                       className="bg-blue-600 hover:bg-blue-700"
+                      disabled={!!passwordError}
                     >
                       <Save className="w-4 h-4 mr-2" />
                       Save Changes

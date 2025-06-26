@@ -19,18 +19,21 @@ import { Lock, Unlock } from "lucide-react";
 import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase";
 
 export default function UserDetailModal({ user, open, onOpenChange }) {
-  const [isLocked, setIsLocked] = useState(user?.status !== "active");
   const [selectedRole, setSelectedRole] = useState(user?.Role?.[0] || "");
   const [roleOptions, setRoleOptions] = useState([]);
 
-  // Fetch roles on mount
+  useEffect(() => {
+    if (user) {
+      setSelectedRole(user.Role?.[0] || "");
+    }
+  }, [user, open]);
+
   useEffect(() => {
     async function fetchRoles() {
       try {
         const response = await getRoles();
         const roles = response?.workgroup?.role || [];
 
-        // Remove duplicates by role name
         const uniqueByName = Array.from(
           new Map(roles.map((role) => [role.name, role])).values()
         );
@@ -44,6 +47,9 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
     fetchRoles();
   }, []);
 
+  const isUnlocked = user?.status === "unlocked";
+  const isLocked = user?.status === "locked";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] p-6">
@@ -55,20 +61,18 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-8">
-          {/* Left Column - User Information */}
+          {/* Left Column - User Info */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <span className="font-medium min-w-[100px]">Name</span>
               <span>:</span>
               <span>{user?.namaLengkap || "-"}</span>
             </div>
-
             <div className="flex items-center gap-3">
               <span className="font-medium min-w-[100px]">Username</span>
               <span>:</span>
               <span>{user?.username || "-"}</span>
             </div>
-
             <div className="flex items-center gap-3">
               <span className="font-medium min-w-[100px]">Job Position</span>
               <span>:</span>
@@ -80,14 +84,14 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
           <div className="space-y-6">
             <div>
               <h3 className="font-semibold mb-3">Status</h3>
-              <Button
-                onClick={() => setIsLocked(!isLocked)}
-                className={`flex items-center gap-2 px-4 py-2 text-white
-                  ${isLocked ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}`}
+              <div
+                className={`flex items-center gap-2 px-4 py-2 text-white rounded-md w-fit
+                  ${isUnlocked ? "bg-green-600" : isLocked ? "bg-red-600" : "bg-gray-500"}`}
               >
-                {isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-                {isLocked ? "Locked" : "Unlocked"}
-              </Button>
+                {isUnlocked && <Unlock className="w-4 h-4" />}
+                {isLocked && <Lock className="w-4 h-4" />}
+                {user?.status || "-"}
+              </div>
             </div>
 
             <div>
@@ -108,6 +112,7 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
           </div>
         </div>
 
+        {/* Footer */}
         <div className="flex justify-end gap-3 mt-8">
           <Button
             variant="outline"
@@ -118,7 +123,10 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
           </Button>
           <Button
             onClick={() => {
-              console.log("Saving user details...", { selectedRole, isLocked });
+              console.log("Saving user details...", {
+                selectedRole,
+                userStatus: user?.status,
+              });
               onOpenChange(false);
             }}
             className="bg-black text-white hover:bg-gray-800"

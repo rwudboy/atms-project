@@ -22,15 +22,14 @@ import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
-import UserDetailModal from "@/interface-adapters/components/modals/user-profile/user-profile-page"
+import { useRouter } from "next/navigation"
 
 export default function UsersPage() {
+  const router = useRouter()
   const [users, setUsers] = useState([])
   const [allUsers, setAllUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     fetchUsers()
@@ -76,8 +75,9 @@ export default function UsersPage() {
   }, [searchTerm, allUsers])
 
   const handleEdit = (user) => {
-    setSelectedUser(user)
-    setIsModalOpen(true)
+    if (user.username) {
+      router.push(`/userProfile/${user.username}`)
+    }
   }
 
   const handleRemove = (user) => {
@@ -199,14 +199,6 @@ export default function UsersPage() {
           </Table>
         </CardContent>
       </Card>
-      {selectedUser && (
-        <UserDetailModal
-          user={selectedUser}
-          open={isModalOpen}
-          onOpenChange={setIsModalOpen}
-        />
-      )}
-
     </div>
   )
 }
