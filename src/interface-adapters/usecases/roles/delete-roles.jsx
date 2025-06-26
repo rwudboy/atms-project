@@ -8,7 +8,7 @@ export async function deleteRole(roleId) {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/roles=/${roleId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/roles/${roleId}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

@@ -29,6 +29,7 @@ import {
 
 import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase"
 import { viewRoles } from "@/interface-adapters/usecases/roles/view-roles"
+import { deleteRole } from "@/interface-adapters/usecases/roles/delete-roles"
 
 import AddRoleDrawer from "@/interface-adapters/components/roles/roles-drawer"
 
@@ -148,6 +149,22 @@ export default function RolesPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!roleToDelete) return
+    setIsDeleting(true)
+    try {
+      await deleteRole(roleToDelete.uuid)
+      toast.success(`Role '${roleToDelete.name}' deleted successfully`)
+      setDeleteModalOpen(false)
+      setRoleToDelete(null)
+      fetchRoles()
+    } catch (error) {
+      toast.error("Failed to delete role.")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
@@ -219,8 +236,14 @@ export default function RolesPage() {
                     <TableCell>{role.created}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleViewClick(role)}>View</Button>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedRole(role)}>Edit</Button>
-                      <Button variant="destructive" size="sm" onClick={() => setRoleToDelete(role)}>Delete</Button>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setSelectedRole(role)
+                        setModalOpen(true)
+                      }}>Edit</Button>
+                      <Button variant="destructive" size="sm" onClick={() => {
+                        setRoleToDelete(role)
+                        setDeleteModalOpen(true)
+                      }}>Delete</Button>
                     </TableCell>
                   </TableRow>
                 ))
@@ -244,7 +267,7 @@ export default function RolesPage() {
       <RoleDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onDelete={() => {}}
+        onDelete={handleDelete}
         role={roleToDelete}
         isDeleting={isDeleting}
       />

@@ -1,75 +1,88 @@
+"use client";
+
 import { useState } from "react";
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/interface-adapters/components/ui/drawer";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerClose,
+} from "@/interface-adapters/components/ui/drawer";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { addWorkgroup } from "@/interface-adapters/usecases/workgroup/workgroup-usecase";
-import { useIsMobile } from "@/interface-adapters/hooks/use-mobile"; 
+import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
 import { toast } from "sonner";
 
 export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
   const [openDrawer, setOpenDrawer] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    status: ""
-  });
+  const [formData, setFormData] = useState({ name: "", project_name: "" });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  
   const isMobile = useIsMobile();
 
-  const handleAddWorkgroup = async () => {
-    if (!formData.name || !formData.status) {
-      toast.warning("Please complete the form before submitting.");
-      return;
-    }
-  
- 
-  
-    setLoading(true);
-    setError(null);
-  
-    try {
-      const newWorkgroup = await addWorkgroup(formData);
-  
-  
-  
-      onWorkgroupAdded(newWorkgroup);
-      setFormData({ name: "", status: "" });
+const handleAddWorkgroup = async () => {
+  if (!formData.name || !formData.project_name) {
+    toast.warning("Please complete the form before submitting.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const status = await addWorkgroup(formData);
+    console.log(status);
+    
+    if (status === 201) {
+      onWorkgroupAdded();
+      toast.success("✅ Workgroup successfully created.");
+      setFormData({ name: "", project_name: "" });
       setOpenDrawer(false);
-  
-      toast.success("Workgroup added successfully!");
-    } catch (err) {
-      setError("Failed to add workgroup");
-  
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    toast.error("❌ Failed to add workgroup. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <Drawer open={openDrawer} onOpenChange={setOpenDrawer} direction={isMobile ? "bottom" : "right"}>
+    <Drawer
+      open={openDrawer}
+      onOpenChange={setOpenDrawer}
+      direction={isMobile ? "bottom" : "right"}
+    >
       <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+
       <DrawerContent>
-        <div className="p-4">
+        <div className="w-full max-w-2xl mx-auto px-6 py-4">
           <DrawerHeader>
             <DrawerTitle>Add New Workgroup</DrawerTitle>
-            <DrawerDescription>Fill out the workgroup details below.</DrawerDescription>
+            <DrawerDescription>
+              Fill out the workgroup details below.
+            </DrawerDescription>
           </DrawerHeader>
-          <div className="grid gap-4 py-4">
+
+          <div className="grid gap-4">
             <Input
               placeholder="Workgroup Name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
             />
             <Input
               placeholder="Project Name"
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, project_name: e.target.value })
+              }
             />
-            {error && <p className="text-sm text-red-500">{error}</p>}
           </div>
-          <DrawerFooter>
+
+          <DrawerFooter className="mt-4">
             <Button onClick={handleAddWorkgroup} disabled={loading}>
               {loading ? "Saving..." : "Save"}
             </Button>
@@ -82,3 +95,4 @@ export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
     </Drawer>
   );
 }
+s

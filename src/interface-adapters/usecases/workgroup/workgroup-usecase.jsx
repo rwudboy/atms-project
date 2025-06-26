@@ -43,25 +43,28 @@ export async function addWorkgroup(workgroupData) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workgroup`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/json",
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(workgroupData),
     });
 
-    const data = await response.json();
+    console.log("Add Workgroup status:", response.status);
 
-    if (!response.ok) {
-      throw new Error(data.message || `Failed to add workgroup: ${response.status}`);
+    if (response.status === 201) {
+      return response.status; // ✅ Just return success flag
     }
 
-    return data;
+    // If not 201, throw error
+    throw new Error(`Failed to add workgroup. Status: ${response.status}`);
   } catch (error) {
     console.error("Error adding workgroup:", error);
     throw error;
   }
 }
+
+
 
 export async function deleteWorkgroup(workgroupId) {
   const token = getToken();

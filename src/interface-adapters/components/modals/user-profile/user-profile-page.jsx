@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/interface-adapters/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/interface-adapters/components/ui/dialog";
 import {
   Select,
@@ -17,10 +16,33 @@ import {
   SelectValue,
 } from "@/interface-adapters/components/ui/select";
 import { Lock, Unlock } from "lucide-react";
+import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase";
 
 export default function UserDetailModal({ user, open, onOpenChange }) {
   const [isLocked, setIsLocked] = useState(user?.status !== "active");
   const [selectedRole, setSelectedRole] = useState(user?.Role?.[0] || "");
+  const [roleOptions, setRoleOptions] = useState([]);
+
+  // Fetch roles on mount
+  useEffect(() => {
+    async function fetchRoles() {
+      try {
+        const response = await getRoles();
+        const roles = response?.workgroup?.role || [];
+
+        // Remove duplicates by role name
+        const uniqueByName = Array.from(
+          new Map(roles.map((role) => [role.name, role])).values()
+        );
+
+        setRoleOptions(uniqueByName);
+      } catch (error) {
+        console.error("Failed to load roles:", error);
+      }
+    }
+
+    fetchRoles();
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -75,10 +97,11 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="moderator">Moderator</SelectItem>
-                  <SelectItem value="analyst">System Analyst</SelectItem>
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role.uuid} value={role.name}>
+                      {role.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
