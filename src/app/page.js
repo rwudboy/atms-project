@@ -5,7 +5,7 @@ import OtpPage from "@/app/otp/page";
 import Customer from "@/app/customer/page";
 import Workgroup from "@/app/workgroup/page";
 import Role from "@/app/roles/page";
-import UserProfile from "@/app/user-profile/page";
+import UserProfile from "@/app/userProfile/page";
 import ProjectInstance from "@/app/projectInstance/page";
 import ArchivesPage from "@/app/archives/page";
 import UnassignTask from "@/app/unassignTask/page";
