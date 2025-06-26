@@ -224,7 +224,6 @@ export default function WorkgroupsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Project</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -246,7 +245,6 @@ export default function WorkgroupsPage() {
                 workgroups.map((wg) => (
                   <TableRow key={wg.uuid}>
                     <TableCell className="font-medium">{wg.name}</TableCell>
-                    <TableCell>{wg.project_name || "—"}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
