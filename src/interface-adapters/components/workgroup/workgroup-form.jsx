@@ -35,7 +35,7 @@ import {
   SheetTrigger,
 } from "@/interface-adapters/components/ui/sheet";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { Search, Plus, Trash2, Users, AlertCircle } from "lucide-react";
+import { Search, Plus, Trash2, Users, AlertCircle, Eye} from "lucide-react";
 import { toast } from "sonner";
 import AddUserModal from "@/interface-adapters/components/modals/workgroup/workgroup-modal";
 
@@ -225,6 +225,7 @@ export default function WorkgroupsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Member</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -245,6 +246,7 @@ export default function WorkgroupsPage() {
                 workgroups.map((wg) => (
                   <TableRow key={wg.uuid}>
                     <TableCell className="font-medium">{wg.name}</TableCell>
+                    
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
@@ -254,8 +256,17 @@ export default function WorkgroupsPage() {
                         {wg.status || "Unknown"}
                       </span>
                     </TableCell>
+                    <TableCell className="font-medium">{wg.member}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenAddUserModal(wg)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"

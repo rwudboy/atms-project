@@ -84,10 +84,6 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
 
             const response = await fetch(downloadUrl, {
                 method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Accept": "application/octet-stream",
-                },
             })
 
             if (!response.ok) {
