@@ -112,18 +112,11 @@ export default function ArchivePage() {
                     <TableCell>{archive.businessKey}</TableCell>
                     <TableCell>{archive.customer}</TableCell>
                     <TableCell>
-                      <Badge
-                        variant={
-                          archive.status === "Active"
-                            ? "default"
-                            : archive.status === "Completed"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {archive.status?.toUpperCase()}
-                      </Badge>
-                    </TableCell>
+  <Badge variant={archive.status === "UNLOCKED" ? "success" : "default"}>
+    {archive.status?.toUpperCase()}
+  </Badge>
+</TableCell>
+
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button

@@ -66,52 +66,26 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
         }
     }, [isOpen, archive])
 
-    const handleDownload = async (task) => {
-        try {
-            console.log("Download task ID:", task.id)
+   
 
-            const token = getToken()
-            if (!token) {
-                toast.error("Authentication required")
-                return
-            }
+    const handleDownload = (task) => {
+  try {
+    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/atribut/${task.id}/download`
 
-            toast.success(`Download initiated for task: ${task.id}`)
+    // Optionally show a toast before download starts
+    toast.success(`Download started for task: ${task.id}`)
 
-            // Use the real download endpoint
-            const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/atribut/${task.id}/download`
-            console.log("Download URL:", downloadUrl)
+    // Open the download URL in a new tab or initiate it directly
+    window.open(downloadUrl, '_blank') // or remove '_blank' to download in same tab
 
-            const response = await fetch(downloadUrl, {
-                method: "GET",
-            })
+    // Optionally show a toast after trigger (note: doesn't guarantee download finished)
+    toast.success("File download triggered")
+  } catch (error) {
+    console.error("Error triggering file download:", error)
+    toast.error("Failed to start file download: " + error.message)
+  }
+}
 
-            if (!response.ok) {
-                throw new Error(`Download failed: ${response.statusText}`)
-            }
-
-            // Get the blob from response
-            const blob = await response.blob()
-
-            // Extract filename from task.value or use a default
-            const filename = task.value ? task.value.split('/').pop() : `file_${task.id}`
-
-            // Create download link
-            const url = window.URL.createObjectURL(blob)
-            const link = document.createElement("a")
-            link.href = url
-            link.download = filename
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            window.URL.revokeObjectURL(url)
-
-            toast.success("File downloaded successfully")
-        } catch (error) {
-            console.error("Error downloading file:", error)
-            toast.error("Failed to download file: " + error.message)
-        }
-    }
 
     const getFileIcon = (fileType) => {
         const extension = fileType?.split('.').pop()?.toLowerCase()
@@ -226,11 +200,9 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                 <CardTitle className="text-sm font-medium">Status</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Badge
-                                    variant={(archiveData?.status || archive?.status) === "Active" || (archiveData?.status || archive?.status) === "active" ? "default" : "secondary"}
-                                >
-                                    {(archiveData?.status || archive?.status || "Unknown").toUpperCase()}
-                                </Badge>
+                                <Badge variant={archive.status === "UNLOCKED" ? "success" : "default"}>
+    {archive.status?.toUpperCase()}
+  </Badge>
                             </CardContent>
                         </Card>
                     </div>
