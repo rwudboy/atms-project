@@ -95,6 +95,16 @@ export default function UsersPage() {
     }
   };
 
+  const getStatusBadgeVariant = (status) => {
+    if (!status) return "default";
+    return status.toLowerCase() === "unlocked" ? "success" : "default";
+  };
+
+  const formatStatus = (status) => {
+    if (!status) return "ACTIVE";
+    return status.toUpperCase();
+  };
+
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
@@ -173,7 +183,11 @@ export default function UsersPage() {
                       )}
                     </TableCell>
                     <TableCell>{user.posisi || "-"}</TableCell>
-                    <TableCell>{user.status || "active"}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(user.status)}>
+                        {formatStatus(user.status)}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="flex gap-2">
                       <Button
                         variant="outline"

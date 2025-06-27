@@ -43,6 +43,7 @@ export default function ArchivePage() {
   }, [searchTerm]);
 
   const handleView = (archive) => {
+    // Just pass the archive object directly - let the modal fetch its own data
     setSelectedArchive(archive);
     setModalOpen(true);
   };
@@ -107,7 +108,7 @@ export default function ArchivePage() {
               ) : (
                 archives.map((archive) => (
                   <TableRow key={archive.businessKey}>
-                    <TableCell className="font-medium">{archive.name}</TableCell>
+                    <TableCell className="font-medium">{archive.nama}</TableCell>
                     <TableCell>{archive.businessKey}</TableCell>
                     <TableCell>{archive.customer}</TableCell>
                     <TableCell>
@@ -120,7 +121,7 @@ export default function ArchivePage() {
                             : "outline"
                         }
                       >
-                        {archive.status}
+                        {archive.status?.toUpperCase()}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -144,13 +145,11 @@ export default function ArchivePage() {
       </Card>
 
       {/* Archive Detail Modal */}
-      {selectedArchive && (
-        <ArchiveDetailModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          archive={selectedArchive}
-        />
-      )}
+      <ArchiveDetailModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        archive={selectedArchive}
+      />
     </div>
   );
 }

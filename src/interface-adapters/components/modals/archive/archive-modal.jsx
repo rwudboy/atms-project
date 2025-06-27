@@ -12,48 +12,114 @@ import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Button } from "@/interface-adapters/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/interface-adapters/components/ui/card"
 import { Separator } from "@/interface-adapters/components/ui/separator"
+import { Skeleton } from "@/interface-adapters/components/ui/skeleton"
 import { Eye, Calendar, User, Clock, ArrowRight, Download, FileText, ImageIcon, File } from "lucide-react"
 import { getTasks } from "@/interface-adapters/usecases/archive/get-task"
+import { getToken } from "@/framework-drivers/token/tokenService"
+import { toast } from "sonner"
 
 export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
     const [detailData, setDetailData] = useState([])
+    const [archiveData, setArchiveData] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         const fetchDetail = async () => {
             if (!archive?.businessKey) return
+
+            const token = getToken()
+            if (!token) {
+                toast.error("Authentication required")
+                return
+            }
+
             setIsLoading(true)
-            const tasks = await getTasks(archive.businessKey)
-            setDetailData(tasks)
+            try {
+                console.log("Fetching tasks for business key:", archive.businessKey)
+                const response = await getTasks(archive.businessKey)
+                console.log("API Response:", response)
+
+                if (response?.status && response?.data) {
+                    setDetailData(response.data.task || [])
+                    setArchiveData(response.data)
+                } else {
+                    setDetailData([])
+                    setArchiveData(null)
+                }
+            } catch (error) {
+                console.error("Error fetching tasks:", error)
+                setDetailData([])
+                setArchiveData(null)
+                toast.error("Failed to fetch task details")
+            }
             setIsLoading(false)
         }
 
-        if (isOpen) {
+        if (isOpen && archive) {
             fetchDetail()
+        }
+
+        // Reset state when modal closes
+        if (!isOpen) {
+            setDetailData([])
+            setArchiveData(null)
         }
     }, [isOpen, archive])
 
-    const handleDownload = async (file) => {
+    const handleDownload = async (task) => {
         try {
-            let content = "Mock file content for " + file.name
-            let mimeType = "application/octet-stream"
+            console.log("Download task ID:", task.id)
 
-            const blob = new Blob([content], { type: mimeType })
+            const token = getToken()
+            if (!token) {
+                toast.error("Authentication required")
+                return
+            }
+
+            toast.success(`Download initiated for task: ${task.id}`)
+
+            // Use the real download endpoint
+            const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/atribut/${task.id}/download`
+            console.log("Download URL:", downloadUrl)
+
+            const response = await fetch(downloadUrl, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/octet-stream",
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error(`Download failed: ${response.statusText}`)
+            }
+
+            // Get the blob from response
+            const blob = await response.blob()
+
+            // Extract filename from task.value or use a default
+            const filename = task.value ? task.value.split('/').pop() : `file_${task.id}`
+
+            // Create download link
             const url = window.URL.createObjectURL(blob)
             const link = document.createElement("a")
             link.href = url
-            link.download = file.name
+            link.download = filename
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)
             window.URL.revokeObjectURL(url)
+
+            toast.success("File downloaded successfully")
         } catch (error) {
             console.error("Error downloading file:", error)
+            toast.error("Failed to download file: " + error.message)
         }
     }
 
     const getFileIcon = (fileType) => {
-        switch (fileType) {
+        const extension = fileType?.split('.').pop()?.toLowerCase()
+        switch (extension) {
             case "pdf":
             case "docx":
             case "xlsx":
@@ -80,16 +146,70 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
         })
     }
 
+    const SkeletonTaskCard = () => (
+        <Card className="border-l-4 border-l-muted">
+            <CardContent className="pt-4">
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <Skeleton className="h-5 w-48" />
+                        <Skeleton className="h-5 w-16" />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-4" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-4" />
+                            <Skeleton className="h-4 w-28" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-4" />
+                            <Skeleton className="h-4 w-32" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-4" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Skeleton className="h-4 w-4" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                            <Card className="bg-muted/30 border-dashed">
+                                <CardContent className="p-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Skeleton className="h-4 w-4" />
+                                        <div className="flex-1">
+                                            <Skeleton className="h-3 w-full mb-1" />
+                                            <Skeleton className="h-3 w-3/4" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-8 w-full" />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+
+    // Check if tasks are null or empty
+    const hasNoTasks = !isLoading && (!detailData || detailData.length === 0)
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="!max-w-none w-[80vw] h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Eye className="h-5 w-5" />
-                        Archive Details: {archive?.name}
+                        Archive Details: {archiveData?.nama || archive?.nama || archive?.name || "Loading..."}
                     </DialogTitle>
                     <DialogDescription>
-                        Business Key: <Badge variant="outline">{archive?.businessKey}</Badge>
+                        Business Key: <Badge variant="outline">{archiveData?.businessKey || archive?.businessKey}</Badge>
                     </DialogDescription>
                 </DialogHeader>
 
@@ -101,7 +221,7 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-lg font-semibold">
-                                    {archive?.customer || "Not specified"}
+                                    {archiveData?.customer || archive?.customer || "Not specified"}
                                 </p>
                             </CardContent>
                         </Card>
@@ -111,9 +231,9 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                             </CardHeader>
                             <CardContent>
                                 <Badge
-                                    variant={archive?.status === "Active" ? "default" : "secondary"}
+                                    variant={(archiveData?.status || archive?.status) === "Active" || (archiveData?.status || archive?.status) === "active" ? "default" : "secondary"}
                                 >
-                                    {archive?.status || "Unknown"}
+                                    {(archiveData?.status || archive?.status || "Unknown").toUpperCase()}
                                 </Badge>
                             </CardContent>
                         </Card>
@@ -127,29 +247,81 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                             Project Tasks & Details
                         </h3>
 
-                        {isLoading ? (
-                            <div className="text-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                                <p className="mt-2 text-muted-foreground">
-                                    Loading project details...
-                                </p>
-                            </div>
-                        ) : detailData.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                                No project details found
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {detailData.map((task, index) => (
+                        <div className="space-y-4">
+                            {isLoading ? (
+                                // Show skeleton cards while loading
+                                <>
+                                    <SkeletonTaskCard />
+                                    <SkeletonTaskCard />
+                                </>
+                            ) : hasNoTasks ? (
+                                <>
+                                    <Card className="border-l-4 border-l-muted shadow-sm">
+                                        <CardContent className="pt-4">
+                                            <div className="flex flex-col gap-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h4 className="font-semibold text-base">No task detail</h4>
+                                                    <Badge variant="secondary" className="text-xs">
+                                                        No task
+                                                    </Badge>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
+                                                    <div className="flex items-center gap-2">
+                                                        <User className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">Owner:</span>
+                                                        <span>-</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <User className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">Assignee:</span>
+                                                        <span>-</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">Created:</span>
+                                                        <span>-</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">Due Date:</span>
+                                                        <span>-</span>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <h5 className="font-medium text-sm mb-3 flex items-center gap-2">
+                                                        <File className="h-4 w-4 text-muted-foreground" />
+                                                        Attachments
+                                                    </h5>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                                        <Card className="bg-muted/30 border-dashed min-h-[160px]">
+                                                            <CardContent className="p-3 h-full flex items-center justify-center text-sm text-muted-foreground">
+                                                                No file uploaded
+                                                            </CardContent>
+                                                        </Card>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </>
+                            ) : (
+                                detailData.map((task, index) => (
                                     <Card key={task.id} className="border-l-4 border-l-primary">
                                         <CardContent className="pt-4">
                                             <div className="flex flex-col gap-4">
                                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                                     <div className="flex-1">
-                                                        <h4 className="font-semibold text-base mb-2">
-                                                            {task.name}
-                                                        </h4>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h4 className="font-semibold text-base">
+                                                                {task.taskname || task.name}
+                                                            </h4>
+                                                            <Badge variant="secondary" className="text-xs">
+                                                                Task #{index + 1}
+                                                            </Badge>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
                                                             <div className="flex items-center gap-2">
                                                                 <User className="h-4 w-4 text-muted-foreground" />
                                                                 <span className="text-muted-foreground">
@@ -199,23 +371,52 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-2">
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            Task #{index + 1}
-                                                        </Badge>
+
+                                                        {task.value && (
+                                                            <div>
+                                                                <h5 className="font-medium text-sm mb-3 flex items-center gap-2">
+                                                                    <File className="h-4 w-4" />
+                                                                    Attachments
+                                                                </h5>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                                                    <Card className="bg-muted/30 border-dashed">
+                                                                        <CardContent className="p-3">
+                                                                            <div className="flex items-center gap-2 mb-2">
+                                                                                {getFileIcon(task.value)}
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <p className="font-medium text-xs truncate">
+                                                                                        {task.value.split('/').pop()}
+                                                                                    </p>
+                                                                                    <p className="text-xs text-muted-foreground truncate">
+                                                                                        {task.value}
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="outline"
+                                                                                onClick={() => handleDownload(task)}
+                                                                                className="w-full flex items-center gap-2 h-8"
+                                                                            >
+                                                                                <Download className="h-3 w-3" />
+                                                                                Download
+                                                                            </Button>
+                                                                        </CardContent>
+                                                                    </Card>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
                                         </CardContent>
                                     </Card>
-                                ))}
-                            </div>
-                        )}
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </DialogContent>
         </Dialog>
-
     )
 }
