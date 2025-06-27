@@ -22,6 +22,7 @@ import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Search, Eye } from "lucide-react";
 
 import { getProject } from "@/interface-adapters/usecases/archive/get-project";
+import { getTasks } from "@/interface-adapters/usecases/archive/get-task"; // Import your getTasks function
 import ArchiveDetailModal from "@/interface-adapters/components/modals/archive/archive-modal";
 
 export default function ArchivePage() {
@@ -42,9 +43,13 @@ export default function ArchivePage() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
-  const handleView = (archive) => {
-    // Just pass the archive object directly - let the modal fetch its own data
-    setSelectedArchive(archive);
+  const handleView = async (archive) => {
+    // Fetch tasks using the business key from the selected archive
+    const tasks = await getTasks(archive.businessKey);
+    setSelectedArchive({
+      ...archive,
+      tasks // Add tasks to the selected archive object
+    });
     setModalOpen(true);
   };
 
@@ -112,11 +117,10 @@ export default function ArchivePage() {
                     <TableCell>{archive.businessKey}</TableCell>
                     <TableCell>{archive.customer}</TableCell>
                     <TableCell>
-  <Badge variant={archive.status === "UNLOCKED" ? "success" : "default"}>
+                     <Badge variant={archive.status === "UNLOCKED" ? "success" : "default"}>
     {archive.status?.toUpperCase()}
   </Badge>
-</TableCell>
-
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
@@ -138,11 +142,13 @@ export default function ArchivePage() {
       </Card>
 
       {/* Archive Detail Modal */}
-      <ArchiveDetailModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        archive={selectedArchive}
-      />
+      {selectedArchive && (
+        <ArchiveDetailModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          archive={selectedArchive}
+        />
+      )}
     </div>
   );
 }
