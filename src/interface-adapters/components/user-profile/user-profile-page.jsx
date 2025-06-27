@@ -97,6 +97,27 @@ export default function UsersPage() {
     }
   }
 
+  const getStatusBadgeVariant = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+      case "unlocked":
+        return "success"
+      case "inactive":
+      case "locked":
+        return "default"
+      default:
+        return "outline"
+    }
+  }
+
+  const capitalizeText = (text) => {
+  if (!text) return "-"
+  if (text.toLowerCase() === "locked" || text.toLowerCase() === "unlocked") {
+    return text.toUpperCase()
+  }
+  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
+}
+
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
@@ -167,7 +188,7 @@ export default function UsersPage() {
                       {Array.isArray(user.Role) && user.Role.length > 0 ? (
                         user.Role.map((role, idx) => (
                           <Badge key={idx} variant={getBadgeVariant(role)}>
-                            {role}
+                            {capitalizeText(role)}
                           </Badge>
                         ))
                       ) : (
@@ -175,7 +196,11 @@ export default function UsersPage() {
                       )}
                     </TableCell>
                     <TableCell>{user.posisi || "-"}</TableCell>
-                    <TableCell>{user.status || "active"}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusBadgeVariant(user.status)}>
+                        {capitalizeText(user.status || "active")}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="flex gap-2">
                       <Button
                         variant="outline"

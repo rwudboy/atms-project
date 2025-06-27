@@ -6,6 +6,7 @@ import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Button } from "@/interface-adapters/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Input } from "@/interface-adapters/components/ui/input"
+import { updateUserDetails } from "@/interface-adapters/usecases/user-role/edit-user"
 import {
   Select,
   SelectContent,
@@ -133,44 +134,48 @@ export default function UserProfilePage({ username, onBack }) {
     return true
   }
 
-  const handleSave = async () => {
-    if (!validatePasswords()) {
-      return
-    }
-
-    try {
-      // Prepare form data in the requested format
-      const formData = {
-        status: editedUser.status, // "locked" or "unlocked" based on selected
-        user: {}
-      }
-
-      // Only add password if it was changed
-      if (passwordData.newPassword) {
-        formData.user.password = passwordData.newPassword
-      }
-
-      // Only add phone number if it was changed
-      if (phoneNumber !== (user.phoneNumber || "")) {
-        formData.user.phoneNumber = phoneNumber
-      }
-
-      console.log("Form data:", formData) // Log the form data
-
-      // Example: await updateUserDetails(formData)
-      setUser({
-        ...user,
-        status: editedUser.status,
-        ...(phoneNumber !== (user.phoneNumber || "") && { phoneNumber }),
-        ...(passwordData.newPassword && { password: passwordData.newPassword })
-      })
-      setIsEditing(false)
-      setPasswordData({ newPassword: "", confirmPassword: "" })
-      console.log("User updated successfully")
-    } catch (error) {
-      console.error("Failed to update user:", error)
-    }
+const handleSave = async () => {
+  if (!validatePasswords()) {
+    return
   }
+  try {
+    const formData = {
+      status: editedUser.status, 
+      user: {}
+    }
+    
+    // Only include password if it's actually provided and not empty
+    if (passwordData.newPassword && passwordData.newPassword.trim() !== '') {
+      formData.user.password = passwordData.newPassword
+    }
+    
+    // Only include phoneNumber if it has changed
+    if (phoneNumber !== (user.phoneNumber || "")) {
+      formData.user.phoneNumber = phoneNumber
+    }
+    
+    // Don't send empty user object if no user fields are being updated
+    if (Object.keys(formData.user).length === 0) {
+      delete formData.user
+    }
+    
+    console.log("Sending formData:", formData) // Debug log
+    
+    const updatedUser = await updateUserDetails(user.id, formData)
+    setUser({
+      ...user,
+      status: editedUser.status,
+      ...(phoneNumber !== (user.phoneNumber || "") && { phoneNumber }),
+    })
+    
+    setIsEditing(false)
+    setPasswordData({ newPassword: "", confirmPassword: "" })
+    console.log("User updated successfully")
+  } catch (error) {
+    console.error("Failed to update user:", error)
+    alert(`Failed to update user: ${error.message}`)
+  }
+}
 
   const handleStatusChange = (newStatus) => {
     setEditedUser(prev => ({

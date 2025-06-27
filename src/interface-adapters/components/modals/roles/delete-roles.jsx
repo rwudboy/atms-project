@@ -51,8 +51,7 @@ export const RoleDeleteModal = ({ isOpen, onClose, onDelete, role, isDeleting })
                 Warning
               </h3>
               <p className="text-amber-700">
-                This role has {userCount} user{userCount !== 1 ? 's' : ''} assigned to it. You must remove these users from the role before
-                deleting it.
+                This role has {userCount} user{userCount !== 1 ? 's' : ''} assigned to it. Deleting this role will remove it from all assigned users.
               </p>
             </div>
           )}
@@ -62,8 +61,7 @@ export const RoleDeleteModal = ({ isOpen, onClose, onDelete, role, isDeleting })
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onDelete} disabled={isDeleting || hasUsers}>
-            {isDeleting ? "Deleting..." : "Delete Role"}
+       <Button variant="destructive" onClick={onDelete}>
           </Button>
         </DialogFooter>
       </DialogContent>

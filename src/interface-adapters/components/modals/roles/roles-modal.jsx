@@ -305,7 +305,7 @@ export const RoleDeleteModal = ({ isOpen, onClose, onDelete, role, isDeleting })
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onDelete} disabled={isDeleting || hasUsers}>
+          <Button variant="destructive" onClick={onDelete}>
             {isDeleting ? "Deleting..." : "Delete Role"}
           </Button>
         </DialogFooter>

@@ -208,9 +208,6 @@ export default function RolesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Users</TableHead>
-                <TableHead>Created</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -231,9 +228,6 @@ export default function RolesPage() {
                 roles.map((role) => (
                   <TableRow key={role.uuid}>
                     <TableCell className="font-medium">{role.name}</TableCell>
-                    <TableCell>{role.description}</TableCell>
-                    <TableCell>{role.userCount}</TableCell>
-                    <TableCell>{role.created}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleViewClick(role)}>View</Button>
                       <Button variant="outline" size="sm" onClick={() => {

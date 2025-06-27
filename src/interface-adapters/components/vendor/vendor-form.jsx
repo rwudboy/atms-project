@@ -35,8 +35,10 @@ import { Search, Plus, Trash2, Edit } from "lucide-react";
 import {
   getVendors,
   deleteVendor,
+  updateVendor, // Add this import
 } from "@/interface-adapters/usecases/vendor/vendor-usecase";
 import AddVendorDrawer from "@/interface-adapters/components/vendor/vendor-drawer";
+import EditVendorModal from "@/interface-adapters/components/modals/vendor/edit-vendor"; // Import the new component
 import { toast } from "sonner";
 
 export default function VendorPage() {
@@ -47,6 +49,10 @@ export default function VendorPage() {
   const [vendorToDelete, setVendorToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
+  
+  // Add edit modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [vendorToEdit, setVendorToEdit] = useState(null);
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -95,6 +101,30 @@ export default function VendorPage() {
     } catch (error) {
       setDeleteError("Failed to delete the vendor.");
       toast.error("There was an error deleting the vendor.");
+    }
+  };
+
+  // Add edit handler
+  const handleEditClick = (vendor) => {
+    setVendorToEdit(vendor);
+    setShowEditModal(true);
+  };
+
+  // Add update handler
+  const handleUpdateVendor = async (vendorId, updatedData) => {
+    try {
+      await updateVendor(vendorId, updatedData);
+      // Update the vendors list with the updated data
+      setVendors((prev) =>
+        prev.map((vendor) =>
+          vendor.uuid === vendorId ? { ...vendor, ...updatedData } : vendor
+        )
+      );
+      toast.success("Vendor updated successfully.");
+    } catch (error) {
+      console.error("Error updating vendor:", error);
+      toast.error("There was an error updating the vendor.");
+      throw error; // Re-throw to handle in modal
     }
   };
 
@@ -188,9 +218,7 @@ export default function VendorPage() {
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() =>
-                            toast("Edit feature is not yet implemented")
-                          }
+                          onClick={() => handleEditClick(vendor)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -211,6 +239,18 @@ export default function VendorPage() {
         </CardContent>
       </Card>
 
+      {/* Edit Modal */}
+      <EditVendorModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setVendorToEdit(null);
+        }}
+        onUpdate={handleUpdateVendor}
+        vendor={vendorToEdit}
+      />
+
+      {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
