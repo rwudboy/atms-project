@@ -8,7 +8,7 @@ export async function getProject(searchTerm = "") {
   }
 
   try {
-    const query = searchTerm ? `?businessKey=${encodeURIComponent(searchTerm)}` : "";
+    const query = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : "";
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek${query}`, {
       method: "GET",
       headers: {
