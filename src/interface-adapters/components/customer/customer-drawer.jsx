@@ -22,19 +22,21 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
     address: "",
     city: "",
     country: "",
+    category: "", // added category field
   });
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const isMobile = useIsMobile();
 
   const handleAddCustomer = async () => {
-    const { name, address, city, country } = formData;
+    const { name, address, city, country, category } = formData;
 
     const errors = {};
     if (!name) errors.name = "Name is required";
     if (!address) errors.address = "Address is required";
     if (!city) errors.city = "City is required";
     if (!country) errors.country = "Country is required";
+    if (!category) errors.category = "Category is required"; // validate category
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -47,7 +49,7 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
     try {
       await addCustomer(formData); 
       await onCustomerAdded(); 
-      setFormData({ name: "", address: "", city: "", country: "" });
+      setFormData({ name: "", address: "", city: "", country: "", category: "" }); // reset
       setOpenDrawer(false);
       toast.success("Customer added!");
     } catch (err) {
@@ -98,6 +100,14 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
               />
               {fieldErrors.country && <p className="text-sm text-red-500">{fieldErrors.country}</p>}
+            </div>
+            <div>
+              <Input
+                placeholder="Category"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              />
+              {fieldErrors.category && <p className="text-sm text-red-500">{fieldErrors.category}</p>}
             </div>
           </div>
           <DrawerFooter>
