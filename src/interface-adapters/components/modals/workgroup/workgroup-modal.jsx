@@ -29,27 +29,19 @@ import clsx from "clsx";
 
 const getRoleIcon = (role) => {
   switch (role) {
-    case "admin":
-      return <Crown className="h-3 w-3" />;
-    case "manager":
-      return <Shield className="h-3 w-3" />;
-    case "user":
-      return <UserCheck className="h-3 w-3" />;
-    default:
-      return <User className="h-3 w-3" />;
+    case "admin": return <Crown className="h-3 w-3" />;
+    case "manager": return <Shield className="h-3 w-3" />;
+    case "user": return <UserCheck className="h-3 w-3" />;
+    default: return <User className="h-3 w-3" />;
   }
 };
 
 const getRoleColor = (role) => {
   switch (role) {
-    case "admin":
-      return "bg-red-100 text-red-800";
-    case "manager":
-      return "bg-blue-100 text-blue-800";
-    case "user":
-      return "bg-green-100 text-green-800";
-    default:
-      return "bg-gray-100 text-gray-800";
+    case "admin": return "bg-red-100 text-red-800";
+    case "manager": return "bg-blue-100 text-blue-800";
+    case "user": return "bg-green-100 text-green-800";
+    default: return "bg-gray-100 text-gray-800";
   }
 };
 
@@ -60,7 +52,7 @@ export default function AddUserModal({
   preSelectedWorkgroup,
   onUserAdded,
 }) {
-  const [selectedUser, setSelectedUser] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [search, setSearch] = useState("");
@@ -69,7 +61,7 @@ export default function AddUserModal({
 
   useEffect(() => {
     if (open) {
-      setSelectedUser("");
+      setSelectedUsers([]);
       setSearch("");
       setSelectedWorkgroup(preSelectedWorkgroup || "");
     }
@@ -99,36 +91,39 @@ export default function AddUserModal({
     setFilteredUsers(filtered);
   }, [search, users]);
 
- const handleSubmit = async () => {
-  if (!selectedUser || !selectedWorkgroup) {
-    toast.error("Please fill in all required fields");
-    return;
-  }
+  const toggleUserSelection = (userId) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
 
-  setIsSubmitting(true);
-  try {
-    const user = users.find((u) => u.id === selectedUser);
-    const userData = { uuid: user.id };
+  const handleSubmit = async () => {
+    if (selectedUsers.length === 0 || !selectedWorkgroup) {
+      toast.error("Please select at least one user and a workgroup.");
+      return;
+    }
 
-    await AddUser(selectedWorkgroup, userData);
-
-    // Show success toast with user's name
-    toast.success(`User ${user.namaLengkap} added to workgroup`);
-    
-    // Call the callback after showing our toast
-    onUserAdded(user, selectedWorkgroup);
-    onOpenChange(false);
-  } catch (error) {
-    const errorMessage = error?.message || "Failed to add user to workgroup";
-    toast.error(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+    setIsSubmitting(true);
+    try {
+      const selectedData = users.filter((u) => selectedUsers.includes(u.id));
+      for (const user of selectedData) {
+        await AddUser(selectedWorkgroup, { uuid: user.id });
+        toast.success(`User ${user.namaLengkap} added to workgroup`);
+        onUserAdded(user, selectedWorkgroup);
+      }
+      onOpenChange(false);
+    } catch (error) {
+      const errorMessage = error?.message || "Failed to add users";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleClose = () => {
-    setSelectedUser("");
+    setSelectedUsers([]);
     setSearch("");
     setSelectedWorkgroup("");
     onOpenChange(false);
@@ -144,10 +139,10 @@ export default function AddUserModal({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <UserPlus className="h-5 w-5 text-primary" />
-            <span>Add User to Workgroup</span>
+            <span>Add Users to Workgroup</span>
           </DialogTitle>
           <DialogDescription>
-            Select a user to add to the workgroup.
+            Select one or more users to add to the workgroup.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,6 +185,7 @@ export default function AddUserModal({
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => {
                   const isLocked = user.status === "locked";
+                  const isSelected = selectedUsers.includes(user.id);
                   return (
                     <Card
                       key={user.id}
@@ -198,14 +194,12 @@ export default function AddUserModal({
                         isLocked
                           ? "opacity-60 cursor-not-allowed"
                           : "hover:cursor-pointer hover:border-primary hover:shadow-sm",
-                        selectedUser === user.id && !isLocked
+                        isSelected && !isLocked
                           ? "border-primary bg-primary/10 ring-2 ring-primary/20"
                           : ""
                       )}
                       onClick={() => {
-                        if (!isLocked) {
-                          setSelectedUser(user.id);
-                        }
+                        if (!isLocked) toggleUserSelection(user.id);
                       }}
                     >
                       <div className="flex justify-between items-start">
@@ -241,12 +235,13 @@ export default function AddUserModal({
                 </div>
               )}
             </div>
-            {selectedUser && (
-              <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <User className="h-3 w-3" />
-                <span>
-                  Selected: {users.find((u) => u.id === selectedUser)?.namaLengkap}
-                </span>
+            {selectedUsers.length > 0 && (
+              <div className="text-xs text-muted-foreground mt-1">
+                <User className="h-3 w-3 inline mr-1" />
+                Selected: {selectedUsers
+                  .map((id) => users.find((u) => u.id === id)?.namaLengkap)
+                  .filter(Boolean)
+                  .join(", ")}
               </div>
             )}
           </div>
@@ -258,18 +253,18 @@ export default function AddUserModal({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || !selectedUser || !selectedWorkgroup}
+            disabled={isSubmitting || selectedUsers.length === 0 || !selectedWorkgroup}
             className="w-full sm:w-auto"
           >
             {isSubmitting ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Adding User...</span>
+                <span>Adding Users...</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2">
                 <UserPlus className="h-4 w-4" />
-                <span>Add User</span>
+                <span>Add Users</span>
               </div>
             )}
           </Button>

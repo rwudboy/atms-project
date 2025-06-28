@@ -1,5 +1,6 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
-export async function updateRole(roleId, roleData) {
+
+export async function deleteVendor(vendorId) {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -7,25 +8,23 @@ export async function updateRole(roleId, roleData) {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/role/${roleId}`, {
-      method: "POST",
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendor/${vendorId}`, {
+      method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify(roleData),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Failed to update role: ${response.status}`);
+      throw new Error(data.message || `Failed to delete vendor: ${response.status}`);
     }
 
-    return data.role;
+    return data;
   } catch (error) {
-    console.error("Error updating role:", error);
+    console.error("Error deleting vendor:", error);
     throw error;
   }
 }

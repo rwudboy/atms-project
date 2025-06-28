@@ -22,8 +22,6 @@ export default function EditVendorModal({ isOpen, onClose, onUpdate, vendor }) {
     category: "",
   })
   const [isLoading, setIsLoading] = useState(false)
-
-  // Populate form when vendor prop changes
   useEffect(() => {
     if (vendor) {
       setFormData({
@@ -47,6 +45,7 @@ export default function EditVendorModal({ isOpen, onClose, onUpdate, vendor }) {
   const handleUpdate = async () => {
     setIsLoading(true)
     try {
+      console.log("Updating with data:", formData)
       await onUpdate(vendor.uuid, formData)
       onClose()
     } catch (error) {
@@ -112,7 +111,7 @@ export default function EditVendorModal({ isOpen, onClose, onUpdate, vendor }) {
               value={formData.status}
               onChange={(e) => handleFormChange("status", e.target.value)}
               disabled={isLoading}
-              className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="col-span-3 h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Select status</option>
               <option value="Active">Active</option>
@@ -150,13 +149,20 @@ export default function EditVendorModal({ isOpen, onClose, onUpdate, vendor }) {
             <label htmlFor="edit-category" className="text-right text-sm font-medium">
               Category
             </label>
-            <Input
+            <select
               id="edit-category"
               value={formData.category}
               onChange={(e) => handleFormChange("category", e.target.value)}
-              className="col-span-3"
               disabled={isLoading}
-            />
+              className="col-span-3 h-10 w-full appearance-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="">Select category</option>
+              <option value="IT">IT</option>
+              <option value="Construction">Construction</option>
+              <option value="Consultant">Consultant</option>
+              <option value="Education">Education</option>
+              <option value="Security">Security</option>
+            </select>
           </div>
         </div>
 

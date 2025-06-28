@@ -32,11 +32,10 @@ import {
   AlertTitle,
 } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit } from "lucide-react";
-import {
-  getVendors,
-  deleteVendor,
-  updateVendor, // Add this import
-} from "@/interface-adapters/usecases/vendor/vendor-usecase";
+import { getVendors } from "@/interface-adapters/usecases/vendor/get-vendor";
+import { deleteVendor } from "@/interface-adapters/usecases/vendor/delete-vendor";
+import { updateVendorDetail } from "@/interface-adapters/usecases/vendor/edit-vendor";
+
 import AddVendorDrawer from "@/interface-adapters/components/vendor/vendor-drawer";
 import EditVendorModal from "@/interface-adapters/components/modals/vendor/edit-vendor"; // Import the new component
 import { toast } from "sonner";
@@ -111,9 +110,9 @@ export default function VendorPage() {
   };
 
   // Add update handler
-  const handleUpdateVendor = async (vendorId, updatedData) => {
+  const handleupdateVendorDetail = async (vendorId, updatedData) => {
     try {
-      await updateVendor(vendorId, updatedData);
+      await updateVendorDetail(vendorId, updatedData);
       // Update the vendors list with the updated data
       setVendors((prev) =>
         prev.map((vendor) =>
@@ -246,7 +245,7 @@ export default function VendorPage() {
           setShowEditModal(false);
           setVendorToEdit(null);
         }}
-        onUpdate={handleUpdateVendor}
+        onUpdate={handleupdateVendorDetail}
         vendor={vendorToEdit}
       />
 

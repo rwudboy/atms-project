@@ -1,169 +1,163 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/interface-adapters/components/ui/dialog"
-import { Button } from "@/interface-adapters/components/ui/button"
-import { Label } from "@/interface-adapters/components/ui/label"
-import { Input } from "@/interface-adapters/components/ui/input"
-import { Textarea } from "@/interface-adapters/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/interface-adapters/components/ui/select"
-import { Plus, X } from "lucide-react"
-import { toast } from "sonner"
+} from "@/interface-adapters/components/ui/dialog";
+import { Input } from "@/interface-adapters/components/ui/input";
+import { Button } from "@/interface-adapters/components/ui/button";
+import { Label } from "@/interface-adapters/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/interface-adapters/components/ui/select";
+import { Badge } from "@/interface-adapters/components/ui/badge";
+import { User, Shield, CheckCircle, XCircle } from "lucide-react";
 
-export const RoleUpdateModal = ({ open, role, onSave, onClose }) => {
-  const [roleName, setRoleName] = useState("")
-  const [roleStatus, setRoleStatus] = useState("inactive")
-  const [description, setDescription] = useState("")
-  const [permissions, setPermissions] = useState([])
-  const [newPermission, setNewPermission] = useState("")
+export const EditRoleModal = ({ isOpen, onClose, role, onSave }) => {
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState("active");
 
   useEffect(() => {
     if (role) {
-      setRoleName(role.name || "")
-      setRoleStatus(role.status || "inactive")
-      setDescription(role.description || "")
-      setPermissions(role.permissions || [])
+      setName(role.name || "");
+      setStatus(role.status || "active");
     } else {
-      // Reset form if no role is provided (e.g., when closing the modal)
-      setRoleName("")
-      setRoleStatus("inactive")
-      setDescription("")
-      setPermissions([])
-      setNewPermission("")
+      setName("");
+      setStatus("active");
     }
-  }, [role, open])
+  }, [role]);
 
-  const addPermission = () => {
-    if (newPermission.trim() && !permissions.includes(newPermission.trim())) {
-      setPermissions([...permissions, newPermission.trim()])
-      setNewPermission("")
-    }
-  }
+ const handleSave = () => {
+  if (!name.trim()) return;
+  onSave({
+    id: role?.uuid, 
+    body: {
+      RoleName: name.trim(),
+      status,
+    },
+  });
 
-  const removePermission = (index) => {
-    setPermissions(permissions.filter((_, i) => i !== index))
-  }
+  onClose();
+};
 
-  const handleSave = () => {
-    if (!roleName.trim()) {
-      toast.error("Role name is required")
-      return
-    }
 
-    const roleData = {
-      name: roleName,
-      status: roleStatus,
-      description,
-      permissions
-    }
-
-    onSave(role?.uuid, roleData)
-  }
+  const handleClose = () => {
+    setName("");
+    setStatus("active");
+    onClose();
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Edit Role</DialogTitle>
-          <DialogDescription>
-            Modify an existing role
-          </DialogDescription>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <Shield className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl font-semibold">
+                {role ? "Edit Role" : "Create Role"}
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground">
+                {role ? "Update role information" : "Add a new role to your system"}
+              </p>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
+        <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="roleName">Role Name</Label>
+            <Label htmlFor="role-name" className="text-sm font-medium flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Role Name
+            </Label>
             <Input
-              id="roleName"
+              id="role-name"
               placeholder="Enter role name"
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-10 w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="roleStatus">Status</Label>
-            <Select value={roleStatus} onValueChange={setRoleStatus}>
-              <SelectTrigger>
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Status
+            </Label>
+            <Select value={status} onValueChange={(value) => setStatus(value)}>
+              <SelectTrigger className="h-10 w-full">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="active">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Active</span>
+                    <Badge variant="secondary" className="ml-auto bg-green-100 text-green-700">
+                      Active
+                    </Badge>
+                  </div>
+                </SelectItem>
+                <SelectItem value="inactive">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="h-4 w-4 text-gray-500" />
+                    <span>Inactive</span>
+                    <Badge variant="secondary" className="ml-auto bg-gray-100 text-gray-700">
+                      Inactive
+                    </Badge>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Enter role description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Permissions</Label>
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Add a permission"
-                value={newPermission}
-                onChange={(e) => setNewPermission(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault()
-                    addPermission()
-                  }
-                }}
-              />
-              <Button type="button" onClick={addPermission}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mt-2">
-              {permissions.map((permission, index) => (
-                <div
-                  key={index}
-                  className="flex items-center bg-secondary text-secondary-foreground px-3 py-1 rounded-md"
-                >
-                  <span>{permission}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-5 w-5 p-0 ml-2"
-                    onClick={() => removePermission(index)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+          <div className="rounded-lg border bg-muted/50 p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                  <Shield className="h-4 w-4 text-primary" />
                 </div>
-              ))}
-              {permissions.length === 0 && <p className="text-sm text-muted-foreground">No permissions added yet</p>}
+                <div>
+                  <p className="font-medium">{name || "Role Name"}</p>
+                  <p className="text-xs text-muted-foreground">Preview</p>
+                </div>
+              </div>
+              <Badge
+                variant={status === "active" ? "default" : "secondary"}
+                className={status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}
+              >
+                {status === "active" ? (
+                  <CheckCircle className="mr-1 h-3 w-3" />
+                ) : (
+                  <XCircle className="mr-1 h-3 w-3" />
+                )}
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Badge>
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            Update
-          </Button>
+          <div className="flex w-full justify-end gap-2">
+            <Button variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={!name.trim()} className="min-w-[80px]">
+              {role ? "Update" : "Create"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

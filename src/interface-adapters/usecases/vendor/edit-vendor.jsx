@@ -1,5 +1,5 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
-export async function updateRole(roleId, roleData) {
+export async function updateVendorDetail(id, formData) {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -7,14 +7,14 @@ export async function updateRole(roleId, roleData) {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/role/${roleId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendor/${id}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(roleData),
+      body: JSON.stringify(formData),
     });
 
     const data = await response.json();

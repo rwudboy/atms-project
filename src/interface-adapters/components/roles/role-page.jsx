@@ -21,11 +21,10 @@ import {
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 
-import {
-  RoleModal,
-  RoleViewModal,
-  RoleDeleteModal,
-} from "@/interface-adapters/components/modals/roles/roles-modal"
+import { RoleViewModal } from "@/interface-adapters/components/modals/roles/view-roles"
+import { EditRoleModal } from "@/interface-adapters/components/modals/roles/update-roles"
+import { DeleteRoleModal } from "@/interface-adapters/components/modals/roles/delete-roles"
+import { updateRole } from "@/interface-adapters/usecases/roles/update-roles"
 
 import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase"
 import { viewRoles } from "@/interface-adapters/usecases/roles/view-roles"
@@ -54,12 +53,15 @@ export default function RolesPage() {
     setIsLoading(true)
     try {
       const response = await getRoles()
-      if (response.workgroup?.status) {
-        const grouped = groupRoles(response.workgroup.role || [])
+
+      const rolesData = response?.workgroup?.role || []
+
+      if (Array.isArray(rolesData)) {
+        const grouped = groupRoles(rolesData)
         setRoles(grouped)
         setAllRoles(grouped)
       } else {
-        toast.error("Invalid response format.")
+        toast.error("Invalid roles format.")
         setRoles([])
         setAllRoles([])
       }
@@ -77,7 +79,7 @@ export default function RolesPage() {
     return rawRoles.reduce((acc, role) => {
       const existing = acc.find((r) => r.name === role.name)
       if (existing) {
-        existing.userCount += 1
+        existing.member += role.member
         if (role.status === "active") {
           existing.status = "active"
         }
@@ -86,7 +88,7 @@ export default function RolesPage() {
           name: role.name,
           uuid: role.uuid,
           status: role.status,
-          userCount: 1,
+          member: role.member,
           created: new Date().toLocaleDateString(),
           description: getDescription(role.name),
         })
@@ -122,24 +124,19 @@ export default function RolesPage() {
       const response = await viewRoles(role.name)
       const userData = response?.workgroup?.user
 
-      if (!userData || !Array.isArray(userData.userName) || !Array.isArray(userData.email)) {
+      if (!userData || typeof userData !== "object") {
         toast.error("Invalid role data.")
         return
       }
 
-      const users = userData.userName.map((username, index) => ({
-        id: index,
-        name: username,
-        email: userData.email[index] || "N/A",
-      }))
-
-      const permissions = ["read", "write"]
-
       setRoleToView({
         ...role,
-        users,
-        permissions,
-        status: userData.status || role.status,
+        user: {
+          name: userData.name || "Unknown",
+          status: userData.status || "Unknown",
+          userName: userData.userName || [],
+          email: userData.email || [],
+        },
       })
 
       setViewModalOpen(true)
@@ -148,7 +145,6 @@ export default function RolesPage() {
       toast.error("Failed to load role details.")
     }
   }
-
   const handleDelete = async () => {
     if (!roleToDelete) return
     setIsDeleting(true)
@@ -159,11 +155,13 @@ export default function RolesPage() {
       setRoleToDelete(null)
       fetchRoles()
     } catch (error) {
-      toast.error("Failed to delete role.")
+      toast.error(error.message || "Failed to delete role.")
     } finally {
       setIsDeleting(false)
     }
   }
+
+
 
   return (
     <div className="container mx-auto py-10">
@@ -208,6 +206,7 @@ export default function RolesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Member</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -228,6 +227,7 @@ export default function RolesPage() {
                 roles.map((role) => (
                   <TableRow key={role.uuid}>
                     <TableCell className="font-medium">{role.name}</TableCell>
+                    <TableCell className="font-medium">{role.member}</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button variant="outline" size="sm" onClick={() => handleViewClick(role)}>View</Button>
                       <Button variant="outline" size="sm" onClick={() => {
@@ -247,23 +247,35 @@ export default function RolesPage() {
         </CardContent>
       </Card>
 
-      <RoleModal
-        open={modalOpen}
-        role={selectedRole}
-        onClose={() => setModalOpen(false)}
-        onSave={() => {}}
+      {/* MODALS */}
+      <EditRoleModal
+  isOpen={modalOpen}
+  onClose={() => setModalOpen(false)}
+  role={selectedRole}
+  onSave={async ({ id, body }) => {
+    try {
+      await updateRole(id, body); 
+      toast.success(`Updated role to "${body.RoleName}"`);
+      fetchRoles();
+    } catch (error) {
+      toast.error(error.message || "Failed to update role.");
+    }
+  }}
+/>
+
+
+      <DeleteRoleModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        role={roleToDelete}
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
       />
+
       <RoleViewModal
         isOpen={viewModalOpen}
         onClose={() => setViewModalOpen(false)}
         role={roleToView}
-      />
-      <RoleDeleteModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onDelete={handleDelete}
-        role={roleToDelete}
-        isDeleting={isDeleting}
       />
     </div>
   )
