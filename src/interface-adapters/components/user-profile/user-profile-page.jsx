@@ -19,9 +19,18 @@ import {
   TableRow,
 } from "@/interface-adapters/components/ui/table"
 import { Badge } from "@/interface-adapters/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/interface-adapters/components/ui/dialog"
 import { Search } from "lucide-react"
 import { toast } from "sonner"
 import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
+import { DeleteUser } from "@/interface-adapters/usecases/user/deleteUser"
 import { useRouter } from "next/navigation"
 
 export default function UsersPage() {
@@ -30,6 +39,11 @@ export default function UsersPage() {
   const [allUsers, setAllUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    user: null,
+    isDeleting: false
+  })
 
   useEffect(() => {
     fetchUsers()
@@ -81,7 +95,56 @@ export default function UsersPage() {
   }
 
   const handleRemove = (user) => {
-    // TODO: Show confirmation and call delete API
+    setDeleteDialog({
+      open: true,
+      user: user,
+      isDeleting: false
+    })
+  }
+
+  const handleDelete = async (userId) => {
+  setDeleteDialog(prev => ({ ...prev, isDeleting: true }))
+
+  try {
+    // Call the actual delete API
+    await DeleteUser(userId)
+
+    // Update local state by removing the deleted user
+    const updatedUsers = allUsers.filter(user => user.id !== userId)
+    setAllUsers(updatedUsers)
+    setUsers(updatedUsers.filter(user => 
+      !searchTerm.trim() || 
+      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (Array.isArray(user.Role)
+        ? user.Role.join(", ").toLowerCase().includes(searchTerm.toLowerCase())
+        : user.Role?.toLowerCase().includes(searchTerm.toLowerCase()))
+    ))
+
+    toast.success("User deleted successfully")
+
+    // Close dialog
+    setDeleteDialog({
+      open: false,
+      user: null,
+      isDeleting: false
+    })
+
+  } catch (error) {
+    console.error("Error deleting user:", error)
+    toast.error("Failed to delete user")
+    setDeleteDialog(prev => ({ ...prev, isDeleting: false }))
+  }
+}
+
+  const handleCloseDeleteDialog = () => {
+    if (!deleteDialog.isDeleting) {
+      setDeleteDialog({
+        open: false,
+        user: null,
+        isDeleting: false
+      })
+    }
   }
 
   const getBadgeVariant = (role) => {
@@ -111,12 +174,12 @@ export default function UsersPage() {
   }
 
   const capitalizeText = (text) => {
-  if (!text) return "-"
-  if (text.toLowerCase() === "locked" || text.toLowerCase() === "unlocked") {
-    return text.toUpperCase()
+    if (!text) return "-"
+    if (text.toLowerCase() === "locked" || text.toLowerCase() === "unlocked") {
+      return text.toUpperCase()
+    }
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
   }
-  return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
-}
 
   return (
     <div className="container mx-auto py-10">
@@ -224,6 +287,35 @@ export default function UsersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialog.open} onOpenChange={handleCloseDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete user "{deleteDialog.user?.username}"? 
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCloseDeleteDialog}
+              disabled={deleteDialog.isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => handleDelete(deleteDialog.user?.id)}
+              disabled={deleteDialog.isDeleting}
+            >
+              {deleteDialog.isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -13,36 +13,66 @@ import {
 } from "@/interface-adapters/components/ui/dialog";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Alert, AlertDescription } from "@/interface-adapters/components/ui/alert";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/interface-adapters/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/interface-adapters/components/ui/select";
 import { Avatar, AvatarFallback } from "@/interface-adapters/components/ui/avatar";
-import { Badge } from "@/interface-adapters/components/ui/badge";
-import { Trash2, AlertTriangle, User } from "lucide-react";
+import { AlertTriangle, User } from "lucide-react";
+import { RemoveRole } from "@/interface-adapters/usecases/user-role/remove-role";
+import { toast } from "sonner";
 
-export function DeleteUserRoleDialog({ username, children }) {
+export function DeleteUserRoleDialog({ username, children, onSuccess }) {
   const [open, setOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    if (!open) return;
-    (async () => {
+  const fetchUser = async () => {
+    try {
       const response = await getUserDetails(username);
-      if (response?.user) setUser(response.user);
-    })();
+      if (response?.user) {
+        setUser(response.user);
+      }
+    } catch (err) {
+      toast.error("Failed to fetch user details.");
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (open) fetchUser();
   }, [open, username]);
 
   const handleDeleteRole = async () => {
-    if (!selectedRole) return;
-
+    if (!selectedRole || !user?.id) return;
     setIsDeleting(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setIsDeleting(false);
-    setOpen(false);
-    setSelectedRole("");
 
-    console.log(`Deleted role: ${selectedRole} from ${user.email}`);
+    try {
+      const result = await RemoveRole(selectedRole, user.id);
+      if (result?.user) {
+        toast.success(`Removed role "${selectedRole}" from ${result.user.user}`);
+        await fetchUser();
+        setSelectedRole("");
+        setOpen(false);
+        if (onSuccess) onSuccess(); // ✅ call parent fetch
+      } else {
+        throw new Error("No user info returned");
+      }
+    } catch (error) {
+      toast.error("Failed to remove role");
+      console.error("Failed to delete role:", error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
+
+  const deletableRoles = Array.isArray(user?.role)
+    ? user.role.filter((role) => role.toLowerCase() !== "rolename")
+    : [];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -63,7 +93,7 @@ export function DeleteUserRoleDialog({ username, children }) {
             <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
               <Avatar className="h-8 w-8">
                 <AvatarFallback>
-                  <User className="h-3 w-3" />
+                  <User className="h-4 w-4" />
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -74,25 +104,35 @@ export function DeleteUserRoleDialog({ username, children }) {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Select role to delete:</label>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a role to remove" />
-                </SelectTrigger>
-                <SelectContent>
-                  {user.role.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {deletableRoles.length > 0 ? (
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a role to remove" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {deletableRoles.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    No roles available for deletion. The "RoleName" role cannot be removed.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
             {selectedRole && (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  You are about to remove the <strong>{selectedRole}</strong> role from {user.fullName}.
+                  You are about to remove the <strong>{selectedRole}</strong> role from{" "}
+                  {user.fullName}.
                 </AlertDescription>
               </Alert>
             )}
@@ -108,7 +148,7 @@ export function DeleteUserRoleDialog({ username, children }) {
           <Button
             variant="destructive"
             onClick={handleDeleteRole}
-            disabled={!selectedRole || isDeleting}
+            disabled={!selectedRole || isDeleting || deletableRoles.length === 0}
           >
             {isDeleting ? "Deleting..." : "Delete Role"}
           </Button>

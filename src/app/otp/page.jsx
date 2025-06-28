@@ -25,30 +25,31 @@ export default function OTPPage() {
   const [resending, setResending] = useState(false);
 
   const handleSubmit = async () => {
-  if (otp.length !== 5) {
-    Swal.fire("Invalid OTP", "OTP must be 5 digits", "error");
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const response = await otpUserUseCase({ otp });
-
-    if (response?.status === true || response?.message?.status === "success") {
-      await Swal.fire("Success", "OTP verified successfully!", "success");
-      window.location.href = "/login";
-    } else {
-      throw new Error("OTP verification failed");
+    if (otp.length !== 5) {
+      Swal.fire("Invalid OTP", "OTP must be 5 digits", "error");
+      return;
     }
-  } catch (error) {
-    Swal.fire("Error", error.message || "Verification failed", "error");
-  } finally {
-    setLoading(false);
-  }
-};
+
+    setLoading(true);
+    try {
+      const response = await otpUserUseCase({ otp });
+
+      if (response?.user?.success === true && response?.user?.message === true) {
+        await Swal.fire("Success", "OTP verified successfully!", "success");
+        window.location.href = "/login";
+      } else {
+        throw new Error("OTP verification failed");
+      }
+    } catch (error) {
+      Swal.fire("Error", error.message || "Verification failed", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
- 
+
+
 
   const handleBackToLogin = () => {
     window.location.href = "/login";
@@ -114,8 +115,8 @@ export default function OTPPage() {
             </div>
 
             <div className="pt-4 border-t">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 onClick={handleBackToLogin}
                 className="w-full font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
               >

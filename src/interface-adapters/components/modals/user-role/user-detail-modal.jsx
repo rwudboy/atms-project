@@ -17,10 +17,18 @@ import {
 } from "@/interface-adapters/components/ui/select";
 import { Lock, Unlock } from "lucide-react";
 import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase";
+import { AddRoleUser } from "@/interface-adapters/usecases/user-role/add-role-user";
+import { toast } from "sonner";
 
-export default function UserDetailModal({ user, open, onOpenChange }) {
+export default function UserDetailModal({
+  user,
+  open,
+  onOpenChange,
+  onRoleUpdated, // ✅ new prop for refreshing parent
+}) {
   const [selectedRole, setSelectedRole] = useState(user?.Role?.[0] || "");
   const [roleOptions, setRoleOptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,6 +49,7 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
         setRoleOptions(uniqueByName);
       } catch (error) {
         console.error("Failed to load roles:", error);
+        toast.error("Failed to load roles");
       }
     }
 
@@ -49,6 +58,43 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
 
   const isUnlocked = user?.status === "unlocked";
   const isLocked = user?.status === "locked";
+
+  const handleSave = async () => {
+    if (!user?.id) {
+      toast.error("No user selected");
+      return;
+    }
+
+    if (!selectedRole) {
+      toast.error("Please select a role");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const result = await AddRoleUser(selectedRole, user.id);
+
+      if (result && result.success) {
+        toast.success(
+          `✅ Assigned role "${result.data.name_Role}" to user "${result.data.user}"`
+        );
+
+        // ✅ Notify parent to refresh
+        if (typeof onRoleUpdated === "function") {
+          onRoleUpdated();
+        }
+
+        onOpenChange(false);
+      } else {
+        throw new Error(result?.message || "Failed to assign role");
+      }
+    } catch (error) {
+      console.error("Error assigning role:", error);
+      toast.error(error.message || "Failed to assign role");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -86,7 +132,7 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
               <h3 className="font-semibold mb-3">Status</h3>
               <div
                 className={`flex items-center gap-2 px-4 py-2 text-white rounded-md w-fit
-                  ${isUnlocked ? "bg-green-600" : isLocked ? "bg-red-600" : "bg-gray-500"}`}
+                ${isUnlocked ? "bg-green-600" : isLocked ? "bg-red-600" : "bg-gray-500"}`}
               >
                 {isUnlocked && <Unlock className="w-4 h-4" />}
                 {isLocked && <Lock className="w-4 h-4" />}
@@ -118,20 +164,16 @@ export default function UserDetailModal({ user, open, onOpenChange }) {
             variant="outline"
             onClick={() => onOpenChange(false)}
             className="bg-black text-white hover:bg-gray-800"
+            disabled={isLoading}
           >
             Cancel
           </Button>
           <Button
-            onClick={() => {
-              console.log("Saving user details...", {
-                selectedRole,
-                userStatus: user?.status,
-              });
-              onOpenChange(false);
-            }}
+            onClick={handleSave}
             className="bg-black text-white hover:bg-gray-800"
+            disabled={isLoading}
           >
-            Save
+            {isLoading ? "Saving..." : "Save"}
           </Button>
         </div>
       </DialogContent>

@@ -34,6 +34,8 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -81,6 +83,7 @@ export default function UsersPage() {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
+
 
   const getBadgeVariant = (role) => {
     switch (role.toLowerCase()) {
@@ -196,7 +199,7 @@ export default function UsersPage() {
                       >
                         Edit
                       </Button>
-                      <DeleteUserRoleDialog username={user.username}>
+                      <DeleteUserRoleDialog username={user.username} onSuccess={fetchUsers}>
                         <Button variant="destructive" size="sm">
                           Remove
                         </Button>
@@ -215,6 +218,7 @@ export default function UsersPage() {
           user={selectedUser}
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
+          onRoleUpdated={fetchUsers}
         />
       )}
     </div>
