@@ -1,7 +1,7 @@
 "use client"
 
 import { useParams } from "next/navigation"
-import UserProfilePage from "@/interface-adapters/components/user-profile/userProfileDetail"
+import UserProfilePage from "@/application-business-layer/userProfile/userProfileDetail"
 
 export default function UserProfilePageWrapper() {
   const { username } = useParams()
