@@ -11,6 +11,7 @@ import { Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/interface-adapters/usecases/assign-task/get-detailed-task";
 import { sendTaskFiles } from "@/interface-adapters/usecases/assign-task/post-task";
+import { UnclaimTask } from "@/interface-adapters/usecases/assign-task/unclaim-task"; // Add this import
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 
@@ -22,6 +23,7 @@ export default function AssignDetailedTask({ taskId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState([]);
   const [isSending, setIsSending] = useState(false);
+  const [isUnclaiming, setIsUnclaiming] = useState(false); // Add loading state for unclaim
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -61,38 +63,60 @@ export default function AssignDetailedTask({ taskId }) {
     return "Low";
   };
 
-  const handleSend = async () => {
-  if (files.length === 0) {
-    toast.error("Please attach at least one file");
-    return;
-  }
-
-  const variables = task?.VariablesTask || {};
-  const firstVariableKey = Object.keys(variables)[0];
-
-  if (!firstVariableKey) {
-    toast.error("No variable field found in task data");
-    return;
-  }
-
-  setIsSending(true);
-  try {
-    const result = await sendTaskFiles(taskId, files, firstVariableKey);
-
-    if (result?.success) {
-      toast.success(result.message || "Files sent successfully");
-      setFiles([]);
-    } else {
-      toast.error(result.message || "Failed to send files");
+  // Add unclaim handler
+  const handleUnclaim = async () => {
+    if (!taskId) return;
+    
+    setIsUnclaiming(true);
+    try {
+      const result = await UnclaimTask(taskId);
+      
+      if (result.status) {
+        toast.success(result.message || "Task unclaimed successfully");
+        // Refresh task data after successful unclaim
+        const updatedTask = await getTaskById(taskId);
+        setTask(updatedTask || null);
+        router.push(`/assignTask`);
+      } else {
+        toast.error(result.message || "Failed to unclaim task");
+      }
+    } catch (error) {
+      toast.error("Unexpected error occurred while unclaiming task");
+    } finally {
+      setIsUnclaiming(false);
     }
-  } catch (error) {
-    toast.error("Unexpected error occurred");
-  } finally {
-    setIsSending(false);
-  }
-};
+  };
 
+  const handleSend = async () => {
+    if (files.length === 0) {
+      toast.error("Please attach at least one file");
+      return;
+    }
 
+    const variables = task?.VariablesTask || {};
+    const firstVariableKey = Object.keys(variables)[0];
+
+    if (!firstVariableKey) {
+      toast.error("No variable field found in task data");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const result = await sendTaskFiles(taskId, files, firstVariableKey);
+
+      if (result?.success) {
+        toast.success(result.message || "Files sent successfully");
+        setFiles([]);
+      } else {
+        toast.error(result.message || "Failed to send files");
+      }
+    } catch (error) {
+      toast.error("Unexpected error occurred");
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handleAttachmentClick = () => {
     if (fileInputRef.current) {
@@ -128,6 +152,8 @@ export default function AssignDetailedTask({ taskId }) {
   const reportValue =
     task?.VariablesTask?.Requirement_Specification_Report?.value || "";
 
+  const isTaskAssigned = task?.assignee && task.assignee !== "Unassigned";
+
   return (
     <div className="container mx-auto py-10">
       {isLoading || !task ? (
@@ -144,13 +170,27 @@ export default function AssignDetailedTask({ taskId }) {
             <Button variant="outline" onClick={() => router.push("/assignTask")}>
               ← Back to List
             </Button>
-            <Button
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => setIsDelegateOpen(true)}
-            >
-              Delegate
-            </Button>
+            <div className="flex gap-2">
+              {/* Add Unclaim button - only show if task is assigned */}
+              {isTaskAssigned && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  onClick={handleUnclaim}
+                  disabled={isUnclaiming}
+                >
+                  {isUnclaiming ? "Unclaiming..." : "Unclaim"}
+                </Button>
+              )}
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsDelegateOpen(true)}
+              >
+                Delegate
+              </Button>
+            </div>
           </div>
 
           <div>

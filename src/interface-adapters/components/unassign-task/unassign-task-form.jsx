@@ -116,6 +116,7 @@ export default function UnassignTaskPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Due Date</TableHead>
+                <TableHead>Assigned</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -142,6 +143,7 @@ export default function UnassignTaskPage() {
                         ? new Date(task.due_date).toLocaleString()
                         : "—"}
                     </TableCell>
+                        <TableCell className="font-medium">{task.assignee || "—"}</TableCell>
                     <TableCell className="text-right">
                       <Button onClick={() => handleViewDetail(task)}>Detail</Button>
                     </TableCell>
