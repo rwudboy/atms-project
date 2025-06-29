@@ -30,6 +30,8 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
   });
   const [errors, setErrors] = useState({});
 
+  const categories = ["Retail", "Government", "Enterprise", "Military"];
+
   const handleInputChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
   };
@@ -46,22 +48,21 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
   };
 
   const handleAddVendor = async () => {
-  if (!validate()) return;
+    if (!validate()) return;
 
-  try {
-    setLoading(true);
-    const newVendor = await addVendor(formData);
-    toast.success("Vendor added successfully");
-    setFormData({ name: "", address: "", city: "", country: "", category: "" });
-    setOpenDrawer(false);
-    onVendorAdded?.(newVendor); // ✅ send vendor back to parent
-  } catch (error) {
-    toast.error(error.message || "Failed to add vendor");
-  } finally {
-    setLoading(false);
-  }
-};
-
+    try {
+      setLoading(true);
+      const newVendor = await addVendor(formData);
+      toast.success("Vendor added successfully");
+      setFormData({ name: "", address: "", city: "", country: "", category: "" });
+      setOpenDrawer(false);
+      onVendorAdded?.(newVendor);
+    } catch (error) {
+      toast.error(error.message || "Failed to add vendor");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Drawer open={openDrawer} onOpenChange={setOpenDrawer} direction={isMobile ? "bottom" : "right"}>
@@ -73,16 +74,55 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
             <DrawerDescription>Fill in the vendor details below.</DrawerDescription>
           </DrawerHeader>
           <div className="grid gap-4 py-4">
-            {["name", "address", "city", "country", "category"].map((field) => (
-              <div key={field}>
-                <Input
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  value={formData[field]}
-                  onChange={handleInputChange(field)}
-                />
-                {errors[field] && <p className="text-sm text-red-500">{errors[field]}</p>}
-              </div>
-            ))}
+            <div>
+              <Input
+                placeholder="Name"
+                value={formData.name}
+                onChange={handleInputChange("name")}
+              />
+              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+            </div>
+            <div>
+              <Input
+                placeholder="Address"
+                value={formData.address}
+                onChange={handleInputChange("address")}
+              />
+              {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+            </div>
+            <div>
+              <Input
+                placeholder="City"
+                value={formData.city}
+                onChange={handleInputChange("city")}
+              />
+              {errors.city && <p className="text-sm text-red-500">{errors.city}</p>}
+            </div>
+            <div>
+              <Input
+                placeholder="Country"
+                value={formData.country}
+                onChange={handleInputChange("country")}
+              />
+              {errors.country && <p className="text-sm text-red-500">{errors.country}</p>}
+            </div>
+            <div>
+              <select
+                value={formData.category}
+                onChange={handleInputChange("category")}
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              >
+                <option value="" disabled>
+                  Select Category
+                </option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
+            </div>
           </div>
           <DrawerFooter>
             <Button onClick={handleAddVendor} disabled={loading}>

@@ -34,7 +34,6 @@ const formatDate = (dateString) => {
   });
 };
 
-// --- Reusable Field Component for Readability ---
 
 const InfoField = ({ icon: Icon, label, children }) => (
     <div className="space-y-2">

@@ -126,15 +126,6 @@ export default function OTPPage() {
             </div>
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Need help?{" "}
-            <a href="#" className="font-medium underline hover:text-foreground transition-colors">
-              Contact support
-            </a>
-          </p>
-        </div>
       </div>
     </main>
   );

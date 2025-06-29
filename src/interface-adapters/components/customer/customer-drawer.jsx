@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   Drawer,
@@ -16,13 +18,15 @@ import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
 import { toast } from "sonner";
 
 export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
+  const categories = ["Retail", "Government", "Enterprise", "Military"];
+
   const [openDrawer, setOpenDrawer] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     address: "",
     city: "",
     country: "",
-    category: "", // added category field
+    category: "",
   });
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -36,7 +40,7 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
     if (!address) errors.address = "Address is required";
     if (!city) errors.city = "City is required";
     if (!country) errors.country = "Country is required";
-    if (!category) errors.category = "Category is required"; // validate category
+    if (!category) errors.category = "Category is required";
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -47,9 +51,9 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
     setFieldErrors({});
 
     try {
-      await addCustomer(formData); 
-      await onCustomerAdded(); 
-      setFormData({ name: "", address: "", city: "", country: "", category: "" }); // reset
+      await addCustomer(formData);
+      await onCustomerAdded();
+      setFormData({ name: "", address: "", city: "", country: "", category: "" });
       setOpenDrawer(false);
       toast.success("Customer added!");
     } catch (err) {
@@ -102,11 +106,18 @@ export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {
               {fieldErrors.country && <p className="text-sm text-red-500">{fieldErrors.country}</p>}
             </div>
             <div>
-              <Input
-                placeholder="Category"
+              <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              />
+                className="w-full px-3 py-2 border rounded-md text-sm"
+              >
+                <option value="" disabled>Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
               {fieldErrors.category && <p className="text-sm text-red-500">{fieldErrors.category}</p>}
             </div>
           </div>

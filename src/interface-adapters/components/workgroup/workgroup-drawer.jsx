@@ -13,11 +13,13 @@ import {
 } from "@/interface-adapters/components/ui/drawer";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { addWorkgroup } from "@/interface-adapters/usecases/workgroup/workgroup-usecase";
+import { addWorkgroup } from "@/interface-adapters/usecases/workgroup/add-workgroup";
 import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
 import { toast } from "sonner";
 
 export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
+  const categories = ["Retail", "Government", "Enterprise", "Military"];
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [openDrawer, setOpenDrawer] = useState(false);
   const [formData, setFormData] = useState({ name: "", project_name: "" });
   const [loading, setLoading] = useState(false);

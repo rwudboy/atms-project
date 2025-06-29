@@ -1,6 +1,5 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
-
-export async function AddUser(workgroupId, userData) {
+export async function viewWorkgroup(id) {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -8,25 +7,24 @@ export async function AddUser(workgroupId, userData) {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workgroup/addUser/${workgroupId}`, {
-      method: "POST",
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/workgroup/${id}`, {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(userData), // expects: { uuid: "user-id" }
     });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Failed to add user: ${response.status}`);
+      throw new Error(data.message || `Failed to update fetch workgroup: ${response.status}`);
     }
 
-    return data.user; 
+    return data.role;
   } catch (error) {
-    console.error("Error adding user to workgroup:", error);
+    console.error("Error updating workgroup:", error);
     throw error;
   }
 }

@@ -34,16 +34,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/interface-adapters/components/ui/sheet";
+import { getWorkgroups } from "@/interface-adapters/usecases/workgroup/get-workgroup";
+import { addWorkgroup } from "@/interface-adapters/usecases/workgroup/add-workgroup";
+import { deleteWorkgroup } from "@/interface-adapters/usecases/workgroup/delete-workgroup";
+
 import { Label } from "@/interface-adapters/components/ui/label";
-import { Search, Plus, Trash2, Users, AlertCircle, Eye} from "lucide-react";
+import { Search, Plus, Trash2, Users, AlertCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
 import AddUserModal from "@/interface-adapters/components/modals/workgroup/workgroup-modal";
+import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-modal";
 
-import {
-  getWorkgroups,
-  addWorkgroup,
-  deleteWorkgroup,
-} from "@/interface-adapters/usecases/workgroup/workgroup-usecase";
+
 
 export default function WorkgroupsPage() {
   const [workgroups, setWorkgroups] = useState([]);
@@ -60,6 +61,9 @@ export default function WorkgroupsPage() {
 
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [selectedWorkgroupForUser, setSelectedWorkgroupForUser] = useState(null);
+
+  const [selectedWorkgroupId, setSelectedWorkgroupId] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -136,58 +140,41 @@ export default function WorkgroupsPage() {
 
   const handleUserAdded = (userEmail, workgroupId) => {
     toast.success(`User ${userEmail} added to workgroup`);
-    // You can also refetch or update the local list if needed
+  };
+
+  const handleOpenViewModal = (workgroupId) => {
+    setSelectedWorkgroupId(workgroupId);
+    setShowDetailModal(true);
   };
 
   return (
     <div className="container mx-auto py-10 space-y-6">
-      {/* Header */}
+      {/* Sheet for adding workgroup */}
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle className="text-2xl">Workgroup Management</CardTitle>
-            <CardDescription>
-              Manage and view all workgroup data across your organization.
-            </CardDescription>
+            <CardDescription>Manage and view all workgroup data across your organization.</CardDescription>
           </div>
-          <Sheet
-            open={showAddWorkgroupSheet}
-            onOpenChange={setShowAddWorkgroupSheet}
-          >
+          <Sheet open={showAddWorkgroupSheet} onOpenChange={setShowAddWorkgroupSheet}>
             <SheetTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Workgroup
-              </Button>
+              <Button><Plus className="mr-2 h-4 w-4" /> Add Workgroup</Button>
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
                 <SheetTitle>Add New Workgroup</SheetTitle>
-                <SheetDescription>
-                  Create a new workgroup for your organization.
-                </SheetDescription>
+                <SheetDescription>Create a new workgroup for your organization.</SheetDescription>
               </SheetHeader>
               <div className="space-y-4 mt-6">
                 <div className="space-y-2">
                   <Label htmlFor="workgroup-name">Workgroup Name</Label>
-                  <Input
-                    id="workgroup-name"
-                    placeholder="Enter workgroup name"
-                    value={newWorkgroupName}
-                    onChange={(e) => setNewWorkgroupName(e.target.value)}
-                  />
+                  <Input id="workgroup-name" value={newWorkgroupName} onChange={(e) => setNewWorkgroupName(e.target.value)} placeholder="Enter workgroup name" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="project-name">Project Name</Label>
-                  <Input
-                    id="project-name"
-                    placeholder="Enter project name"
-                    value={newWorkgroupProject}
-                    onChange={(e) => setNewWorkgroupProject(e.target.value)}
-                  />
+                  <Input id="project-name" value={newWorkgroupProject} onChange={(e) => setNewWorkgroupProject(e.target.value)} placeholder="Enter project name" />
                 </div>
-                <Button onClick={handleAddWorkgroup} className="w-full">
-                  Create Workgroup
-                </Button>
+                <Button onClick={handleAddWorkgroup} className="w-full">Create Workgroup</Button>
               </div>
             </SheetContent>
           </Sheet>
@@ -202,13 +189,7 @@ export default function WorkgroupsPage() {
         <CardContent>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by workgroup name or project..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <Input type="search" className="pl-8" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Search by workgroup name or project..." />
           </div>
         </CardContent>
       </Card>
@@ -232,58 +213,37 @@ export default function WorkgroupsPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <span>Loading workgroups...</span>
-                  </TableCell>
+                  <TableCell colSpan={4} className="text-center py-8">Loading workgroups...</TableCell>
                 </TableRow>
               ) : workgroups.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <span>No workgroups found.</span>
-                  </TableCell>
+                  <TableCell colSpan={4} className="text-center py-8">No workgroups found.</TableCell>
                 </TableRow>
               ) : (
                 workgroups.map((wg) => (
                   <TableRow key={wg.uuid}>
                     <TableCell className="font-medium">{wg.name}</TableCell>
-                    
                     <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          wg.status
-                        )}`}
-                      >
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(wg.status)}`}>
                         {wg.status || "Unknown"}
                       </span>
                     </TableCell>
                     <TableCell className="font-medium">{wg.member}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenAddUserModal(wg)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleOpenViewModal(wg.uuid)}>
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenAddUserModal(wg)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleOpenAddUserModal(wg)}>
                           <Users className="h-4 w-4 mr-1" />
                           Add User
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setWorkgroupToDelete(wg);
-                            setShowDeleteDialog(true);
-                            setConfirmDeleteStep(false);
-                          }}
-                        >
+                        <Button variant="destructive" size="sm" onClick={() => {
+                          setWorkgroupToDelete(wg);
+                          setShowDeleteDialog(true);
+                          setConfirmDeleteStep(false);
+                        }}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -296,45 +256,31 @@ export default function WorkgroupsPage() {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
+            <DialogTitle className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-destructive" />
-              <span>Delete Workgroup</span>
+              Delete Workgroup
             </DialogTitle>
             <DialogDescription>
               {confirmDeleteStep ? (
                 <>
-                  <p className="font-semibold text-red-600">
-                    This action cannot be undone.
-                  </p>
-                  <p>
-                    This will permanently delete{" "}
-                    <strong>{workgroupToDelete?.name}</strong>.
-                  </p>
+                  <p className="font-semibold text-red-600">This action cannot be undone.</p>
+                  <p>This will permanently delete <strong>{workgroupToDelete?.name}</strong>.</p>
                 </>
               ) : (
-                <p>
-                  Are you sure you want to delete{" "}
-                  <strong>{workgroupToDelete?.name}</strong>?
-                </p>
+                <p>Are you sure you want to delete <strong>{workgroupToDelete?.name}</strong>?</p>
               )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
             {!confirmDeleteStep ? (
-              <Button variant="destructive" onClick={() => setConfirmDeleteStep(true)}>
-                Delete
-              </Button>
+              <Button variant="destructive" onClick={() => setConfirmDeleteStep(true)}>Delete</Button>
             ) : (
-              <Button variant="destructive" onClick={handleDeleteWorkgroup}>
-                Yes, Delete Permanently
-              </Button>
+              <Button variant="destructive" onClick={handleDeleteWorkgroup}>Yes, Delete Permanently</Button>
             )}
           </DialogFooter>
         </DialogContent>
@@ -348,6 +294,15 @@ export default function WorkgroupsPage() {
           workgroups={workgroups}
           preSelectedWorkgroup={selectedWorkgroupForUser.uuid}
           onUserAdded={handleUserAdded}
+        />
+      )}
+
+      {/* View Detail Modal */}
+      {selectedWorkgroupId && (
+        <WorkgroupDetailModal
+          workgroupId={selectedWorkgroupId}
+          open={showDetailModal}
+          onOpenChange={setShowDetailModal}
         />
       )}
     </div>
