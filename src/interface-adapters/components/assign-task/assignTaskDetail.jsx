@@ -322,7 +322,7 @@ export default function AssignDetailedTask({ taskId }) {
               onClick={handleSend}
               disabled={files.length === 0 || isSending}
             >
-              {isSending ? "Sending..." : "Send"}
+              {isSending ? "Compliting..." : "Complete"}
             </Button>
           </div>
         </div>
