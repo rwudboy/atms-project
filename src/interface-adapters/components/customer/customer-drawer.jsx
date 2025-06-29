@@ -13,7 +13,7 @@ import {
 } from "@/interface-adapters/components/ui/drawer";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { addCustomer } from "@/interface-adapters/usecases/customer/customer-usecase";
+import { addCustomer } from "@/interface-adapters/usecases/customer/add-customer";
 import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
 import { toast } from "sonner";
 

@@ -11,7 +11,7 @@ import { Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/interface-adapters/usecases/assign-task/get-detailed-task";
 import { sendTaskFiles } from "@/interface-adapters/usecases/assign-task/post-task";
-import { UnclaimTask } from "@/interface-adapters/usecases/assign-task/unclaim-task"; // Add this import
+import { UnclaimTask } from "@/interface-adapters/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 
@@ -23,7 +23,7 @@ export default function AssignDetailedTask({ taskId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState([]);
   const [isSending, setIsSending] = useState(false);
-  const [isUnclaiming, setIsUnclaiming] = useState(false); // Add loading state for unclaim
+  const [isUnclaiming, setIsUnclaiming] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -63,17 +63,14 @@ export default function AssignDetailedTask({ taskId }) {
     return "Low";
   };
 
-  // Add unclaim handler
   const handleUnclaim = async () => {
     if (!taskId) return;
-    
+
     setIsUnclaiming(true);
     try {
       const result = await UnclaimTask(taskId);
-      
       if (result.status) {
         toast.success(result.message || "Task unclaimed successfully");
-        // Refresh task data after successful unclaim
         const updatedTask = await getTaskById(taskId);
         setTask(updatedTask || null);
         router.push(`/assignTask`);
@@ -104,7 +101,6 @@ export default function AssignDetailedTask({ taskId }) {
     setIsSending(true);
     try {
       const result = await sendTaskFiles(taskId, files, firstVariableKey);
-
       if (result?.success) {
         toast.success(result.message || "Files sent successfully");
         setFiles([]);
@@ -119,9 +115,7 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleAttachmentClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+    fileInputRef.current?.click();
   };
 
   const handleFileChange = (e) => {
@@ -146,12 +140,8 @@ export default function AssignDetailedTask({ taskId }) {
     toast.success("File removed");
   };
 
-  const isAttachmentRequired =
-    task?.VariablesTask?.requireDocument?.value !== undefined;
-
-  const reportValue =
-    task?.VariablesTask?.Requirement_Specification_Report?.value || "";
-
+  const isAttachmentRequired = task?.VariablesTask?.requireDocument?.value !== undefined;
+  const reportValue = task?.VariablesTask?.Requirement_Specification_Report?.value || "";
   const isTaskAssigned = task?.assignee && task.assignee !== "Unassigned";
 
   return (
@@ -171,18 +161,6 @@ export default function AssignDetailedTask({ taskId }) {
               ← Back to List
             </Button>
             <div className="flex gap-2">
-              {/* Add Unclaim button - only show if task is assigned */}
-              {isTaskAssigned && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-                  onClick={handleUnclaim}
-                  disabled={isUnclaiming}
-                >
-                  {isUnclaiming ? "Unclaiming..." : "Unclaim"}
-                </Button>
-              )}
               <Button
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700"
@@ -328,7 +306,17 @@ export default function AssignDetailedTask({ taskId }) {
             )}
           </div>
 
-          <div className="flex justify-end pt-4">
+          <div className="flex justify-end pt-4 gap-2">
+            {isTaskAssigned && (
+              <Button
+                variant="outline"
+                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                onClick={handleUnclaim}
+                disabled={isUnclaiming}
+              >
+                {isUnclaiming ? "Unclaiming..." : "Unclaim"}
+              </Button>
+            )}
             <Button
               variant="secondary"
               onClick={handleSend}

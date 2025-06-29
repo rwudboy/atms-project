@@ -5,10 +5,12 @@ import { Input } from "@/interface-adapters/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/interface-adapters/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
-import { Search, Plus, Trash2 } from "lucide-react";
+import { Search, Plus, Trash2, Edit } from "lucide-react";
 import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
 import { deleteCustomer } from "@/interface-adapters/usecases/customer/delete-customer";
+import { editCustomer } from "@/interface-adapters/usecases/customer/edit-customer";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
+import EditCustomerModal from "@/interface-adapters/components/modals/customer/edit-customer";
 import { toast } from "sonner";
 
 export default function CustomersPage() {
@@ -18,7 +20,11 @@ export default function CustomersPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
-  const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);  // Add this state
+  const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
+  
+  // Edit modal states
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [customerToEdit, setCustomerToEdit] = useState(null);
 
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
@@ -35,30 +41,50 @@ export default function CustomersPage() {
     setCustomerToDelete(id);
     setShowDeleteDialog(true);
     setDeleteError(null);
-    setConfirmDeleteStep(false);  // Reset confirmation step
+    setConfirmDeleteStep(false);
+  };
+
+  const handleEditClick = (customer) => {
+    setCustomerToEdit(customer);
+    setShowEditModal(true);
   };
 
   const handleDeleteCustomer = async () => {
     if (confirmDeleteStep) {
       try {
-        // Call deleteCustomer from usecase
         await deleteCustomer(customerToDelete);
-
-        // Remove the deleted customer from the local state
         setCustomers(customers.filter((c) => c.id !== customerToDelete));
-
-        // Show success notification
         toast.success("Customer deleted successfully!");
         setShowDeleteDialog(false);
         setCustomerToDelete(null);
         setConfirmDeleteStep(false);
       } catch (error) {
-        // Handle error and show notification
         setDeleteError(error.message || "An error occurred while deleting the customer.");
         toast.error("Failed to delete customer.");
       }
     } else {
       setConfirmDeleteStep(true);
+    }
+  };
+
+  const handleUpdateCustomer = async (customerId, formData) => {
+    try {
+      await editCustomer(customerId, formData);
+      
+      // Update the customer in the local state
+      setCustomers(customers.map(customer => 
+        customer.id === customerId 
+          ? { ...customer, ...formData }
+          : customer
+      ));
+      
+      toast.success("Customer updated successfully!");
+      setShowEditModal(false);
+      setCustomerToEdit(null);
+    } catch (error) {
+      console.error("Error updating customer:", error);
+      toast.error("Failed to update customer.");
+      throw error; // Re-throw to let the modal handle loading state
     }
   };
 
@@ -75,7 +101,6 @@ export default function CustomersPage() {
             <CardTitle>Customer References</CardTitle>
             <CardDescription>Manage and view all customer data.</CardDescription>
           </div>
-          {/* Add Customer Button with Drawer trigger */}
           <AddCustomerDrawer
             trigger={<Button><Plus className="mr-2 h-4 w-4" /> Add Customer</Button>}
             onCustomerAdded={handleCustomerAdded}
@@ -121,13 +146,13 @@ export default function CustomersPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : customers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4">
                     No customers found
                   </TableCell>
                 </TableRow>
@@ -142,7 +167,18 @@ export default function CustomersPage() {
                     <TableCell>{customer.category}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(customer.id)}>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditClick(customer)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleDeleteClick(customer.id)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -155,6 +191,7 @@ export default function CustomersPage() {
         </CardContent>
       </Card>
 
+      {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -190,6 +227,17 @@ export default function CustomersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Customer Modal */}
+      <EditCustomerModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setCustomerToEdit(null);
+        }}
+        onUpdate={handleUpdateCustomer}
+        customer={customerToEdit}
+      />
     </div>
   );
 }
