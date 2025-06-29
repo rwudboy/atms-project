@@ -24,7 +24,7 @@ const geistMono = Geist_Mono({
 export default function RootLayout({ children }) {
   const pathname = usePathname();
   const pageSlug = pathname.split("/").filter(Boolean)[0] || "home";
-  const excludedRoutes = ["/otp", "/login", "/register"];
+  const excludedRoutes = ["/otp", "/login", "/register","/forgotPassword"];
   const isExcludedRoute = excludedRoutes.includes(pathname);
 
   const formattedTitle = pageSlug

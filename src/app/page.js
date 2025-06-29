@@ -11,6 +11,8 @@ import ArchivesPage from "@/app/archives/page";
 import UnassignTask from "@/app/unassignTask/page";
 import AssignTask from "@/app/assignTask/page";
 import UserRole from "@/app/assignTask/page";
+import Overdue from "@/app/overdue/page";
+import ForgotPassword from "@/app/forgotPassword/page";
 
 export default function Page({ params }) {
   const pages = {
@@ -25,7 +27,9 @@ export default function Page({ params }) {
     archives :<ArchivesPage />,
     unassignTask:<UnassignTask />,
     assignTask :<AssignTask />,
-    userRole :<UserRole />
+    userRole :<UserRole />,
+    Overdue :<Overdue />,
+    ForgotPassword :<ForgotPassword />
   };
 
   return pages[params?.slug] || <LoginPage />;

@@ -9,26 +9,15 @@ import {
   IconDashboard,
   IconUsersGroup,
   IconFolder,
-  IconHelp,
   IconInnerShadowTop,
-  IconSettings,
   IconUsers,
-  IconCalendarWeek,
-  IconReport,
-  IconListDetails,
   IconChevronDown,
   IconChevronUp,
-  IconCirclePlus,
   IconListCheck,
   IconInbox,
-  IconFolderDown,
-  IconFlag,
-  IconList,
+  IconClockExclamation,
   IconBook,
   IconUserEdit,
-  IconManualGearbox,
-  IconFileSearch,
-  IconBulb,
   IconArchive,
 } from "@tabler/icons-react";
 
@@ -57,7 +46,7 @@ export function AppSidebar(props) {
     setHydrated(true);
     const fetchUser = async () => {
       try {
-        const { data } = await getUserDetail(); // destructure `data` from return
+        const { data } = await getUserDetail(); 
         const userName = data?.user?.username || "Guest";
         const userEmail = data?.user?.email || "no-email@example.com";
         setName(userName);
@@ -78,16 +67,13 @@ export function AppSidebar(props) {
     );
   }
   
-  // const navSecondary = [
-  //   { title: "Settings", url: "#", icon: IconSettings },
-  //   { title: "Get Help", url: "#", icon: IconHelp },
-  // ];
 
   const projectSubItems = [
     { title: "Project Instance", url: "/projectInstance", icon: IconFolder },
     { title: "Archives", url: "/archives", icon: IconArchive },
     { title: "Unassign Task", url: "/unassignTask", icon: IconListCheck },
     { title: "Assign Task", url: "/assignTask", icon: IconInbox },
+    { title: "Overdue", url: "/overdue", icon: IconClockExclamation },
 
   ];
 
