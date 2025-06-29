@@ -30,7 +30,7 @@ export default function AddVendorDrawer({ trigger, onVendorAdded }) {
   });
   const [errors, setErrors] = useState({});
 
-  const categories = ["Retail", "Government", "Enterprise", "Military"];
+  const categories = ["IT", "Construction", "Consultant", "Security", "Education"];
 
   const handleInputChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
