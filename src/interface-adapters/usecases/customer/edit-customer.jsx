@@ -7,7 +7,7 @@ export async function editCustomer(id, formData) {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customer/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customers/${id}`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
