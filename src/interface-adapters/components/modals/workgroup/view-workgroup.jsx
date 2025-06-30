@@ -50,7 +50,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange }
             {workgroup && (
               <Badge variant="secondary" className="flex items-center gap-2">
                 <Shield className="h-3 w-3" />
-                {workgroup.status}
+                {workgroup.status?.toUpperCase()}
               </Badge>
             )}
           </div>
@@ -70,7 +70,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange }
 
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Status</h3>
-                <Badge variant="outline" className="w-fit">{workgroup.status}</Badge>
+                <Badge variant="outline" className="w-fit">{workgroup.status?.toUpperCase()}</Badge>
               </div>
             </div>
 

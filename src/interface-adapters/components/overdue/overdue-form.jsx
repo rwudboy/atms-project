@@ -66,7 +66,7 @@ export default function OverdueTasksPage() {
                     <th className="text-left py-3 px-4 font-medium text-gray-700">Task Name</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-700">Created At</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-700">Due Date</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-700">Delegation</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-700">Assigne</th>
                     <th className="text-left py-3 px-4 font-medium text-gray-700">Action</th>
                   </tr>
                 </thead>
@@ -95,8 +95,9 @@ export default function OverdueTasksPage() {
                           </Badge>
                         </div>
                       </td>
+        
                       <td className="py-4 px-4 text-gray-600">
-                        {task.delegationState || "Pending"}
+                        {task.assignee || "-"}
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex flex-col gap-2">

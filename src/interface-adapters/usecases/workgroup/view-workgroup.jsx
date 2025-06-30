@@ -1,4 +1,5 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
+
 export async function viewWorkgroup(id) {
   const token = getToken();
   if (!token) {
@@ -19,12 +20,13 @@ export async function viewWorkgroup(id) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || `Failed to update fetch workgroup: ${response.status}`);
+      throw new Error(data.message || `Failed to fetch workgroup: ${response.status}`);
     }
 
-    return data.role;
+    // Change this line from data.role to data.workgroup
+    return data.workgroup;
   } catch (error) {
-    console.error("Error updating workgroup:", error);
+    console.error("Error fetching workgroup:", error);
     throw error;
   }
 }

@@ -17,7 +17,7 @@ export default function UserProfilePage({ username }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [canChangePassword, setCanChangePassword] = useState(false)
+  const [userIsOwner, setuserIsOwner] = useState(false)
   
   const { user: loggedInUser } = useAuth();
 
@@ -32,8 +32,7 @@ export default function UserProfilePage({ username }) {
 
           if (loggedInUser) {
             const isOwner = loggedInUser.username === profileUser.username;
-            const isAdmin = Array.isArray(loggedInUser.role) && loggedInUser.role.includes('admin');
-            setCanChangePassword(isOwner || isAdmin);
+            setuserIsOwner(isOwner);
           }
         }
       } catch (error) {
@@ -49,7 +48,6 @@ export default function UserProfilePage({ username }) {
     }
   }, [username, loggedInUser]); 
 
-  // --- No other changes are needed below this line ---
 
   const handleSave = async (formData) => {
     if (!user || !user.id) {
@@ -105,7 +103,7 @@ export default function UserProfilePage({ username }) {
             user={user} 
             onSave={handleSave} 
             onCancel={handleCancel}
-            canChangePassword={canChangePassword}
+            userIsOwner={userIsOwner}
           />
         ) : (
           <UserProfileView 

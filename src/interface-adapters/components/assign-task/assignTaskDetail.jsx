@@ -6,7 +6,10 @@ import { Button } from "@/interface-adapters/components/ui/button";
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Textarea } from "@/interface-adapters/components/ui/textarea";
 import { Separator } from "@/interface-adapters/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/interface-adapters/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+} from "@/interface-adapters/components/ui/avatar";
 import { Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/interface-adapters/usecases/assign-task/get-detailed-task";
@@ -61,6 +64,14 @@ export default function AssignDetailedTask({ taskId }) {
     if (priority >= 80) return "High";
     if (priority >= 60) return "Medium";
     return "Low";
+  };
+
+  // Add function to check if task is overdue
+  const isTaskOverdue = (dueDate) => {
+    if (!dueDate) return false;
+    const now = new Date();
+    const due = new Date(dueDate);
+    return due < now;
   };
 
   const handleUnclaim = async () => {
@@ -140,8 +151,10 @@ export default function AssignDetailedTask({ taskId }) {
     toast.success("File removed");
   };
 
-  const isAttachmentRequired = task?.VariablesTask?.requireDocument?.value !== undefined;
-  const reportValue = task?.VariablesTask?.Requirement_Specification_Report?.value || "";
+  const isAttachmentRequired =
+    task?.VariablesTask?.requireDocument?.value !== undefined;
+  const reportValue =
+    task?.VariablesTask?.Requirement_Specification_Report?.value || "";
   const isTaskAssigned = task?.assignee && task.assignee !== "Unassigned";
 
   return (
@@ -157,7 +170,10 @@ export default function AssignDetailedTask({ taskId }) {
       ) : (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={() => router.push("/assignTask")}>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/assignTask")}
+            >
               ← Back to List
             </Button>
             <div className="flex gap-2">
@@ -171,8 +187,16 @@ export default function AssignDetailedTask({ taskId }) {
             </div>
           </div>
 
-          <div>
-            <h1 className="text-xl font-semibold">{task.task_name || "Task Detail"}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold">
+              {task.task_name || "Task Detail"}
+            </h1>
+            {/* Add overdue badge here */}
+            {isTaskOverdue(task.due_date) && (
+              <Badge variant="destructive" className="bg-red-600">
+                Overdue
+              </Badge>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -195,7 +219,15 @@ export default function AssignDetailedTask({ taskId }) {
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Due date</p>
-                  <p className="font-medium">{formatDate(task.due_date)}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium">{formatDate(task.due_date)}</p>
+                    {/* Alternative: Show overdue badge next to due date */}
+                    {isTaskOverdue(task.due_date) && (
+                      <Badge variant="destructive" className="text-xs bg-red-600">
+                        Overdue
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Definition ID</p>
@@ -264,7 +296,9 @@ export default function AssignDetailedTask({ taskId }) {
             <>
               <Separator />
               <div>
-                <h3 className="font-semibold text-base mb-3">Report from Variables</h3>
+                <h3 className="font-semibold text-base mb-3">
+                  Report from Variables
+                </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {reportValue}
                 </p>
@@ -282,20 +316,20 @@ export default function AssignDetailedTask({ taskId }) {
                   <div key={index} className="flex gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs">
-                        {comment.author?.split(" ").map((n) => n[0]).join("") || "U"}
+                        {comment.user
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("") || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium text-sm">
-                          {comment.author || "Unknown"}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {comment.time || "—"}
+                          {comment.user || "Unknown"}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        {comment.content || ""}
+                        {comment.description || ""}
                       </p>
                     </div>
                   </div>

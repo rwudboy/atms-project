@@ -41,8 +41,12 @@ export default function UnassignTaskPage() {
           : Array.isArray(result.data)
             ? result.data
             : [];
-        setAllTasks(taskData);
-        setTasks(taskData);
+        
+        // Filter out tasks that have an assignee (only show unassigned tasks)
+        const unassignedTasks = taskData.filter(task => task.assignee == null);
+        
+        setAllTasks(unassignedTasks);
+        setTasks(unassignedTasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
         toast.error("Failed to fetch task list.");
@@ -69,9 +73,16 @@ export default function UnassignTaskPage() {
   }, [searchTerm, allTasks]);
 
   const handleViewDetail = (task) => {
-  const slug = task.name?.toLowerCase().replace(/\s+/g, "-") || "task";
-  router.push(`/unassignTask/${task.id}__${slug}`);
-};
+    const slug = task.name?.toLowerCase().replace(/\s+/g, "-") || "task";
+    router.push(`/unassignTask/${task.id}__${slug}`);
+  };
+
+  const isOverdue = (dueDate) => {
+    if (!dueDate) return false;
+    const now = new Date();
+    const due = new Date(dueDate);
+    return due < now;
+  };
 
   return (
     <div className="container mx-auto py-10">
@@ -116,7 +127,6 @@ export default function UnassignTaskPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Due Date</TableHead>
-                <TableHead>Assigned</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -139,11 +149,19 @@ export default function UnassignTaskPage() {
                     <TableCell className="font-medium">{task.name || "Untitled"}</TableCell>
                     <TableCell>{new Date(task.created).toLocaleString()}</TableCell>
                     <TableCell>
-                      {task.due_date
-                        ? new Date(task.due_date).toLocaleString()
-                        : "—"}
+                      {task.due_date ? (
+                        <div>
+                          <div>{new Date(task.due_date).toLocaleString()}</div>
+                          {isOverdue(task.due_date) && (
+                            <div className="text-sm text-red-600 font-medium mt-1">
+                              Overdue
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
-                        <TableCell className="font-medium">{task.assignee || "—"}</TableCell>
                     <TableCell className="text-right">
                       <Button onClick={() => handleViewDetail(task)}>Detail</Button>
                     </TableCell>

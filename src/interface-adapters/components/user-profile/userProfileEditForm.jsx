@@ -28,7 +28,7 @@ const JABATAN_LIST = [
     "Staf Administrator",
 ];
 
-export default function UserProfileEditForm({ user, onSave, onCancel, canChangePassword }) {
+export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwner }) {
   const [status, setStatus] = useState(user.status || "unlocked");
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || "");
   const [posisi, setPosisi] = useState(user.posisi || "");
@@ -37,7 +37,7 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
 
   const validateAndSave = () => {
     // Only validate passwords if they are editable
-    if (canChangePassword && (passwordData.newPassword || passwordData.confirmPassword)) {
+    if (userIsOwner && (passwordData.newPassword || passwordData.confirmPassword)) {
       if (passwordData.newPassword.length < 6) {
         setPasswordError("Password must be at least 6 characters long");
         return;
@@ -56,14 +56,14 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
       formData.status = status;
     }
     
-    // Only include password in payload if it can be changed and is not empty
-    if (canChangePassword && passwordData.newPassword) {
+    // Only include password in payload if user is owner and password is not empty
+    if (userIsOwner && passwordData.newPassword) {
       userUpdates.password = passwordData.newPassword;
     }
-    if (phoneNumber !== (user.phoneNumber || "")) {
+    if (userIsOwner && phoneNumber !== (user.phoneNumber || "")) {
       userUpdates.phoneNumber = phoneNumber;
     }
-    if (posisi !== (user.posisi || "")) {
+    if (userIsOwner && posisi !== (user.posisi || "")) {
       userUpdates.posisi = posisi;
     }
     
@@ -93,7 +93,19 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Phone className="w-4 h-4" /><span>Phone Number</span></label>
-                        <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-slate-50" placeholder="Enter phone number" />
+                        <Input 
+                            value={phoneNumber} 
+                            onChange={(e) => setPhoneNumber(e.target.value)} 
+                            className="bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed" 
+                            placeholder="Enter phone number" 
+                            disabled={!userIsOwner}
+                        />
+                        {!userIsOwner && (
+                            <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
+                                <Info className="w-4 h-4" />
+                                <span>You can only edit your own profile details.</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -109,8 +121,8 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
 
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Briefcase className="w-4 h-4" /><span>Jabatan (Position)</span></label>
-                        <Select value={posisi} onValueChange={setPosisi}>
-                            <SelectTrigger className="bg-slate-50 w-full">
+                        <Select value={posisi} onValueChange={setPosisi} disabled={!userIsOwner}>
+                            <SelectTrigger className="bg-slate-50 w-full disabled:opacity-60 disabled:cursor-not-allowed">
                                 <SelectValue placeholder="Select a position" />
                             </SelectTrigger>
                             <SelectContent>
@@ -119,6 +131,12 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
                                 ))}
                             </SelectContent>
                         </Select>
+                        {!userIsOwner && (
+                            <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
+                                <Info className="w-4 h-4" />
+                                <span>You can only edit your own profile details.</span>
+                            </div>
+                        )}
                     </div>
                     
                     <div className="space-y-2">
@@ -129,9 +147,9 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
                             onChange={(e) => handlePasswordChange('newPassword', e.target.value)} 
                             className="bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed" 
                             placeholder="Enter new password"
-                            disabled={!canChangePassword}
+                            disabled={!userIsOwner}
                         />
-                         {!canChangePassword && (
+                         {!userIsOwner && (
                             <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
                                 <Info className="w-4 h-4" />
                                 <span>You can only change your own password.</span>
@@ -147,14 +165,14 @@ export default function UserProfileEditForm({ user, onSave, onCancel, canChangeP
                             onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)} 
                             className={`bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed ${passwordError ? 'border-red-300' : ''}`} 
                             placeholder="Confirm new password"
-                            disabled={!canChangePassword}
+                            disabled={!userIsOwner}
                         />
                         {passwordError && (
                           <div className="flex items-center space-x-2 text-red-600 text-sm">
                               <AlertCircle className="w-4 h-4" /><span>{passwordError}</span>
                           </div>
                         )}
-                        {!canChangePassword && (
+                        {!userIsOwner && (
                             <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
                                 <Info className="w-4 h-4" />
                                 <span>You can only change your own password.</span>

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/interface-adapters/compon
 import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Button } from "@/interface-adapters/components/ui/button"
 import {
-  User, Mail, Phone, Calendar, Shield, Globe, Briefcase, Edit, Lock, Unlock
+  User, Mail, Phone, Calendar,  Globe, Briefcase, Edit, Lock, Unlock
 } from "lucide-react"
 
 

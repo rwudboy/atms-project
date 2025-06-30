@@ -41,10 +41,8 @@ import { deleteWorkgroup } from "@/interface-adapters/usecases/workgroup/delete-
 import { Label } from "@/interface-adapters/components/ui/label";
 import { Search, Plus, Trash2, Users, AlertCircle, Eye } from "lucide-react";
 import { toast } from "sonner";
-import AddUserModal from "@/interface-adapters/components/modals/workgroup/workgroup-modal";
-import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-modal";
-
-
+import AddUserModal from "@/interface-adapters/components/modals/workgroup/add-workgroup";
+import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-workgroup";
 
 export default function WorkgroupsPage() {
   const [workgroups, setWorkgroups] = useState([]);
@@ -121,13 +119,17 @@ export default function WorkgroupsPage() {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case "Active":
+    // Convert status to lowercase for comparison, but keep original casing logic
+    const lowerStatus = status?.toLowerCase();
+    switch (lowerStatus) {
+      case "active":
         return "text-green-600 bg-green-50";
-      case "Planning":
+      case "planning":
         return "text-blue-600 bg-blue-50";
-      case "On Hold":
+      case "on hold":
         return "text-yellow-600 bg-yellow-50";
+      case "inactive":
+        return "text-red-600 bg-red-50";
       default:
         return "text-gray-600 bg-gray-50";
     }
@@ -225,7 +227,7 @@ export default function WorkgroupsPage() {
                     <TableCell className="font-medium">{wg.name}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(wg.status)}`}>
-                        {wg.status || "Unknown"}
+                        {(wg.status || "Unknown").toUpperCase()}
                       </span>
                     </TableCell>
                     <TableCell className="font-medium">{wg.member}</TableCell>
