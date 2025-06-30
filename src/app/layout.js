@@ -35,7 +35,6 @@ export default function RootLayout({ children }) {
   const [destroyed, setDestroyed] = useState(false);
   const [permanentRainbow, setPermanentRainbow] = useState(false);
   const [sirenAudio, setSirenAudio] = useState(null);
-  const [jumpscareAudio, setJumpscareAudio] = useState(null);
 
   const formattedTitle = pageSlug
     .replace(/-/g, " ")
@@ -90,13 +89,9 @@ export default function RootLayout({ children }) {
           sirenAudio.pause();
           sirenAudio.currentTime = 0;
         }
-        if (jumpscareAudio) {
-          jumpscareAudio.pause();
-          jumpscareAudio.currentTime = 0;
-        }
       };
     }
-  }, [isExcludedRoute, pathname, sirenAudio, jumpscareAudio]);
+  }, [isExcludedRoute, pathname, sirenAudio]);
 
   // Sound effects
   useEffect(() => {
@@ -110,65 +105,86 @@ export default function RootLayout({ children }) {
     }
     
     if (countdown !== null) {
-      // Countdown beep sound - looped
+      // Countdown beep sound
       const beepAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/03/24/audio_516e7b9b04.mp3?filename=countdown-from-10-105775.mp3');
       beepAudio.volume = 0.8;
-      beepAudio.loop = true;
       beepAudio.play().catch(() => {});
     }
     
-    if (explosion || blueScreen || permanentRainbow) {
-      // Jumpscare sound - looped
-      if (!jumpscareAudio) {
-        const jumpscare = new Audio('https://cdn.pixabay.com/download/audio/2023/09/19/audio_f304554a28.mp3?filename=smile-dog-jumpscare-167171.mp3');
-        jumpscare.volume = 0.9;
-        jumpscare.loop = true;
-        jumpscare.play().catch(() => {});
-        setJumpscareAudio(jumpscare);
-      }
+    if (explosion) {
+      // Explosion sound effect
+      const explosionAudio = new Audio('https://cdn.pixabay.com/download/audio/2023/09/19/audio_f304554a28.mp3?filename=smile-dog-jumpscare-167171.mp3');
+      explosionAudio.volume = 0.9;
+      explosionAudio.play().catch(() => {});
     }
-  }, [showWarning, countdown, explosion, blueScreen, permanentRainbow, sirenAudio, jumpscareAudio]);
+    
+    if (blueScreen) {
+      // Blue screen error sound
+      const errorAudio = new Audio('https://cdn.pixabay.com/download/audio/2023/10/10/audio_3e4f4231e9.mp3?filename=error-170796.mp3');
+      errorAudio.volume = 0.6;
+      errorAudio.play().catch(() => {});
+      
+    }
+  }, [showWarning, countdown, explosion, blueScreen, sirenAudio]);
 
   return (
     <html lang="en">
       <head>
         <title>{formattedTitle}</title>
         <style>{`
-          @keyframes meme-rotate {
-            0% { transform: rotate(0deg) scale(1); }
-            25% { transform: rotate(15deg) scale(1.1); }
-            50% { transform: rotate(-10deg) scale(0.9); }
-            75% { transform: rotate(5deg) scale(1.05); }
-            100% { transform: rotate(0deg) scale(1); }
+          @keyframes aggressive-rotate {
+            0% { transform: rotate(0deg) translateX(0px) translateY(0px) scale(1); }
+            10% { transform: rotate(36deg) translateX(20px) translateY(-15px) scale(1.05); }
+            20% { transform: rotate(72deg) translateX(-10px) translateY(25px) scale(0.95); }
+            30% { transform: rotate(108deg) translateX(30px) translateY(10px) scale(1.1); }
+            40% { transform: rotate(144deg) translateX(-25px) translateY(-20px) scale(0.9); }
+            50% { transform: rotate(180deg) translateX(15px) translateY(30px) scale(1.02); }
+            60% { transform: rotate(216deg) translateX(-20px) translateY(-10px) scale(1.08); }
+            70% { transform: rotate(252deg) translateX(25px) translateY(-25px) scale(0.92); }
+            80% { transform: rotate(288deg) translateX(-15px) translateY(20px) scale(1.06); }
+            90% { transform: rotate(324deg) translateX(10px) translateY(-30px) scale(0.98); }
+            100% { transform: rotate(360deg) translateX(0px) translateY(0px) scale(1); }
           }
 
-          @keyframes unexpected-move {
-            0% { transform: translateX(0) translateY(0) rotate(0deg) scale(1); }
-            10% { transform: translateX(100px) translateY(-50px) rotate(45deg) scale(1.3); }
-            20% { transform: translateX(-150px) translateY(100px) rotate(-30deg) scale(0.8); }
-            30% { transform: translateX(200px) translateY(150px) rotate(90deg) scale(1.5); }
-            40% { transform: translateX(-100px) translateY(-200px) rotate(-60deg) scale(0.7); }
-            50% { transform: translateX(0) translateY(250px) rotate(180deg) scale(1.2); }
-            60% { transform: translateX(250px) translateY(-100px) rotate(-120deg) scale(0.9); }
-            70% { transform: translateX(-200px) translateY(-150px) rotate(270deg) scale(1.4); }
-            80% { transform: translateX(150px) translateY(200px) rotate(-45deg) scale(0.85); }
-            90% { transform: translateX(-50px) translateY(-50px) rotate(315deg) scale(1.1); }
-            100% { transform: translateX(0) translateY(0) rotate(360deg) scale(1); }
+          @keyframes shake-and-spin {
+            0% { transform: rotate(0deg) translateX(0px) translateY(0px); }
+            5% { transform: rotate(18deg) translateX(-5px) translateY(8px); }
+            10% { transform: rotate(36deg) translateX(12px) translateY(-3px); }
+            15% { transform: rotate(54deg) translateX(-8px) translateY(-10px); }
+            20% { transform: rotate(72deg) translateX(15px) translateY(6px); }
+            25% { transform: rotate(90deg) translateX(-12px) translateY(-8px); }
+            30% { transform: rotate(108deg) translateX(8px) translateY(12px); }
+            35% { transform: rotate(126deg) translateX(-15px) translateY(-5px); }
+            40% { transform: rotate(144deg) translateX(10px) translateY(-12px); }
+            45% { transform: rotate(162deg) translateX(-6px) translateY(15px); }
+            50% { transform: rotate(180deg) translateX(12px) translateY(-8px); }
+            55% { transform: rotate(198deg) translateX(-10px) translateY(5px); }
+            60% { transform: rotate(216deg) translateX(8px) translateY(-15px); }
+            65% { transform: rotate(234deg) translateX(-15px) translateY(10px); }
+            70% { transform: rotate(252deg) translateX(12px) translateY(-6px); }
+            75% { transform: rotate(270deg) translateX(-8px) translateY(12px); }
+            80% { transform: rotate(288deg) translateX(15px) translateY(-10px); }
+            85% { transform: rotate(306deg) translateX(-12px) translateY(8px); }
+            90% { transform: rotate(324deg) translateX(6px) translateY(-15px); }
+            95% { transform: rotate(342deg) translateX(-10px) translateY(12px); }
+            100% { transform: rotate(360deg) translateX(0px) translateY(0px); }
           }
 
-          @keyframes bounce-meme {
-            0%, 100% { transform: translateY(0) scaleY(1); }
-            10% { transform: translateY(-100px) scaleY(0.8); }
-            30% { transform: translateY(-50px) scaleY(1.1); }
-            50% { transform: translateY(-150px) scaleY(0.7); }
-            70% { transform: translateY(-25px) scaleY(1.2); }
-            90% { transform: translateY(-75px) scaleY(0.9); }
-          }
-
-          @keyframes wiggle-meme {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(3deg); }
-            75% { transform: rotate(-3deg); }
+          @keyframes crazy-movement {
+            0% { transform: rotate(0deg) translateX(0px) translateY(0px) skewX(0deg) skewY(0deg); }
+            8% { transform: rotate(45deg) translateX(30px) translateY(-20px) skewX(5deg) skewY(-3deg); }
+            16% { transform: rotate(90deg) translateX(-15px) translateY(40px) skewX(-8deg) skewY(6deg); }
+            24% { transform: rotate(135deg) translateX(25px) translateY(10px) skewX(3deg) skewY(-9deg); }
+            32% { transform: rotate(180deg) translateX(-35px) translateY(-30px) skewX(-6deg) skewY(4deg); }
+            40% { transform: rotate(225deg) translateX(20px) translateY(35px) skewX(9deg) skewY(-2deg); }
+            48% { transform: rotate(270deg) translateX(-10px) translateY(-25px) skewX(-4deg) skewY(8deg); }
+            56% { transform: rotate(315deg) translateX(40px) translateY(15px) skewX(7deg) skewY(-5deg); }
+            64% { transform: rotate(360deg) translateX(-20px) translateY(-40px) skewX(-9deg) skewY(3deg); }
+            72% { transform: rotate(405deg) translateX(15px) translateY(25px) skewX(2deg) skewY(-7deg); }
+            80% { transform: rotate(450deg) translateX(-30px) translateY(-10px) skewX(-5deg) skewY(9deg); }
+            88% { transform: rotate(495deg) translateX(35px) translateY(-35px) skewX(8deg) skewY(-1deg); }
+            96% { transform: rotate(540deg) translateX(-25px) translateY(30px) skewX(-3deg) skewY(6deg); }
+            100% { transform: rotate(720deg) translateX(0px) translateY(0px) skewX(0deg) skewY(0deg); }
           }
 
           @keyframes rainbow-cycle {
@@ -216,9 +232,9 @@ export default function RootLayout({ children }) {
               opacity: 0;
               transform: scale(0.1) rotate(0deg);
             }
-            50% { 
+            10% { 
               opacity: 1;
-              transform: scale(1.5) rotate(180deg);
+              transform: scale(1.8) rotate(45deg);
             }
             100% { 
               opacity: 1;
@@ -226,12 +242,28 @@ export default function RootLayout({ children }) {
             }
           }
 
-          @keyframes meme-jumpscare {
-            0% { transform: scale(1) rotate(0deg) translateX(0) translateY(0); }
-            25% { transform: scale(1.3) rotate(90deg) translateX(100px) translateY(-100px); }
-            50% { transform: scale(0.7) rotate(180deg) translateX(-100px) translateY(100px); }
-            75% { transform: scale(1.2) rotate(270deg) translateX(100px) translateY(100px); }
-            100% { transform: scale(1) rotate(360deg) translateX(0) translateY(0); }
+          @keyframes explosion-rotate {
+            0% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.2); }
+            50% { transform: rotate(180deg) scale(0.8); }
+            75% { transform: rotate(270deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+          }
+
+          @keyframes permanent-rainbow-rotate {
+            0% { transform: rotate(0deg) scale(1.2); }
+            25% { transform: rotate(90deg) scale(1.5); }
+            50% { transform: rotate(180deg) scale(1.3); }
+            75% { transform: rotate(270deg) scale(1.4); }
+            100% { transform: rotate(360deg) scale(1.2); }
+          }
+
+          @keyframes blue-screen-jumpscare-rotate {
+            0% { transform: rotate(0deg) scale(1.5); }
+            25% { transform: rotate(90deg) scale(1.8); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            75% { transform: rotate(270deg) scale(1.6); }
+            100% { transform: rotate(360deg) scale(1.5); }
           }
 
           @keyframes blue-screen-glitch {
@@ -243,16 +275,18 @@ export default function RootLayout({ children }) {
 
           .rotate-aggressive {
             animation: 
-              meme-rotate 3s ease-in-out infinite,
-              wiggle-meme 0.5s ease-in-out infinite;
+              aggressive-rotate 0.8s ease-in-out infinite,
+              shake-and-spin 0.4s linear infinite,
+              crazy-movement 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
             transform-origin: center center;
           }
 
           .rainbow-permanent {
             animation: 
               rainbow-cycle 2s linear infinite,
-              meme-rotate 3s ease-in-out infinite,
-              wiggle-meme 0.5s ease-in-out infinite;
+              aggressive-rotate 0.8s ease-in-out infinite,
+              shake-and-spin 0.4s linear infinite,
+              crazy-movement 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
             transform-origin: center center;
           }
 
@@ -269,61 +303,58 @@ export default function RootLayout({ children }) {
 
           .explosion-jumpscare {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100vw;
-            height: 100vh;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             z-index: 15000;
             pointer-events: none;
             background-image: url('https://2007.filemail.com/getthumbnail.ashx?fileid=OBWHO3DBNN3XI3TBNBZXG3LWPR6HYV3IMF2HGQLQOAQES3LBM5SSAMRQGI2S2MBXFUYDCIDBOQQDAMROGA3C4NBZL4YWKNRYMIYWEOJONJYGO&size=Large');
-            background-size: contain;
+            background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             animation: 
-              jumpscare-appear 1s ease-out,
-              meme-jumpscare 2s ease-in-out infinite,
-              bounce-meme 1.5s ease-in-out infinite;
+              jumpscare-appear 0.5s ease-out,
+              explosion-rotate 1s linear infinite;
           }
 
           .blue-screen-jumpscare {
             position: fixed;
             top: 50%;
             left: 50%;
-            width: 60vw;
-            height: 60vh;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
             z-index: 15001;
             pointer-events: none;
             background-image: url('https://2007.filemail.com/getthumbnail.ashx?fileid=OBWHO3DBNN3XI3TBNBZXG3LWPR6HYV3IMF2HGQLQOAQES3LBM5SSAMRQGI2S2MBXFUYDCIDBOQQDAMROGA3C4NBZL4YWKNRYMIYWEOJONJYGO&size=Large');
-            background-size: contain;
+            background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 20px;
             box-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
             animation: 
-              jumpscare-appear 0.5s ease-out,
-              unexpected-move 5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite,
-              bounce-meme 2s ease-in-out infinite;
+              jumpscare-appear 0.3s ease-out,
+              blue-screen-jumpscare-rotate 1.5s linear infinite;
           }
 
           .permanent-rainbow-jumpscare {
             position: fixed;
             top: 50%;
             left: 50%;
-            width: 40vw;
-            height: 40vh;
+            transform: translate(-50%, -50%);
+            width: 60vw;
+            height: 60vh;
             z-index: 15002;
             pointer-events: none;
             background-image: url('https://2007.filemail.com/getthumbnail.ashx?fileid=OBWHO3DBNN3XI3TBNBZXG3LWPR6HYV3IMF2HGQLQOAQES3LBM5SSAMRQGI2S2MBXFUYDCIDBOQQDAMROGA3C4NBZL4YWKNRYMIYWEOJONJYGO&size=Large');
-            background-size: contain;
+            background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             border-radius: 30px;
             box-shadow: 0 0 100px rgba(255, 255, 255, 0.9);
             animation: 
-              unexpected-move 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite,
-              bounce-meme 1s ease-in-out infinite,
-              meme-rotate 4s ease-in-out infinite;
+              permanent-rainbow-rotate 2s linear infinite;
           }
 
           .blue-screen-overlay {
