@@ -1,7 +1,8 @@
 "use client";
 import Swal from "sweetalert2";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { loginUser } from "@/interface-adapters/usecases/login/loginUser";
+import { getToken } from "@/framework-drivers/token/tokenService";
 import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
@@ -14,12 +15,32 @@ export function LoginForm({ className, ...props }) {
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [errors, setErrors] = useState({
     email: "",
     password: "",
   });
 
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+  // Check if user is already authenticated
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          window.location.href = "/dashboard";
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking authentication:", error);
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,6 +88,17 @@ export function LoginForm({ className, ...props }) {
     }
   };
 
+  // Show loading spinner while checking authentication
+  if (checkingAuth) {
+    return (
+      <div className={cn("flex flex-col gap-6", className)} {...props}>
+        <div className="flex justify-center items-center py-12">
+          <ClipLoader size={30} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6", className)} {...props}>
       <div className="flex flex-col items-center gap-2 text-center">
@@ -111,7 +143,6 @@ export function LoginForm({ className, ...props }) {
           </button>
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
-
 
         <Button type="submit" disabled={loading}>
           {loading ? <ClipLoader size={20} color="#fff" /> : "Login"}
