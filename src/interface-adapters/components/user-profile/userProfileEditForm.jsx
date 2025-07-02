@@ -36,7 +36,6 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
   const [passwordError, setPasswordError] = useState("");
 
   const validateAndSave = () => {
-    // Only validate passwords if they are editable
     if (userIsOwner && (passwordData.newPassword || passwordData.confirmPassword)) {
       if (passwordData.newPassword.length < 6) {
         setPasswordError("Password must be at least 6 characters long");

@@ -41,6 +41,7 @@ export async function getUserDetail() {
 
     const data = await secondResponse.json();
 
+
     if (!secondResponse.ok) {
       throw new Error(data.message || "Failed to fetch user detail by username");
     }
