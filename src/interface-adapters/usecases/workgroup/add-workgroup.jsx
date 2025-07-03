@@ -1,4 +1,5 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
+
 export async function addWorkgroup(workgroupData) {
   const token = getToken();
   if (!token) {
@@ -20,7 +21,9 @@ export async function addWorkgroup(workgroupData) {
     console.log("Add Workgroup status:", response.status);
 
     if (response.status === 201) {
-      return response.status; // ✅ Just return success flag
+      const responseData = await response.json();
+      console.log("Response data:", responseData);
+      return responseData; // Return the response data instead of status
     }
 
     // If not 201, throw error

@@ -18,8 +18,6 @@ import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
 import { toast } from "sonner";
 
 export default function AddWorkgroupDrawer({ onWorkgroupAdded, trigger }) {
-  const categories = ["Retail", "Government", "Enterprise", "Military"];
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [openDrawer, setOpenDrawer] = useState(false);
   const [formData, setFormData] = useState({ name: "", project_name: "" });
   const [loading, setLoading] = useState(false);
@@ -34,16 +32,18 @@ const handleAddWorkgroup = async () => {
   setLoading(true);
 
   try {
-    const status = await addWorkgroup(formData);
-    console.log(status);
+    const statusCode = await addWorkgroup(formData);
+    console.log("Response status code:", statusCode);
     
-    if (status === 201) {
-      onWorkgroupAdded();
+    if (statusCode === 201) {
+      // Show success toast and refetch the list
       toast.success("✅ Workgroup successfully created.");
+      onWorkgroupAdded(); // This should refetch the workgroup list
       setFormData({ name: "", project_name: "" });
       setOpenDrawer(false);
     }
   } catch (err) {
+    console.error("Caught error:", err);
     toast.error("❌ Failed to add workgroup. Please try again.");
   } finally {
     setLoading(false);
@@ -77,7 +77,7 @@ const handleAddWorkgroup = async () => {
             />
             <Input
               placeholder="Project Name"
-              value={formData.status}
+              value={formData.project_name} // ✅ Fixed: was formData.status
               onChange={(e) =>
                 setFormData({ ...formData, project_name: e.target.value })
               }
@@ -97,4 +97,3 @@ const handleAddWorkgroup = async () => {
     </Drawer>
   );
 }
-s

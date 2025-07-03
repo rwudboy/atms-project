@@ -9,7 +9,7 @@ export async function getTasks() {
 
   try {
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/task`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -24,7 +24,7 @@ export async function getTasks() {
       throw new Error(result.message || "Failed to fetch projects");
     }
 
-    return Array.isArray(result.data) ? result.data : [];
+    return result
 
     
   } catch (error) {
