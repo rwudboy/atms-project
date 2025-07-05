@@ -3,7 +3,7 @@
 import * as React from "react";
 import  useAuthGuard  from "@/interface-adapters/hooks/useAuthGuard";
 import { useState, useEffect } from "react";
-import { getUserDetail } from "@/interface-adapters/usecases/token/getUserDetail";
+import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 import {
   IconBuildingWarehouse,
   IconDashboard,
@@ -80,7 +80,6 @@ export function AppSidebar(props) {
   const referenceItems = [
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
-    { title: "Vendor", url: "/vendor", icon: IconBuildingWarehouse },
     { title: "Roles", url: "/roles", icon: IconUserEdit },
     
 

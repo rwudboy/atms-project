@@ -14,8 +14,8 @@ import { Button } from "@/interface-adapters/components/ui/button";
 import { Check } from "lucide-react";
 import { cn } from "@/interface-adapters/lib/utils";
 import { useState, useEffect } from "react";
-import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
-import { createProjects } from "@/interface-adapters/usecases/project-instance/create-project";
+import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
+import { createProjects } from "@/application-business-layer/usecases/project-instance/create-project";
 import { toast } from "sonner"; 
 
 export default function ProjectInstanceModal({
@@ -95,7 +95,7 @@ export default function ProjectInstanceModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contract">Contract Number</Label>
+            <Label htmlFor="contract">Business Key</Label>
             <Input
               id="contract"
               value={contractNumber}
@@ -106,7 +106,7 @@ export default function ProjectInstanceModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="customer-search">Search Customer</Label>
+            <Label htmlFor="customer-search">Customer</Label>
             <Input
               id="customer-search"
               placeholder="Type to search..."

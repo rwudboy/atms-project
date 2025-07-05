@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getUserDetails } from "@/interface-adapters/usecases/user-role/user-detail";
+import { getUserDetails } from "@/application-business-layer/usecases/user-role/user-detail";
 import {
   Dialog,
   DialogTrigger,
@@ -22,7 +22,7 @@ import {
 } from "@/interface-adapters/components/ui/select";
 import { Avatar, AvatarFallback } from "@/interface-adapters/components/ui/avatar";
 import { AlertTriangle, User } from "lucide-react";
-import { RemoveRole } from "@/interface-adapters/usecases/user-role/remove-role";
+import { RemoveRole } from "@/application-business-layer/usecases/user-role/remove-role";
 import { toast } from "sonner";
 
 export function DeleteUserRoleDialog({ username, children, onSuccess }) {

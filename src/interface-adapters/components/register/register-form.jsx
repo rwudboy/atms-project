@@ -7,7 +7,7 @@ import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { registerUserUseCase } from "@/interface-adapters/usecases/register/registerUser";
+import { registerUserUseCase } from "@/application-business-layer/usecases/register/registerUser";
 import { ClipLoader } from "react-spinners";
 import {
   Select,
@@ -171,7 +171,7 @@ export function RegisterForm({ className, ...props }) {
 
       {/* Jabatan */}
       <div className="grid gap-1">
-        <Label htmlFor="jabatan">Jabatan</Label>
+        <Label htmlFor="jabatan">Job Position</Label>
         <Select onValueChange={setJabatan}>
           <SelectTrigger
             id="jabatan"

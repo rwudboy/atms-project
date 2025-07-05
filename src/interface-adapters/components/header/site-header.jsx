@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Separator } from "@/interface-adapters/components/ui/separator";
 import { SidebarTrigger } from "@/interface-adapters/components/ui/sidebar";
-import { getUserDetail } from "@/interface-adapters/usecases/token/getUserDetail";
+import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 import { usePathname } from "next/navigation";
 
 export function SiteHeader() {

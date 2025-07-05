@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
-import { getUsers } from "@/interface-adapters/usecases/user/getUserList";
+import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
 import UserDetailModal from "@/interface-adapters/components/modals/user-role/user-detail-modal";
 import { DeleteUserRoleDialog } from "@/interface-adapters/components/modals/user-role/remove-role-modal";
 

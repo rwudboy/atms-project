@@ -29,9 +29,9 @@ import {
 } from "@/interface-adapters/components/ui/dialog"
 import { Search, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { getUsers } from "@/interface-adapters/usecases/user/getUserList"
-import { getUserDetail } from "@/interface-adapters/usecases/token/getUserDetail"
-import { DeleteUser } from "@/interface-adapters/usecases/user/deleteUser"
+import { getUsers } from "@/application-business-layer/usecases/user/getUserList"
+import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail"
+import { DeleteUser } from "@/application-business-layer/usecases/user/deleteUser"
 import { useRouter } from "next/navigation"
 
 export default function UsersPage() {

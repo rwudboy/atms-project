@@ -21,8 +21,8 @@ import {
 } from "@/interface-adapters/components/ui/table";
 import { Search, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { getTasks } from "@/interface-adapters/usecases/unassign-task/get-task";
-import { getTaskByBusinessKey } from "@/interface-adapters/usecases/unassign-task/get-task-by-bk";
+import { getTasks } from "@/application-business-layer/usecases/unassign-task/get-task";
+import { getTaskByBusinessKey } from "@/application-business-layer/usecases/unassign-task/get-task-by-bk";
 
 export default function UnassignTaskPage() {
   const [tasks, setTasks] = useState([]);
@@ -187,7 +187,7 @@ export default function UnassignTaskPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <Button onClick={() => handleViewTaskDetail(task)}>
-                          View
+                          Detail
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -232,7 +232,7 @@ export default function UnassignTaskPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Available Tasks</CardTitle>
+          <CardTitle>Available Project</CardTitle>
           <CardDescription>
             Showing {tasks.length} of {allTasks.length} tasks
           </CardDescription>
@@ -242,7 +242,7 @@ export default function UnassignTaskPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Business Key</TableHead>
-                <TableHead>Task Name</TableHead>
+                <TableHead>Project Name</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -281,7 +281,7 @@ export default function UnassignTaskPage() {
                         onClick={() => handleViewDetail(task)}
                         disabled={detailsLoading}
                       >
-                        {detailsLoading ? "Loading..." : "Detail"}
+                        {detailsLoading ? "Loading..." : "View"}
                       </Button>
                     </TableCell>
                   </TableRow>

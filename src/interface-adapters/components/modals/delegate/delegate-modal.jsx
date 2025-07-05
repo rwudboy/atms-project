@@ -12,8 +12,8 @@ import {
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Textarea } from "@/interface-adapters/components/ui/textarea";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { getUsers } from "@/interface-adapters/usecases/user/getUserList";
-import { DelegateTask } from "@/interface-adapters/usecases/assign-task/delegate-task";
+import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
+import { DelegateTask } from "@/application-business-layer/usecases/assign-task/delegate-task";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { cn } from "@/interface-adapters/lib/utils"; // Tailwind utility

@@ -18,12 +18,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/interface-adapters/components/ui/table";
-import { Search } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-import { getProjects } from "@/interface-adapters/usecases/project-instance/get-project";
-import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
+import { getProjects } from "@/application-business-layer/usecases/project-instance/get-project";
+import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
+import { getDiagram } from "@/application-business-layer/usecases/project-instance/get-diagram";
 import ProjectInstanceModal from "@/interface-adapters/components/modals/project-instance/project-instance-modal";
+import DiagramModal from "@/interface-adapters/components/modals/project-instance/diagram-modal";
 
 export default function ProjectInstancePage() {
   const [instances, setInstances] = useState([]);
@@ -41,6 +43,11 @@ export default function ProjectInstancePage() {
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [customerOpen, setCustomerOpen] = useState(false);
 
+  // Diagram modal states
+  const [isDiagramModalOpen, setIsDiagramModalOpen] = useState(false);
+  const [diagramData, setDiagramData] = useState(null);
+  const [diagramLoading, setDiagramLoading] = useState(false);
+
   const handleClaim = (instance) => {
     setSelectedInstance(instance);
     setSelectedKey(instance.key || "");
@@ -50,9 +57,38 @@ export default function ProjectInstancePage() {
     setIsModalOpen(true);
   };
 
+  const handleViewDiagram = async (instance) => {
+    try {
+      setDiagramLoading(true);
+      setIsDiagramModalOpen(true);
+      
+      const result = await getDiagram(instance.id);
+      
+      // Store the entire response, not just the bpmxl
+      setDiagramData(result);
+      
+      // Check if the response is successful
+      if (!result || result.code !== 0 || !result.status || !result.bpmxl) {
+        toast.error("Failed to load diagram");
+        setIsDiagramModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Error loading diagram:", error);
+      toast.error("Failed to load diagram");
+      setIsDiagramModalOpen(false);
+    } finally {
+      setDiagramLoading(false);
+    }
+  };
+
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedInstance(null);
+  };
+
+  const closeDiagramModal = () => {
+    setIsDiagramModalOpen(false);
+    setDiagramData(null);
   };
 
   const handleSubmit = (e) => {
@@ -163,7 +199,7 @@ export default function ProjectInstancePage() {
                 <TableHead>Key</TableHead>
                 <TableHead>Version</TableHead>
                 <TableHead>Resource</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -190,7 +226,19 @@ export default function ProjectInstancePage() {
                     </TableCell>
                     <TableCell>{instance.resource}</TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleClaim(instance)}>Start</Button>
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDiagram(instance)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button size="sm" onClick={() => handleClaim(instance)}>
+                          Start
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -200,7 +248,7 @@ export default function ProjectInstancePage() {
         </CardContent>
       </Card>
 
-      {/* Modal Component */}
+      {/* Project Instance Modal */}
       <ProjectInstanceModal
         isOpen={isModalOpen}
         onClose={closeModal}
@@ -215,6 +263,14 @@ export default function ProjectInstancePage() {
         setSelectedCustomer={setSelectedCustomer}
         customerOpen={customerOpen}
         setCustomerOpen={setCustomerOpen}
+      />
+
+      {/* Diagram Modal - Updated props */}
+      <DiagramModal
+        isOpen={isDiagramModalOpen}
+        onClose={closeDiagramModal}
+        responseData={diagramData}
+        loading={diagramLoading}
       />
     </div>
   );

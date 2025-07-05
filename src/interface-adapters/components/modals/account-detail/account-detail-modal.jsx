@@ -10,7 +10,7 @@ import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/interface-adapters/components/ui/select";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { getUserDetail } from "@/interface-adapters/usecases/token/getUserDetail";
+import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 
 const jabatan = [
   "Project Manager",

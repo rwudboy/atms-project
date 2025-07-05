@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/interface-adapters/c
 import { Separator } from "@/interface-adapters/components/ui/separator"
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton"
 import { Eye, Calendar, User, Clock, ArrowRight, Download, FileText, ImageIcon, File } from "lucide-react"
-import { getTasks } from "@/interface-adapters/usecases/archive/get-task"
+import { getTasks } from "@/application-business-layer/usecases/archive/get-task"
 import { getToken } from "@/framework-drivers/token/tokenService"
 import { toast } from "sonner"
 

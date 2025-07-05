@@ -21,8 +21,8 @@ import {
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Search, Eye } from "lucide-react";
 
-import { getProject } from "@/interface-adapters/usecases/archive/get-project";
-import { getTasks } from "@/interface-adapters/usecases/archive/get-task"; // Import your getTasks function
+import { getProject } from "@/application-business-layer/usecases/archive/get-project";
+import { getTasks } from "@/application-business-layer/usecases/archive/get-task"; // Import your getTasks function
 import ArchiveDetailModal from "@/interface-adapters/components/modals/archive/archive-modal";
 
 export default function ArchivePage() {

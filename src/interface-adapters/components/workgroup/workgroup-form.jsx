@@ -34,10 +34,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/interface-adapters/components/ui/sheet";
-import { getWorkgroups } from "@/interface-adapters/usecases/workgroup/get-workgroup";
-import { addWorkgroup } from "@/interface-adapters/usecases/workgroup/add-workgroup";
-import { updateWorkgroup } from "@/interface-adapters/usecases/workgroup/update-workgroup";
-import { deleteWorkgroup } from "@/interface-adapters/usecases/workgroup/delete-workgroup";
+import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
+import { addWorkgroup } from "@/application-business-layer/usecases/workgroup/add-workgroup";
+import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
+import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";
 
 import { Label } from "@/interface-adapters/components/ui/label";
 import {
@@ -52,7 +52,7 @@ import {
 import { toast } from "sonner";
 import AddUserModal from "@/interface-adapters/components/modals/workgroup/add-workgroup";
 import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-workgroup";
-import { onRemoveUser } from "@/interface-adapters/usecases/workgroup/remove-user";
+import { onRemoveUser } from "@/application-business-layer/usecases/workgroup/remove-user";
 import { EditWorkgroupModal } from "@/interface-adapters/components/modals/workgroup/edit-workgroup";
 
 export default function WorkgroupsPage() {

@@ -32,9 +32,9 @@ import {
   AlertTitle,
 } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit } from "lucide-react";
-import { getVendors } from "@/interface-adapters/usecases/vendor/get-vendor";
-import { deleteVendor } from "@/interface-adapters/usecases/vendor/delete-vendor";
-import { updateVendorDetail } from "@/interface-adapters/usecases/vendor/edit-vendor";
+import { getVendors } from "@/application-business-layer/usecases/vendor/get-vendor";
+import { deleteVendor } from "@/application-business-layer/usecases/vendor/delete-vendor";
+import { updateVendorDetail } from "@/application-business-layer/usecases/vendor/edit-vendor";
 
 import AddVendorDrawer from "@/interface-adapters/components/vendor/vendor-drawer";
 import EditVendorModal from "@/interface-adapters/components/modals/vendor/edit-vendor"; // Import the new component

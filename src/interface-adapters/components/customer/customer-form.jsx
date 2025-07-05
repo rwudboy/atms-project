@@ -6,9 +6,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit } from "lucide-react";
-import { getCustomers } from "@/interface-adapters/usecases/customer/get-customer";
-import { deleteCustomer } from "@/interface-adapters/usecases/customer/delete-customer";
-import { editCustomer } from "@/interface-adapters/usecases/customer/edit-customer";
+import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
+import { deleteCustomer } from "@/application-business-layer/usecases/customer/delete-customer";
+import { editCustomer } from "@/application-business-layer/usecases/customer/edit-customer";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
 import EditCustomerModal from "@/interface-adapters/components/modals/customer/edit-customer";
 import { toast } from "sonner";

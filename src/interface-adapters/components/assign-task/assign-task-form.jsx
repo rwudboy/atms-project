@@ -22,7 +22,7 @@ import {
 } from "@/interface-adapters/components/ui/table";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
-import { getTasks } from "@/interface-adapters/usecases/assign-task/get-task";
+import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
 
 export default function AssignedTaskPage() {
   const [tasks, setTasks] = useState([]);

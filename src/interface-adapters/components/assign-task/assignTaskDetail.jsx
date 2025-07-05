@@ -12,9 +12,9 @@ import {
 } from "@/interface-adapters/components/ui/avatar";
 import { Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
-import { getTaskById } from "@/interface-adapters/usecases/assign-task/get-detailed-task";
-import { sendTaskFiles } from "@/interface-adapters/usecases/assign-task/post-task";
-import { UnclaimTask } from "@/interface-adapters/usecases/assign-task/unclaim-task";
+import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
+import { sendTaskFiles } from "@/application-business-layer/usecases/assign-task/post-task";
+import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 

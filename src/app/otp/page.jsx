@@ -17,7 +17,7 @@ import {
 import { Shield, ArrowLeft, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
-import { otpUserUseCase } from "@/interface-adapters/usecases/otp/otpUser";
+import { otpUserUseCase } from "@/application-business-layer/usecases/otp/otpUser";
 
 export default function OTPPage() {
   const [otp, setOtp] = useState("");

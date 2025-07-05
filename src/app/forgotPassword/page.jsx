@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { forgotPassword } from "@/interface-adapters/usecases/forgot-password/forgot-password"
+import { forgotPassword } from "@/application-business-layer/usecases/forgot-password/forgot-password"
 import { Button } from "@/interface-adapters/components/ui/button"
 import {
   Card,

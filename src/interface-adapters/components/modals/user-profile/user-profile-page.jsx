@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/interface-adapters/components/ui/select";
 import { Lock, Unlock } from "lucide-react";
-import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase";
+import { getRoles } from "@/application-business-layer/usecases/roles/roles-usecase";
 
 export default function UserDetailModal({ user, open, onOpenChange }) {
   const [isLocked, setIsLocked] = useState(user?.status !== "active");

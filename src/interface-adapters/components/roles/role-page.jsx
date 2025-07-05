@@ -24,11 +24,11 @@ import { toast } from "sonner"
 import { RoleViewModal } from "@/interface-adapters/components/modals/roles/view-roles"
 import { EditRoleModal } from "@/interface-adapters/components/modals/roles/update-roles"
 import { DeleteRoleModal } from "@/interface-adapters/components/modals/roles/delete-roles"
-import { updateRole } from "@/interface-adapters/usecases/roles/update-roles"
+import { updateRole } from "@/application-business-layer/usecases/roles/update-roles"
 
-import { getRoles } from "@/interface-adapters/usecases/roles/roles-usecase"
-import { viewRoles } from "@/interface-adapters/usecases/roles/view-roles"
-import { deleteRole } from "@/interface-adapters/usecases/roles/delete-roles"
+import { getRoles } from "@/application-business-layer/usecases/roles/roles-usecase"
+import { viewRoles } from "@/application-business-layer/usecases/roles/view-roles"
+import { deleteRole } from "@/application-business-layer/usecases/roles/delete-roles"
 
 import AddRoleDrawer from "@/interface-adapters/components/roles/roles-drawer"
 

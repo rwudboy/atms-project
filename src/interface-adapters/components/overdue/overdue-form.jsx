@@ -6,8 +6,8 @@ import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Search } from "lucide-react";
-import { getOverdue } from "@/interface-adapters/usecases/overdue/overdue-usecase";
-import { ClaimTask } from "@/interface-adapters/usecases/unassign-task/claim-task"; // your claim logic
+import { getOverdue } from "@/application-business-layer/usecases/overdue/overdue-usecase";
+import { ClaimTask } from "@/application-business-layer/usecases/unassign-task/claim-task"; // your claim logic
 import { toast } from "sonner";
 
 export default function OverdueTasksPage() {

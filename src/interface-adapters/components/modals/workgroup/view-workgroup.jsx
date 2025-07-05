@@ -13,7 +13,7 @@ import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/interface-adapters/components/ui/avatar"
 import { Separator } from "@/interface-adapters/components/ui/separator"
 import { Users, User, Shield, X, Loader2 } from "lucide-react"
-import { viewWorkgroup } from "@/interface-adapters/usecases/workgroup/view-workgroup"
+import { viewWorkgroup } from "@/application-business-layer/usecases/workgroup/view-workgroup"
 import { toast } from "sonner"
 
 export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, onRemoveUser }) {
