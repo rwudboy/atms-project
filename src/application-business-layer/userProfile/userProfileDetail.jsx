@@ -11,7 +11,6 @@ import UserProfileEditForm from "@/interface-adapters/components/user-profile/us
 import { Button } from "@/interface-adapters/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 
-// --- 1. The signature is changed back to accept the `username` prop directly ---
 export default function UserProfilePage({ username }) {
   const router = useRouter()
   const [user, setUser] = useState(null)
@@ -24,7 +23,6 @@ export default function UserProfilePage({ username }) {
   useEffect(() => {
     const fetchProfileUser = async () => {
       try {
-        // We can use the 'username' prop directly here
         const res = await getUserDetails(username);
         if (res?.user) {
           const profileUser = res.user;
@@ -49,35 +47,42 @@ export default function UserProfilePage({ username }) {
   }, [username, loggedInUser]); 
 
 
-  const handleSave = async (formData) => {
-    if (!user || !user.id) {
-        alert("Cannot save: User ID is missing.")
-        return;
-    }
-    if (Object.keys(formData).length === 0) {
-        setIsEditing(false);
-        return;
-    }
-    try {
-      await updateUserDetails(user.id, formData)
-      setUser(prevUser => ({
-        ...prevUser,
-        ...(formData.status !== undefined && { status: formData.status }),
-        ...(formData.user?.phoneNumber !== undefined && { phoneNumber: formData.user.phoneNumber }),
-        ...(formData.user?.posisi !== undefined && { posisi: formData.user.posisi }),
-      }))
-      setIsEditing(false)
-      toast.success("Profile Updated Successfully", {
-        description: `Changes for ${user.fullName} have been saved.`,
-        duration: 3000,
-      })
-    } catch (error) {
-      console.error("Failed to update user:", error)
-      toast.error("Update Failed", {
-        description: error.message || "Could not save user details.",
-      })
-    }
+ const handleSave = async (formData) => {
+  if (!user || !user.id) {
+    alert("Cannot save: User ID is missing.");
+    return;
   }
+  if (Object.keys(formData).length === 0) {
+    setIsEditing(false);
+    return;
+  }
+
+  // Construct the payload to always include the current status
+  const updatedData = {
+    status: user.status, // Always send the current status
+    user: formData.user || {}, // Ensure user object is present, even if empty
+  };
+
+  try {
+    await updateUserDetails(user.id, updatedData);
+    setUser((prevUser) => ({
+      ...prevUser,
+      ...(formData.status !== undefined && { status: formData.status }),
+      ...(formData.user?.phoneNumber !== undefined && { phoneNumber: formData.user.phoneNumber }),
+      ...(formData.user?.posisi !== undefined && { posisi: formData.user.posisi }),
+    }));
+    setIsEditing(false);
+    toast.success("Profile Updated Successfully", {
+      description: `Changes for ${user.fullName} have been saved.`,
+      duration: 3000,
+    });
+  } catch (error) {
+    console.error("Failed to update user:", error);
+    toast.error("Update Failed", {
+      description: error.message || "Could not save user details.",
+    });
+  }
+};
 
   const handleCancel = () => { setIsEditing(false) }
   const handleEdit = () => { setIsEditing(true) }

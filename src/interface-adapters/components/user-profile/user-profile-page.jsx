@@ -358,7 +358,7 @@ export default function UsersPage() {
                     <TableCell>{user.posisi || "-"}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusBadgeVariant(user.status)}>
-                        {capitalizeText(user.status || "active")}
+                        {capitalizeText(user.status || "Active")}
                       </Badge>
                     </TableCell>
                     <TableCell className="flex gap-2">

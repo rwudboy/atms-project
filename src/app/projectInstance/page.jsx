@@ -1,6 +1,6 @@
 "use client";
 
-import ProjectInstancePage from "@/interface-adapters/components/project-instance/project-instance-form";
+import ProjectInstancePage from "@/application-business-layer/projectInstance/projectInstancePage";
 
 export default function Page() {
   return <ProjectInstancePage />;
