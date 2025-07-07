@@ -46,43 +46,52 @@ export default function UserProfilePage({ username }) {
     }
   }, [username, loggedInUser]); 
 
+  const handleSave = async (formData) => {
+    if (!user || !user.id) {
+        toast.error("Cannot save: User ID is missing.");
+        return;
+    }
+    // If no actual data was changed, just exit the editing mode.
+    if (Object.keys(formData).length === 0) {
+        setIsEditing(false);
+        return;
+    }
 
- const handleSave = async (formData) => {
-  if (!user || !user.id) {
-    alert("Cannot save: User ID is missing.");
-    return;
-  }
-  if (Object.keys(formData).length === 0) {
-    setIsEditing(false);
-    return;
-  }
+    // Prepare the payload for the API.
+    const payload = { ...formData };
 
-  // Construct the payload to always include the current status
-  const updatedData = {
-    status: user.status, // Always send the current status
-    user: formData.user || {}, // Ensure user object is present, even if empty
+    // If other user details (like job or phone) are being updated BUT a new status
+    // isn't, we ensure the original status is sent along with the other updates.
+    if (payload.user && payload.status === undefined) {
+        payload.status = user.status;
+    }
+
+    try {
+        await updateUserDetails(user.id, payload);
+
+        // Update local state based on the successfully saved data.
+        setUser((prevUser) => ({
+            ...prevUser,
+            // Use the status from the payload if it exists, otherwise keep the previous state.
+            status: payload.status !== undefined ? payload.status : prevUser.status,
+            // Use user details from the payload if they exist.
+            phoneNumber: payload.user?.phoneNumber !== undefined ? payload.user.phoneNumber : prevUser.phoneNumber,
+            posisi: payload.user?.posisi !== undefined ? payload.user.posisi : prevUser.posisi,
+        }));
+        
+        setIsEditing(false);
+        toast.success("Profile Updated Successfully", {
+            description: `Changes for ${user.fullName} have been saved.`,
+            duration: 3000,
+        });
+    } catch (error) {
+        console.error("Failed to update user:", error);
+        toast.error("Update Failed", {
+            description: error.message || "Could not save user details.",
+        });
+    }
   };
 
-  try {
-    await updateUserDetails(user.id, updatedData);
-    setUser((prevUser) => ({
-      ...prevUser,
-      ...(formData.status !== undefined && { status: formData.status }),
-      ...(formData.user?.phoneNumber !== undefined && { phoneNumber: formData.user.phoneNumber }),
-      ...(formData.user?.posisi !== undefined && { posisi: formData.user.posisi }),
-    }));
-    setIsEditing(false);
-    toast.success("Profile Updated Successfully", {
-      description: `Changes for ${user.fullName} have been saved.`,
-      duration: 3000,
-    });
-  } catch (error) {
-    console.error("Failed to update user:", error);
-    toast.error("Update Failed", {
-      description: error.message || "Could not save user details.",
-    });
-  }
-};
 
   const handleCancel = () => { setIsEditing(false) }
   const handleEdit = () => { setIsEditing(true) }
