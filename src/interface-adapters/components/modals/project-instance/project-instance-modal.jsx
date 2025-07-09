@@ -59,7 +59,7 @@ export default function ProjectInstanceModal({
     });
 
     if (result?.status === true) {
-      toast.success(`Project ${contractNumber} started successfully`);
+      toast.success(`Project ${projectName} started successfully`);
       onClose();
     } else {
       toast.error(`Failed to start project ${contractNumber}`);

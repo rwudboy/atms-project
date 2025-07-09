@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import {
@@ -21,75 +19,23 @@ import {
   TableRow,
 } from "@/interface-adapters/components/ui/table";
 import { Search } from "lucide-react";
-import { toast } from "sonner";
-import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
 
-export default function AssignedTaskPage() {
-  const [tasks, setTasks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [allTasks, setAllTasks] = useState([]);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const result = await getTasks();
-        const taskData = Array.isArray(result)
-          ? result
-          : Array.isArray(result.data)
-          ? result.data
-          : [];
-        setAllTasks(taskData);
-        setTasks(taskData);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        toast.error("Failed to fetch task list.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-  }, []);
-
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setTasks(allTasks);
-      return;
-    }
-
-    const lower = searchTerm.toLowerCase();
-    const filtered = allTasks.filter((task) =>
-      task.name?.toLowerCase().includes(lower)
-    );
-
-    setTasks(filtered);
-  }, [searchTerm, allTasks]);
-
-  // Function to check if task is overdue
-  const isTaskOverdue = (dueDate) => {
-    if (!dueDate) return false;
-    const now = new Date();
-    const due = new Date(dueDate);
-    return due < now;
-  };
-
-  const handleViewDetail = (task) => {
-    const slug = task.name?.toLowerCase().replace(/\s+/g, "-") || "task";
-    router.push(`/assignTask/${task.id}__${slug}`);
-  };
-
+export default function AssignedTaskView({
+  tasks,
+  searchTerm,
+  loading,
+  allTasks,
+  onSearchChange,
+  onViewDetail,
+  isTaskOverdue,
+  formatTaskDate,
+}) {
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <CardTitle>Assigned Task List</CardTitle>
-            <CardDescription>View your currently assigned tasks.</CardDescription>
-          </div>
+        <CardHeader>
+          <CardTitle>Assigned Task List</CardTitle>
+          <CardDescription>View your currently assigned tasks.</CardDescription>
         </CardHeader>
       </Card>
 
@@ -105,7 +51,7 @@ export default function AssignedTaskPage() {
               placeholder="Search by task name..."
               className="pl-8"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
         </CardContent>
@@ -150,22 +96,27 @@ export default function AssignedTaskPage() {
                     </TableCell>
                     <TableCell>{task.assignee || "—"}</TableCell>
                     <TableCell>
-                      {task.created ? new Date(task.created).toLocaleString() : "—"}
+                      {formatTaskDate(task.created)}
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span>
-                          {task.due_date ? new Date(task.due_date).toLocaleString() : "—"}
+                          {formatTaskDate(task.due_date)}
                         </span>
                         {isTaskOverdue(task.due_date) && (
-                          <Badge variant="destructive" className="bg-red-600 text-xs mt-1 w-fit">
+                          <Badge
+                            variant="destructive"
+                            className="bg-red-600 text-xs mt-1 w-fit"
+                          >
                             Overdue
                           </Badge>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button onClick={() => handleViewDetail(task)}>Detail</Button>
+                      <Button onClick={() => onViewDetail(task)}>
+                        Detail
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))
