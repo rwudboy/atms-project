@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
 import AssignedTaskView from "@/interface-adapters/components/assign-task/assignTaskView";
+import usePagination from "@/framework-drivers/hooks/usePagination";
 
 // Business Functions
 const filterTasksByName = (tasks, searchTerm) => {
@@ -41,18 +42,29 @@ const getTaskDetailUrl = (task) => {
 // Page Component
 export default function AssignedTaskPage() {
   const router = useRouter();
-  const [tasks, setTasks] = useState([]);
+  const [allTasks, setAllTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [allTasks, setAllTasks] = useState([]);
 
+  // Use the pagination hook (5 items per page)
+  const {
+    currentPage,
+    totalPages,
+    currentItems: displayTasks,
+    totalItems,
+    handlePageChange,
+    resetPage
+  } = usePagination(filteredTasks, 5);
+
+  // Fetch tasks on component mount
   useEffect(() => {
     const fetchAndSetTasks = async () => {
       try {
         setLoading(true);
         const tasksData = await getTasks(); 
         setAllTasks(tasksData);
-        setTasks(tasksData);
+        setFilteredTasks(tasksData);
       } catch (error) {
         console.error("Error fetching tasks:", error);
         toast.error("Failed to fetch task list.");
@@ -64,10 +76,12 @@ export default function AssignedTaskPage() {
     fetchAndSetTasks();
   }, []);
 
+  // Filter tasks based on search term
   useEffect(() => {
-    const filteredTasks = filterTasksByName(allTasks, searchTerm);
-    setTasks(filteredTasks);
-  }, [searchTerm, allTasks]);
+    const filtered = filterTasksByName(allTasks, searchTerm);
+    setFilteredTasks(filtered);
+    resetPage(); // Reset to first page when search changes
+  }, [searchTerm, allTasks, resetPage]);
 
   const handleSearchChange = (newSearchTerm) => {
     setSearchTerm(newSearchTerm);
@@ -80,11 +94,14 @@ export default function AssignedTaskPage() {
 
   return (
     <AssignedTaskView
-      tasks={tasks}
+      tasks={displayTasks}
       searchTerm={searchTerm}
       loading={loading}
-      allTasks={allTasks}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalItems={totalItems}
       onSearchChange={handleSearchChange}
+      onPageChange={handlePageChange}
       onViewDetail={handleViewDetail}
       isTaskOverdue={isTaskOverdue}
       formatTaskDate={formatTaskDate}

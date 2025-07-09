@@ -14,7 +14,7 @@ import {
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { addCustomer } from "@/application-business-layer/usecases/customer/add-customer";
-import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
+import { useIsMobile } from "@/framework-drivers/hooks/use-mobile";
 import { toast } from "sonner";
 
 export default function AddCustomerDrawer({ onCustomerAdded, trigger }) {

@@ -16,57 +16,91 @@ import { Users, User, Shield, X, Loader2 } from "lucide-react"
 import { viewWorkgroup } from "@/application-business-layer/usecases/workgroup/view-workgroup"
 import { toast } from "sonner"
 
-export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, onRemoveUser }) {
+export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, onRemoveUser, onClose }) {
   const [workgroup, setWorkgroup] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [removingUsers, setRemovingUsers] = useState(new Set()) // Track which users are being removed
+  const [removedUsers, setRemovedUsers] = useState([])
+  const [originalUsers, setOriginalUsers] = useState([])
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
     if (open && workgroupId) {
       setLoading(true)
       setError(null)
       viewWorkgroup(workgroupId)
-        .then((data) => setWorkgroup(data))
-        .catch((err) => setError(err.message))
+        .then((data) => {
+          let workgroupData = null;
+          
+          if (data?.workgroup) {
+            if (Array.isArray(data.workgroup)) {
+              workgroupData = data.workgroup.find(wg => wg.uuid === workgroupId) || data.workgroup[0];
+            } else {
+              workgroupData = data.workgroup;
+            }
+          } else if (Array.isArray(data)) {
+            workgroupData = data.find(wg => wg.uuid === workgroupId) || data[0];
+          } else {
+            workgroupData = data;
+          }
+          
+          setWorkgroup(workgroupData);
+          setOriginalUsers(workgroupData?.user || []);
+          setUsers(workgroupData?.user || []);
+        })
+        .catch((err) => {
+          setError(err.message)
+        })
         .finally(() => setLoading(false))
+    } else {
+      // Reset states when the dialog is closed
+      setWorkgroup(null)
+      setRemovedUsers([])
+      setOriginalUsers([])
+      setUsers([])
     }
   }, [open, workgroupId])
 
-  const handleRemoveUser = async (userId, username) => {
-    if (!onRemoveUser) {
-      toast.error("Remove user function not available")
+  const handleRemoveUser = (userId, username) => {
+    setRemovedUsers(prev => [...prev, { id: userId, username }]);
+    setUsers(prev => prev.filter(user => user.id !== userId));
+    
+    toast.success(`${username} moved to removed list`)
+  }
+
+  const handleSaveChanges = async () => {
+    if (removedUsers.length === 0) {
+      toast.warning("No users to remove")
       return
     }
 
-    // Add user to removing set
-    setRemovingUsers(prev => new Set(prev).add(userId))
-
     try {
-      await onRemoveUser(workgroupId, userId)
-      
-      // Remove user from local state on success
+      for (const user of removedUsers) {
+        await onRemoveUser(workgroupId, user.id)
+      }
+
+      // Update workgroup state to reflect changes
       setWorkgroup(prev => ({
         ...prev,
-        user: prev.user.filter(user => user.id !== userId)
+        user: prev.user.filter(user => !removedUsers.some(removed => removed.id === user.id))
       }))
-      
-      toast.success(`${username} removed from workgroup`)
+
+      toast.success(`${removedUsers.length} user(s) removed successfully`)
+      setRemovedUsers([])
     } catch (error) {
-      console.error("Error removing user:", error)
-      toast.error("Failed to remove user")
-    } finally {
-      // Remove user from removing set
-      setRemovingUsers(prev => {
-        const newSet = new Set(prev)
-        newSet.delete(userId)
-        return newSet
-      })
+      toast.error("Failed to remove users")
+      console.error("Error removing users:", error)
     }
   }
 
+  const handleClose = () => {
+    setUsers(originalUsers)
+    setRemovedUsers([])
+    onOpenChange(false)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -78,7 +112,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                 <DialogTitle className="text-xl">
                   {loading ? "Loading..." : workgroup?.name || "Unknown"}
                 </DialogTitle>
-                <DialogDescription>Workgroup Details</DialogDescription>
+                <DialogDescription>
+                  {workgroup?.project?.businessKey ? `Project: ${workgroup.project.businessKey}` : "Workgroup Details"}
+                </DialogDescription>
               </div>
             </div>
             {workgroup && (
@@ -91,9 +127,15 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
         </DialogHeader>
 
         {error ? (
-          <p className="text-red-500 text-sm">{error}</p>
+          <div className="text-center py-4">
+            <p className="text-red-500 text-sm mb-2">{error}</p>
+            <p className="text-xs text-muted-foreground">Workgroup ID: {workgroupId}</p>
+          </div>
         ) : loading ? (
-          <p className="text-sm text-muted-foreground">Loading workgroup data...</p>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <p className="text-sm text-muted-foreground">Loading workgroup data...</p>
+          </div>
         ) : workgroup ? (
           <div className="space-y-6 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -106,6 +148,13 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Status</h3>
                 <Badge variant="outline" className="w-fit">{workgroup.status?.toUpperCase()}</Badge>
               </div>
+
+              {workgroup.project && (
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Project</h3>
+                  <p className="text-sm">{workgroup.project.name || workgroup.project.businessKey}</p>
+                </div>
+              )}
             </div>
 
             <Separator />
@@ -115,45 +164,38 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                    Members ({workgroup.user?.length || 0})
+                    Members ({users.length || 0})
                   </h3>
                 </div>
               </div>
 
               <div className="space-y-3 max-h-60 overflow-y-auto">
-                {workgroup.user?.length > 0 ? (
-                  workgroup.user.map((user, index) => {
-                    // Handle both string array and object array
-                    const userId = user.id || user.uuid || index
-                    const username = user.username || user.name || user
-                    const isRemoving = removingUsers.has(userId)
+                {users.length > 0 ? (
+                  users.map((user, index) => {
+                    const userId = user.id
+                    const username = user.username
                     
                     return (
-                      <div key={userId} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                      <div key={userId || index} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                         <Avatar className="h-10 w-10">
                           <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={username} />
                           <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                            {username.slice(0, 2).toUpperCase()}
+                            {username?.slice(0, 2)?.toUpperCase() || "??"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <p className="font-medium">{username}</p>
+                          <p className="font-medium">{username || "Unknown User"}</p>
                           <p className="text-sm text-muted-foreground">Member</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">Active</Badge>
+                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-600">Active</Badge>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                             onClick={() => handleRemoveUser(userId, username)}
-                            disabled={isRemoving}
                           >
-                            {isRemoving ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <X className="h-4 w-4" />
-                            )}
+                            <X className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
@@ -168,12 +210,60 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
               </div>
             </div>
 
+            {removedUsers.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <X className="h-4 w-4 text-destructive" />
+                      <h3 className="text-sm font-medium text-destructive uppercase tracking-wide">
+                        Removed Members ({removedUsers.length})
+                      </h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 max-h-60 overflow-y-auto">
+                    {removedUsers.map((user, index) => {
+                      const userId = user.id
+                      const username = user.username
+                      
+                      return (
+                        <div key={userId || index} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={username} />
+                            <AvatarFallback className="bg-destructive/10 text-destructive font-medium">
+                              {username?.slice(0, 2)?.toUpperCase() || "??"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <p className="font-medium">{username || "Unknown User"}</p>
+                            <p className="text-sm text-destructive">Removed</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+
             <Separator />
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={handleSaveChanges} disabled={removedUsers.length === 0}>
+                Save Changes
+              </Button>
+              <Button variant="outline" onClick={handleClose}>
+                Close
+              </Button>
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>No workgroup data available</p>
+            <p className="text-xs mt-2">Workgroup ID: {workgroupId}</p>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   )

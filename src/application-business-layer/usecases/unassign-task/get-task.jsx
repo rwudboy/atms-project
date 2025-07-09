@@ -9,7 +9,7 @@ export async function getTasks() {
 
   try {
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projek/Unassigned`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,

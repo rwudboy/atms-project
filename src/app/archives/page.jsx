@@ -1,6 +1,6 @@
 "use client";
 
-import TaskListPage from "@/interface-adapters/components/archive/archive-page";
+import TaskListPage from "@/application-business-layer/archive/archivePage";
 
 export default function ArchivesPage() {
   return <TaskListPage />;

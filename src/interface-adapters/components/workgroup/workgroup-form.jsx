@@ -26,19 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/interface-adapters/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/interface-adapters/components/ui/sheet";
-import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
-import { addWorkgroup } from "@/application-business-layer/usecases/workgroup/add-workgroup";
-import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
-import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";
-
 import { Label } from "@/interface-adapters/components/ui/label";
 import {
   Search,
@@ -54,38 +41,45 @@ import AddUserModal from "@/interface-adapters/components/modals/workgroup/add-w
 import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-workgroup";
 import { onRemoveUser } from "@/application-business-layer/usecases/workgroup/remove-user";
 import { EditWorkgroupModal } from "@/interface-adapters/components/modals/workgroup/edit-workgroup";
+import AddWorkgroupDrawer from "@/interface-adapters/components/workgroup/workgroup-drawer";
+import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
+import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
+import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";
 
 export default function WorkgroupsPage() {
   const [workgroups, setWorkgroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [showAddWorkgroupSheet, setShowAddWorkgroupSheet] = useState(false);
-  const [newWorkgroupName, setNewWorkgroupName] = useState("");
-  const [newWorkgroupProject, setNewWorkgroupProject] = useState("");
-
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [workgroupToDelete, setWorkgroupToDelete] = useState(null);
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
 
   const [showAddUserModal, setShowAddUserModal] = useState(false);
-  const [selectedWorkgroupForUser, setSelectedWorkgroupForUser] =
-    useState(null);
+  const [selectedWorkgroupForUser, setSelectedWorkgroupForUser] = useState(null);
 
   const [selectedWorkgroupId, setSelectedWorkgroupId] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
-  // Edit workgroup modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [workgroupToEdit, setWorkgroupToEdit] = useState(null);
+
+  const fetchWorkgroups = async () => {
+    setLoading(true);
+    const data = await getWorkgroups(searchTerm);
+    setWorkgroups(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    const delay = setTimeout(fetchWorkgroups, 500);
+    return () => clearTimeout(delay);
+  }, [searchTerm]);
 
   const handleRemoveUserFromWorkgroup = async (workgroupId, userId) => {
     try {
       const response = await onRemoveUser(workgroupId, userId);
-
       if (response) {
-        // Optionally update the workgroups list to reflect the change
-        // You might want to refetch the workgroups or update member count
         return Promise.resolve();
       } else {
         throw new Error("Failed to remove user");
@@ -96,51 +90,10 @@ export default function WorkgroupsPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const data = await getWorkgroups(searchTerm);
-      setWorkgroups(data);
-      setLoading(false);
-    };
-
-    const delay = setTimeout(fetchData, 500);
-    return () => clearTimeout(delay);
-  }, [searchTerm]);
-
-  const handleAddWorkgroup = async () => {
-    if (!newWorkgroupName || !newWorkgroupProject) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    try {
-      const payload = {
-        name: newWorkgroupName,
-        project_name: newWorkgroupProject,
-      };
-      const response = await addWorkgroup(payload);
-
-      if (response?.workgroup) {
-        setWorkgroups((prev) => [...prev, response.workgroup]);
-        toast.success("Workgroup added successfully");
-        setShowAddWorkgroupSheet(false);
-        setNewWorkgroupName("");
-        setNewWorkgroupProject("");
-      } else {
-        throw new Error("Unexpected response");
-      }
-    } catch (error) {
-      toast.error("Failed to add workgroup");
-    }
-  };
-
   const handleEditWorkgroup = async (updateData) => {
     try {
       const response = await updateWorkgroup(updateData.id, updateData.body);
-
       if (response) {
-        // Update the workgroups list
         setWorkgroups((prev) =>
           prev.map((wg) =>
             wg.uuid === updateData.id
@@ -178,7 +131,6 @@ export default function WorkgroupsPage() {
   };
 
   const getStatusColor = (status) => {
-    // Convert status to lowercase for comparison, but keep original casing logic
     const lowerStatus = status?.toLowerCase();
     switch (lowerStatus) {
       case "active":
@@ -215,7 +167,6 @@ export default function WorkgroupsPage() {
 
   return (
     <div className="container mx-auto py-10 space-y-6">
-      {/* Sheet for adding workgroup */}
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -224,51 +175,17 @@ export default function WorkgroupsPage() {
               Manage and view all workgroup data across your organization.
             </CardDescription>
           </div>
-          <Sheet
-            open={showAddWorkgroupSheet}
-            onOpenChange={setShowAddWorkgroupSheet}
-          >
-            <SheetTrigger asChild>
+          <AddWorkgroupDrawer 
+            onWorkgroupAdded={fetchWorkgroups} 
+            trigger={
               <Button>
                 <Plus className="mr-2 h-4 w-4" /> Add Workgroup
               </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Add New Workgroup</SheetTitle>
-                <SheetDescription>
-                  Create a new workgroup for your organization.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="space-y-4 mt-6">
-                <div className="space-y-2">
-                  <Label htmlFor="workgroup-name">Workgroup Name</Label>
-                  <Input
-                    id="workgroup-name"
-                    value={newWorkgroupName}
-                    onChange={(e) => setNewWorkgroupName(e.target.value)}
-                    placeholder="Enter workgroup name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="project-name">Project Name</Label>
-                  <Input
-                    id="project-name"
-                    value={newWorkgroupProject}
-                    onChange={(e) => setNewWorkgroupProject(e.target.value)}
-                    placeholder="Enter project name"
-                  />
-                </div>
-                <Button onClick={handleAddWorkgroup} className="w-full">
-                  Create Workgroup
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+            }
+          />
         </CardHeader>
       </Card>
 
-      {/* Search */}
       <Card>
         <CardHeader>
           <CardTitle>Search Workgroups</CardTitle>
@@ -287,7 +204,6 @@ export default function WorkgroupsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle>Workgroup List</CardTitle>
@@ -377,7 +293,6 @@ export default function WorkgroupsPage() {
         </CardContent>
       </Card>
 
-      {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -405,10 +320,7 @@ export default function WorkgroupsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowDeleteDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
               Cancel
             </Button>
             {!confirmDeleteStep ? (
@@ -427,7 +339,6 @@ export default function WorkgroupsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Workgroup Modal */}
       <EditWorkgroupModal
         isOpen={showEditModal}
         onClose={() => {
@@ -438,7 +349,6 @@ export default function WorkgroupsPage() {
         onSave={handleEditWorkgroup}
       />
 
-      {/* Add User Modal */}
       {selectedWorkgroupForUser && (
         <AddUserModal
           open={showAddUserModal}
@@ -449,7 +359,6 @@ export default function WorkgroupsPage() {
         />
       )}
 
-      {/* View Detail Modal */}
       {selectedWorkgroupId && (
         <WorkgroupDetailModal
           workgroupId={selectedWorkgroupId}

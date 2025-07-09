@@ -12,7 +12,7 @@ import {
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { createRole } from "@/application-business-layer/usecases/roles/roles-usecase";
-import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
+import { useIsMobile } from "@/framework-drivers/hooks/use-mobile";
 import { toast } from "sonner";
 
 export default function AddRoleDrawer({ onRoleAdded, trigger }) {

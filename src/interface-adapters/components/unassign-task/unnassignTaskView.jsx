@@ -1,7 +1,6 @@
+// File: interface-adapters/components/unassign-task/UnassignTaskView.jsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import {
   Card,
@@ -20,96 +19,24 @@ import {
   TableRow,
 } from "@/interface-adapters/components/ui/table";
 import { Search, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
-import { getTasks } from "@/application-business-layer/usecases/unassign-task/get-task";
-import { getTaskByBusinessKey } from "@/application-business-layer/usecases/unassign-task/get-task-by-bk";
 
-export default function UnassignTaskPage() {
-  const [tasks, setTasks] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [allTasks, setAllTasks] = useState([]);
-  const [selectedTaskDetails, setSelectedTaskDetails] = useState([]);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const result = await getTasks();
-        const taskData = Array.isArray(result)
-          ? result
-          : Array.isArray(result.data)
-            ? result.data
-            : [];
-        setAllTasks(taskData);
-        setTasks(taskData);
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        toast.error("Failed to fetch task list.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTasks();
-  }, []);
-
-  useEffect(() => {
-    if (!searchTerm.trim()) {
-      setTasks(allTasks);
-      return;
-    }
-
-    const lower = searchTerm.toLowerCase();
-    const filtered = allTasks.filter((task) =>
-      task.nama?.toLowerCase().includes(lower) ||
-      task.customer?.toLowerCase().includes(lower)
-    );
-
-    setTasks(filtered);
-  }, [searchTerm, allTasks]);
-
-  const handleViewDetail = async (task) => {
-    try {
-      setDetailsLoading(true);
-      const result = await getTaskByBusinessKey(task.businessKey);
-      
-      if (result.status && result.data) {
-        const taskData = Array.isArray(result.data) ? result.data : [];
-        setSelectedTaskDetails(taskData);
-        setShowDetails(true);
-      } else {
-        toast.error("Failed to fetch task details.");
-      }
-    } catch (error) {
-      console.error("Error fetching task details:", error);
-      toast.error("Failed to fetch task details.");
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
-
-  const handleViewTaskDetail = (task) => {
-    const slug = task.name?.toLowerCase().replace(/\s+/g, "-") || "task";
-    router.push(`/unassignTask/${task.id}__${slug}`);
-  };
-
-  const handleBackToList = () => {
-    setShowDetails(false);
-    setSelectedTaskDetails([]);
-  };
-
-  const isOverdue = (dueDate) => {
-    if (!dueDate) return false;
-    const now = new Date();
-    const due = new Date(dueDate);
-    return due < now;
-  };
-
+export default function UnassignTaskView({
+  tasks,
+  searchTerm,
+  loading,
+  allTasks,
+  showDetails,
+  selectedTaskDetails,
+  detailsLoading,
+  onSearchChange,
+  onViewDetail,
+  onViewTaskDetail,
+  onBackToList,
+  isTaskOverdue,
+  formatDate,
+  getStatusClassName,
+  getDelegationClassName
+}) {
   if (showDetails) {
     return (
       <div className="container mx-auto py-10">
@@ -119,7 +46,7 @@ export default function UnassignTaskPage() {
               <CardTitle>Task Details</CardTitle>
               <CardDescription>Detailed view of tasks for the selected business key.</CardDescription>
             </div>
-            <Button onClick={handleBackToList} variant="outline">
+            <Button onClick={onBackToList} variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to List
             </Button>
@@ -159,12 +86,12 @@ export default function UnassignTaskPage() {
                       <TableCell className="font-medium">{task.name || "Untitled"}</TableCell>
                       <TableCell>{task.owner || "—"}</TableCell>
                       <TableCell>{task.assignee || "—"}</TableCell>
-                      <TableCell>{task.created ? new Date(task.created).toLocaleString() : "—"}</TableCell>
+                      <TableCell>{formatDate(task.created)}</TableCell>
                       <TableCell>
                         {task.due_date ? (
                           <div>
-                            <div>{new Date(task.due_date).toLocaleString()}</div>
-                            {isOverdue(task.due_date) && (
+                            <div>{formatDate(task.due_date)}</div>
+                            {isTaskOverdue(task.due_date) && (
                               <div className="text-sm text-red-600 font-medium mt-1">
                                 Overdue
                               </div>
@@ -176,17 +103,13 @@ export default function UnassignTaskPage() {
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          task.delegation === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : task.delegation
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
+                          getDelegationClassName(task.delegation)
                         }`}>
                           {task.delegation || "—"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button onClick={() => handleViewTaskDetail(task)}>
+                        <Button onClick={() => onViewTaskDetail(task)}>
                           Detail
                         </Button>
                       </TableCell>
@@ -224,7 +147,7 @@ export default function UnassignTaskPage() {
               placeholder="Search by task name or customer..."
               className="pl-8"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
         </CardContent>
@@ -269,16 +192,14 @@ export default function UnassignTaskPage() {
                     <TableCell>{task.customer || "—"}</TableCell>
                     <TableCell>
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        task.status === "incative" 
-                          ? "bg-gray-100 text-gray-800" 
-                          : "bg-green-100 text-green-800"
+                        getStatusClassName(task.status)
                       }`}>
                         {task.status}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button 
-                        onClick={() => handleViewDetail(task)}
+                        onClick={() => onViewDetail(task)}
                         disabled={detailsLoading}
                       >
                         {detailsLoading ? "Loading..." : "View"}

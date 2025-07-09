@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import  useAuthGuard  from "@/interface-adapters/hooks/useAuthGuard";
+import  useAuthGuard  from "@/framework-drivers/hooks/useAuthGuard";
 import { useState, useEffect } from "react";
 import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 import {
@@ -73,7 +73,6 @@ export function AppSidebar(props) {
     { title: "Archives", url: "/archives", icon: IconArchive },
     { title: "Unassign Task", url: "/unassignTask", icon: IconListCheck },
     { title: "Assign Task", url: "/assignTask", icon: IconInbox },
-    { title: "Overdue", url: "/overdue", icon: IconClockExclamation },
 
   ];
 

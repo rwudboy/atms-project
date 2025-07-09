@@ -15,7 +15,7 @@ import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { addVendor } from "@/application-business-layer/usecases/vendor/add-vendor";
 import { toast } from "sonner";
-import { useIsMobile } from "@/interface-adapters/hooks/use-mobile";
+import { useIsMobile } from "@/framework-drivers/hooks/use-mobile";
 
 export default function AddVendorDrawer({ trigger, onVendorAdded }) {
   const isMobile = useIsMobile();

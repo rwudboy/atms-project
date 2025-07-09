@@ -1,7 +1,7 @@
 
 "use client";
 
-import UnassignTaskPage from "@/interface-adapters/components/unassign-task/unassign-task-form";
+import UnassignTaskPage from "@/application-business-layer/unassignTask/unassignTaskPage";
 
 export default function Page() {
   return <UnassignTaskPage />;
