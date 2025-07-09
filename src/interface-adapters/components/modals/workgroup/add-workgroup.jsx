@@ -50,7 +50,7 @@ export default function AddUserModal({
   onOpenChange,
   workgroups,
   preSelectedWorkgroup,
-  onUserAdded,
+  refetchWorkgroups,
 }) {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [users, setUsers] = useState([]);
@@ -99,28 +99,28 @@ export default function AddUserModal({
     );
   };
 
-  const handleSubmit = async () => {
-    if (selectedUsers.length === 0 || !selectedWorkgroup) {
-      toast.error("Please select at least one user and a workgroup.");
-      return;
-    }
+ const handleSubmit = async () => {
+  if (selectedUsers.length === 0 || !selectedWorkgroup) {
+    toast.error("Please select at least one user and a workgroup.");
+    return;
+  }
 
-    setIsSubmitting(true);
-    try {
-      const selectedData = users.filter((u) => selectedUsers.includes(u.id));
-      for (const user of selectedData) {
-        await AddUser(selectedWorkgroup, { uuid: user.id });
-        toast.success(`User ${user.namaLengkap} added to workgroup`);
-        onUserAdded(user, selectedWorkgroup);
-      }
-      onOpenChange(false);
-    } catch (error) {
-      const errorMessage = error?.message || "Failed to add users";
-      toast.error(errorMessage);
-    } finally {
-      setIsSubmitting(false);
+  setIsSubmitting(true);
+  try {
+    const selectedData = users.filter((u) => selectedUsers.includes(u.id));
+    for (const user of selectedData) {
+      await AddUser(selectedWorkgroup, { uuid: user.id });
+      toast.success(`${user.namaLengkap} added to workgroup`);
     }
-  };
+    onOpenChange(false);
+    refetchWorkgroups(); // Call this function to refetch the list
+  } catch (error) {
+    const errorMessage = error?.message || "Failed to add users";
+    toast.error(errorMessage);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleClose = () => {
     setSelectedUsers([]);

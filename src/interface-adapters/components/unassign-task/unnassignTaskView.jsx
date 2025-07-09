@@ -19,6 +19,7 @@ import {
   TableRow,
 } from "@/interface-adapters/components/ui/table";
 import { Search, ArrowLeft } from "lucide-react";
+import DiagramModal from "@/interface-adapters/components/modals/project-instance/diagram-modal";
 
 export default function UnassignTaskView({
   tasks,
@@ -32,6 +33,11 @@ export default function UnassignTaskView({
   onViewDetail,
   onViewTaskDetail,
   onBackToList,
+onViewDiagram,
+  isModalOpen,
+  selectedTaskForDiagram,
+  onCloseModal,
+  diagramLoading,
   isTaskOverdue,
   formatDate,
   getStatusClassName,
@@ -108,11 +114,24 @@ export default function UnassignTaskView({
                           {task.delegation || "—"}
                         </span>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button onClick={() => onViewTaskDetail(task)}>
-                          Detail
-                        </Button>
-                      </TableCell>
+                     <TableCell className="text-right">
+                        <Button 
+                      onClick={() => onViewDiagram(task)}
+                      variant="outline"
+                      className="mr-2"
+                    >
+                      View Diagram
+                    </Button>
+                    <Button 
+                      onClick={() => onViewDetail(task)}
+                      disabled={detailsLoading}
+                      className="mr-2"
+                    >
+                      {detailsLoading ? "Loading..." : "View"}
+                    </Button>
+                  
+                  </TableCell>
+                      
                     </TableRow>
                   ))
                 )}
@@ -212,6 +231,12 @@ export default function UnassignTaskView({
           </Table>
         </CardContent>
       </Card>
+      <DiagramModal
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
+        responseData={selectedTaskForDiagram}
+        loading={diagramLoading}
+      />
     </div>
   );
 }

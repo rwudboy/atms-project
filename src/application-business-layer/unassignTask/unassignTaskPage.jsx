@@ -55,6 +55,9 @@ export default function UnassignTaskPage() {
   const router = useRouter();
   const [tasks, setTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTaskForDiagram, setSelectedTaskForDiagram] = useState(null);
+  const [diagramLoading, setDiagramLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [allTasks, setAllTasks] = useState([]);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState([]);
@@ -115,6 +118,27 @@ export default function UnassignTaskPage() {
     }
   };
 
+  const handleViewDiagram = async (task) => {
+    setDiagramLoading(true);
+    setIsModalOpen(true);
+    try {
+      // Assuming you have an API function to fetch the diagram data
+      const diagramData = await fetchDiagramData(task.businessKey);
+      setSelectedTaskForDiagram(diagramData);
+    } catch (error) {
+      console.error("Error fetching diagram data:", error);
+      toast.error("Failed to fetch diagram data.");
+      setSelectedTaskForDiagram(null);
+    } finally {
+      setDiagramLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTaskForDiagram(null);
+  };
+
   const handleViewTaskDetail = (task) => {
     const url = getTaskDetailUrl(task);
     router.push(url);
@@ -126,7 +150,7 @@ export default function UnassignTaskPage() {
   };
 
   return (
-    <UnassignTaskView
+  <UnassignTaskView
       tasks={tasks}
       searchTerm={searchTerm}
       loading={loading}
@@ -138,6 +162,11 @@ export default function UnassignTaskPage() {
       onViewDetail={handleViewDetail}
       onViewTaskDetail={handleViewTaskDetail}
       onBackToList={handleBackToList}
+      onViewDiagram={handleViewDiagram}
+      isModalOpen={isModalOpen}
+      selectedTaskForDiagram={selectedTaskForDiagram}
+      onCloseModal={handleCloseModal}
+      diagramLoading={diagramLoading}
       isTaskOverdue={isTaskOverdue}
       formatDate={formatDate}
       getStatusClassName={getStatusClassName}

@@ -98,10 +98,10 @@ export default function WorkgroupsPage() {
           prev.map((wg) =>
             wg.uuid === updateData.id
               ? {
-                  ...wg,
-                  name: updateData.body.name,
-                  status: updateData.body.status,
-                }
+                ...wg,
+                name: updateData.body.name,
+                status: updateData.body.status,
+              }
               : wg
           )
         );
@@ -151,9 +151,6 @@ export default function WorkgroupsPage() {
     setShowAddUserModal(true);
   };
 
-  const handleUserAdded = (userEmail, workgroupId) => {
-    toast.success(`User ${userEmail} added to workgroup`);
-  };
 
   const handleOpenViewModal = (workgroupId) => {
     setSelectedWorkgroupId(workgroupId);
@@ -163,6 +160,10 @@ export default function WorkgroupsPage() {
   const handleOpenEditModal = (workgroup) => {
     setWorkgroupToEdit(workgroup);
     setShowEditModal(true);
+  };
+
+  const handleClose = () => {
+    setShowDetailModal(false);
   };
 
   return (
@@ -175,8 +176,8 @@ export default function WorkgroupsPage() {
               Manage and view all workgroup data across your organization.
             </CardDescription>
           </div>
-          <AddWorkgroupDrawer 
-            onWorkgroupAdded={fetchWorkgroups} 
+          <AddWorkgroupDrawer
+            onWorkgroupAdded={fetchWorkgroups}
             trigger={
               <Button>
                 <Plus className="mr-2 h-4 w-4" /> Add Workgroup
@@ -350,12 +351,12 @@ export default function WorkgroupsPage() {
       />
 
       {selectedWorkgroupForUser && (
-        <AddUserModal
+       <AddUserModal
           open={showAddUserModal}
           onOpenChange={setShowAddUserModal}
           workgroups={workgroups}
           preSelectedWorkgroup={selectedWorkgroupForUser.uuid}
-          onUserAdded={handleUserAdded}
+          refetchWorkgroups={fetchWorkgroups}
         />
       )}
 
@@ -365,6 +366,8 @@ export default function WorkgroupsPage() {
           open={showDetailModal}
           onOpenChange={setShowDetailModal}
           onRemoveUser={handleRemoveUserFromWorkgroup}
+          onClose={handleClose}
+          refetchWorkgroups={fetchWorkgroups}
         />
       )}
     </div>

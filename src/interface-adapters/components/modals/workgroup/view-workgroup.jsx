@@ -12,11 +12,11 @@ import { Button } from "@/interface-adapters/components/ui/button"
 import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/interface-adapters/components/ui/avatar"
 import { Separator } from "@/interface-adapters/components/ui/separator"
-import { Users, User, Shield, X, Loader2 } from "lucide-react"
+import { Users, User, Shield, X, Loader2, Plus } from "lucide-react"
 import { viewWorkgroup } from "@/application-business-layer/usecases/workgroup/view-workgroup"
 import { toast } from "sonner"
 
-export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, onRemoveUser, onClose }) {
+export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, onRemoveUser, onClose, refetchWorkgroups }) {
   const [workgroup, setWorkgroup] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -31,7 +31,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
       viewWorkgroup(workgroupId)
         .then((data) => {
           let workgroupData = null;
-          
+
           if (data?.workgroup) {
             if (Array.isArray(data.workgroup)) {
               workgroupData = data.workgroup.find(wg => wg.uuid === workgroupId) || data.workgroup[0];
@@ -43,7 +43,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
           } else {
             workgroupData = data;
           }
-          
+
           setWorkgroup(workgroupData);
           setOriginalUsers(workgroupData?.user || []);
           setUsers(workgroupData?.user || []);
@@ -64,8 +64,15 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
   const handleRemoveUser = (userId, username) => {
     setRemovedUsers(prev => [...prev, { id: userId, username }]);
     setUsers(prev => prev.filter(user => user.id !== userId));
-    
+
     toast.success(`${username} moved to removed list`)
+  }
+
+  const handleRevokeRemoval = (userId, username) => {
+    setRemovedUsers(prev => prev.filter(user => user.id !== userId));
+    setUsers(prev => [...prev, { id: userId, username }]);
+
+    toast.success(`${username} moved back to members list`)
   }
 
   const handleSaveChanges = async () => {
@@ -79,14 +86,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
         await onRemoveUser(workgroupId, user.id)
       }
 
-      // Update workgroup state to reflect changes
-      setWorkgroup(prev => ({
-        ...prev,
-        user: prev.user.filter(user => !removedUsers.some(removed => removed.id === user.id))
-      }))
-
       toast.success(`${removedUsers.length} user(s) removed successfully`)
-      setRemovedUsers([])
+      onOpenChange(false)
+      refetchWorkgroups()
     } catch (error) {
       toast.error("Failed to remove users")
       console.error("Error removing users:", error)
@@ -113,16 +115,10 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                   {loading ? "Loading..." : workgroup?.name || "Unknown"}
                 </DialogTitle>
                 <DialogDescription>
-                  {workgroup?.project?.businessKey ? `Project: ${workgroup.project.businessKey}` : "Workgroup Details"}
+                  {workgroup?.project?.length > 0 ? `View Detail Project` : "No Project"}
                 </DialogDescription>
               </div>
             </div>
-            {workgroup && (
-              <Badge variant="secondary" className="flex items-center gap-2">
-                <Shield className="h-3 w-3" />
-                {workgroup.status?.toUpperCase()}
-              </Badge>
-            )}
           </div>
         </DialogHeader>
 
@@ -146,15 +142,18 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
 
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Status</h3>
-                <Badge variant="outline" className="w-fit">{workgroup.status?.toUpperCase()}</Badge>
+                <Badge variant="outline" className="w-fit bg-green-50 text-green-600">
+                  <Shield className="h-3 w-3 text-green-600" />
+                  {workgroup.status?.toUpperCase()}
+                </Badge>
               </div>
 
-              {workgroup.project && (
-                <div className="space-y-2">
-                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Project</h3>
-                  <p className="text-sm">{workgroup.project.name || workgroup.project.businessKey}</p>
-                </div>
-              )}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Project</h3>
+                <p className="text-lg font-semibold">
+                  {workgroup.project?.length > 0 ? `${workgroup.project[0].name}` : "No Project"}
+                </p>
+              </div>
             </div>
 
             <Separator />
@@ -174,7 +173,8 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                   users.map((user, index) => {
                     const userId = user.id
                     const username = user.username
-                    
+                    const userRole = user.role?.length > 0 ? user.role[0] : "user"
+
                     return (
                       <div key={userId || index} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                         <Avatar className="h-10 w-10">
@@ -186,9 +186,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                         <div className="flex-1">
                           <p className="font-medium">{username || "Unknown User"}</p>
                           <p className="text-sm text-muted-foreground">Member</p>
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-600">{userRole}</Badge>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-600">Active</Badge>
                           <Button
                             variant="ghost"
                             size="sm"
@@ -227,7 +227,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                     {removedUsers.map((user, index) => {
                       const userId = user.id
                       const username = user.username
-                      
+
                       return (
                         <div key={userId || index} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                           <Avatar className="h-10 w-10">
@@ -240,6 +240,14 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                             <p className="font-medium">{username || "Unknown User"}</p>
                             <p className="text-sm text-destructive">Removed</p>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-primary hover:text-primary hover:bg-primary/10"
+                            onClick={() => handleRevokeRemoval(userId, username)}
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
                       )
                     })}
@@ -250,11 +258,15 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
 
             <Separator />
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleSaveChanges} disabled={removedUsers.length === 0}>
-                Save Changes
-              </Button>
               <Button variant="outline" onClick={handleClose}>
                 Close
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleSaveChanges}
+                disabled={removedUsers.length === 0}
+              >
+                Save Changes
               </Button>
             </div>
           </div>
