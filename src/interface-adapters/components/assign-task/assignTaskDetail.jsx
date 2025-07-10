@@ -4,13 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Badge } from "@/interface-adapters/components/ui/badge";
-import { Textarea } from "@/interface-adapters/components/ui/textarea";
 import { Separator } from "@/interface-adapters/components/ui/separator";
 import {
   Avatar,
   AvatarFallback,
 } from "@/interface-adapters/components/ui/avatar";
-import { Paperclip, X } from "lucide-react";
+import { X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
 import { sendTaskFiles } from "@/application-business-layer/usecases/assign-task/post-task";
@@ -24,10 +23,10 @@ export default function AssignDetailedTask({ taskId }) {
   const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [files, setFiles] = useState([]);
+  const [variableFiles, setVariableFiles] = useState({});
   const [isSending, setIsSending] = useState(false);
   const [isUnclaiming, setIsUnclaiming] = useState(false);
-  const fileInputRef = useRef(null);
+  const fileInputRefs = useRef({});
 
   useEffect(() => {
     let isMounted = true;
@@ -39,6 +38,15 @@ export default function AssignDetailedTask({ taskId }) {
       if (isMounted) {
         setTask(result || null);
         setIsLoading(false);
+
+        // Initialize file state for each variable
+        if (result?.VariablesTask) {
+          const initialFiles = {};
+          Object.keys(result.VariablesTask).forEach((key) => {
+            initialFiles[key] = [];
+          });
+          setVariableFiles(initialFiles);
+        }
       }
     };
 
@@ -66,7 +74,6 @@ export default function AssignDetailedTask({ taskId }) {
     return "Low";
   };
 
-  // Add function to check if task is overdue
   const isTaskOverdue = (dueDate) => {
     if (!dueDate) return false;
     const now = new Date();
@@ -96,27 +103,37 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleSend = async () => {
-    if (files.length === 0) {
-      toast.error("Please attach at least one file");
-      return;
-    }
-
-    const variables = task?.VariablesTask || {};
-    const firstVariableKey = Object.keys(variables)[0];
-
-    if (!firstVariableKey) {
-      toast.error("No variable field found in task data");
+    // Check if at least one variable has files
+    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
+    if (!hasFiles) {
+      toast.error("Please attach at least one file to any variable");
       return;
     }
 
     setIsSending(true);
     try {
-      const result = await sendTaskFiles(taskId, files, firstVariableKey);
-      if (result?.success) {
-        toast.success(result.message || "Files sent successfully");
-        setFiles([]);
+      // Send files for each variable that has files
+      const promises = Object.entries(variableFiles)
+        .filter(([_, files]) => files.length > 0)
+        .map(([variableKey, files]) => sendTaskFiles(taskId, files, variableKey));
+
+      const results = await Promise.all(promises);
+      const allSuccessful = results.every((result) => result?.success);
+
+      if (allSuccessful) {
+        toast.success("All files sent successfully");
+        // Reset all files
+        const resetFiles = {};
+        Object.keys(variableFiles).forEach((key) => {
+          resetFiles[key] = [];
+        });
+        setVariableFiles(resetFiles);
+        
+        // Refresh task data
+        const updatedTask = await getTaskById(taskId);
+        setTask(updatedTask || null);
       } else {
-        toast.error(result.message || "Failed to send files");
+        toast.error("Some files failed to send");
       }
     } catch (error) {
       toast.error("Unexpected error occurred");
@@ -125,40 +142,49 @@ export default function AssignDetailedTask({ taskId }) {
     }
   };
 
-  const handleAttachmentClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const newFiles = [...files, ...selectedFiles];
-    setFiles(newFiles);
-
-    if (selectedFiles.length === 1) {
-      toast.success(`Added: ${selectedFiles[0].name}`);
-    } else {
-      toast.success(`Added ${selectedFiles.length} files`);
-    }
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+  const handleAttachmentClick = (variableKey) => {
+    if (fileInputRefs.current[variableKey]) {
+      fileInputRefs.current[variableKey]?.click();
     }
   };
 
-  const removeFile = (indexToRemove) => {
-    const newFiles = files.filter((_, index) => index !== indexToRemove);
-    setFiles(newFiles);
-    toast.success("File removed");
+  const handleFileChange = (e, variableKey) => {
+    // Only take the first file if multiple are selected
+    const selectedFile = e.target.files?.[0];
+    
+    if (!selectedFile) {
+      return;
+    }
+    
+    // Replace any existing file with the new one
+    setVariableFiles((prev) => ({
+      ...prev,
+      [variableKey]: [selectedFile], // Only store one file
+    }));
+
+    toast.success(`Added: ${selectedFile.name} to ${formatVariableName(variableKey)}`);
+    
+    if (fileInputRefs.current[variableKey]) {
+      fileInputRefs.current[variableKey].value = "";
+    }
   };
 
-  const isAttachmentRequired =
-    task?.VariablesTask?.requireDocument?.value !== undefined;
-  const reportValue =
-    task?.VariablesTask?.Requirement_Specification_Report?.value || "";
-  const isTaskAssigned = task?.assignee && task.assignee !== "Unassigned";
+  const removeFile = (variableKey) => {
+    setVariableFiles((prev) => ({
+      ...prev,
+      [variableKey]: [],
+    }));
+    toast.success(`File removed from ${formatVariableName(variableKey)}`);
+  };
+
+  const formatVariableName = (variableName) => {
+    return variableName.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
+  const reportValue = task?.VariablesTask?.Project_Initialization_Report?.value || "";
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 max-w-6xl">
       {isLoading || !task ? (
         <div className="space-y-4">
           <Skeleton className="h-6 w-1/3" />
@@ -191,7 +217,6 @@ export default function AssignDetailedTask({ taskId }) {
             <h1 className="text-xl font-semibold">
               {task.task_name || "Task Detail"}
             </h1>
-            {/* Add overdue badge here */}
             {isTaskOverdue(task.due_date) && (
               <Badge variant="destructive" className="bg-red-600">
                 Overdue
@@ -221,7 +246,6 @@ export default function AssignDetailedTask({ taskId }) {
                   <p className="text-muted-foreground mb-1">Due date</p>
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{formatDate(task.due_date)}</p>
-                    {/* Alternative: Show overdue badge next to due date */}
                     {isTaskOverdue(task.due_date) && (
                       <Badge variant="destructive" className="text-xs bg-red-600">
                         Overdue
@@ -239,48 +263,6 @@ export default function AssignDetailedTask({ taskId }) {
                 </div>
               </div>
             </div>
-
-            <div className="space-y-3">
-              <input
-                ref={fileInputRef}
-                type="file"
-                className="hidden"
-                multiple
-                onChange={handleFileChange}
-                disabled={!isAttachmentRequired}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full"
-                onClick={handleAttachmentClick}
-                disabled={!isAttachmentRequired}
-              >
-                <Paperclip className="h-4 w-4 mr-2" />
-                Add Attachment ({files.length})
-              </Button>
-
-              {files.length > 0 && (
-                <div className="space-y-2">
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-gray-50 rounded-md text-xs"
-                    >
-                      <span className="truncate flex-1">{file.name}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 ml-2"
-                        onClick={() => removeFile(index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
 
           <Separator />
@@ -296,12 +278,89 @@ export default function AssignDetailedTask({ taskId }) {
             <>
               <Separator />
               <div>
-                <h3 className="font-semibold text-base mb-3">
-                  Report from Variables
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {reportValue}
-                </p>
+                <h3 className="font-semibold text-base mb-3">Project Initialization Report</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{reportValue}</p>
+              </div>
+            </>
+          )}
+
+          {/* Variable File Upload Section */}
+          {task?.VariablesTask && Object.keys(task.VariablesTask).length > 0 && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="font-semibold text-base mb-4">Required Documents</h3>
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-muted/50 px-4 py-3 border-b">
+                    <div className="grid grid-cols-2 gap-4 font-medium text-sm">
+                      <span>Document</span>
+                      <span>Upload Files</span>
+                    </div>
+                  </div>
+                  <div className="divide-y">
+                    {Object.entries(task.VariablesTask).map(([variableKey, variableData]) => (
+                      <div key={variableKey} className="p-4">
+                        <div className="grid grid-cols-2 gap-4 items-start">
+                          <div>
+                            <p className="font-medium text-sm mb-1">{formatVariableName(variableKey)}</p>
+                            {variableData.value && (
+                              <p className="text-xs text-muted-foreground mt-1">Current value: {variableData.value}</p>
+                            )}
+                          </div>
+                          <div className="space-y-3">
+                            <input
+                              ref={(el) => {
+                                if (el) fileInputRefs.current[variableKey] = el;
+                              }}
+                              type="file"
+                              className="hidden"
+                              onChange={(e) => handleFileChange(e, variableKey)}
+                              // Removed 'multiple' attribute to enforce single file selection
+                            />
+                            
+                            {/* Show upload button if no file is selected */}
+                            {(!variableFiles[variableKey] || variableFiles[variableKey].length === 0) ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAttachmentClick(variableKey)}
+                                className="w-full"
+                              >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload File
+                              </Button>
+                            ) : (
+                              // Show the single file with a remove button
+                              <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
+                                <span className="truncate flex-1" title={variableFiles[variableKey][0].name}>
+                                  {variableFiles[variableKey][0].name}
+                                </span>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => handleAttachmentClick(variableKey)}
+                                  >
+                                    <Upload className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => removeFile(variableKey)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -341,22 +400,11 @@ export default function AssignDetailedTask({ taskId }) {
           </div>
 
           <div className="flex justify-end pt-4 gap-2">
-            {isTaskAssigned && (
-              <Button
-                variant="outline"
-                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-                onClick={handleUnclaim}
-                disabled={isUnclaiming}
-              >
-                {isUnclaiming ? "Unclaiming..." : "Unclaim"}
-              </Button>
-            )}
             <Button
-              variant="secondary"
               onClick={handleSend}
-              disabled={files.length === 0 || isSending}
+              disabled={!Object.values(variableFiles).some((files) => files.length > 0) || isSending}
             >
-              {isSending ? "Compliting..." : "Complete"}
+              {isSending ? "Completing..." : "Complete Task"}
             </Button>
           </div>
         </div>
