@@ -47,7 +47,7 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
     const res = await getUsers();
     console.log(res)
     const workgroup = res?.data?.[0];
-    setUserList(workgroup?.username_worgroup || []);
+    setUserList(workgroup?.username_workgroup || []);
   } catch (error) {
     console.error("Error fetching users:", error);
     toast.error("Failed to fetch users.");
