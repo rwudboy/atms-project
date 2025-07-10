@@ -15,37 +15,11 @@ import { Label } from "@/interface-adapters/components/ui/label";
 import { Card } from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Textarea } from "@/interface-adapters/components/ui/textarea";
-import {
-  User,
-  UserCheck,
-  Crown,
-  Shield,
-  Send,
-  Upload,
-  FileText,
-} from "lucide-react";
-import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
+import { UserCheck, Send, Upload, FileText, User } from "lucide-react";
+import { getUsers } from "@/application-business-layer/usecases/delegate/user-delegate";
 import { DelegateTask } from "@/application-business-layer/usecases/assign-task/delegate-task";
 import { toast } from "sonner";
 import clsx from "clsx";
-
-const getRoleIcon = (role) => {
-  switch (role) {
-    case "admin": return <Crown className="h-3 w-3" />;
-    case "manager": return <Shield className="h-3 w-3" />;
-    case "user": return <UserCheck className="h-3 w-3" />;
-    default: return <User className="h-3 w-3" />;
-  }
-};
-
-const getRoleColor = (role) => {
-  switch (role) {
-    case "admin": return "bg-red-100 text-red-800";
-    case "manager": return "bg-blue-100 text-blue-800";
-    case "user": return "bg-green-100 text-green-800";
-    default: return "bg-gray-100 text-gray-800";
-  }
-};
 
 export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
   const [searchUser, setSearchUser] = useState("");
@@ -67,32 +41,29 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
   }, [open]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const res = await getUsers();
-        const userData = res.user || res || [];
-        setUserList(Array.isArray(userData) ? userData : []);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        toast.error("Failed to fetch users.");
-        setUserList([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+   const fetchUsers = async () => {
+  try {
+    setLoading(true);
+    const res = await getUsers();
+    console.log(res)
+    const workgroup = res?.data?.[0];
+    setUserList(workgroup?.username_worgroup || []);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    toast.error("Failed to fetch users.");
+    setUserList([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
     if (open) fetchUsers();
   }, [open]);
 
   useEffect(() => {
-    const filtered = userList.filter((user) => {
-      const query = searchUser.toLowerCase();
-      return (
-        user.namaLengkap?.toLowerCase().includes(query) ||
-        user.email?.toLowerCase().includes(query)
-      );
-    });
+    const filtered = userList.filter((user) =>
+      user.username?.toLowerCase().includes(searchUser.toLowerCase())
+    );
     setFilteredUsers(filtered);
   }, [searchUser, userList]);
 
@@ -118,7 +89,7 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
       const res = await DelegateTask(taskId, {
         userid: selectedUserId,
         deskripsi: comment,
-        // Add file handling here if needed
+        // file upload not handled here
       });
 
       if (res?.task?.code === 0) {
@@ -158,7 +129,7 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
             <span>User Delegation Task</span>
           </DialogTitle>
           <DialogDescription>
-            Select a user to delegate this task to and provide additional details.
+            Select a user from the workgroup to delegate this task to.
           </DialogDescription>
         </DialogHeader>
 
@@ -166,7 +137,7 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
           <div className="space-y-2">
             <Label>Search User</Label>
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by username..."
               value={searchUser}
               onChange={(e) => setSearchUser(e.target.value)}
               className="w-full"
@@ -177,66 +148,41 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
             <Label>Select User <span className="text-destructive">*</span></Label>
             <div className="grid gap-3 max-h-72 overflow-y-auto">
               {loading ? (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">Loading users...</p>
-                </div>
+                <div className="text-center py-8 text-muted-foreground">Loading users...</div>
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => {
-                  const isLocked = user.status === "locked";
                   const isSelected = selectedUserId === user.id;
                   return (
                     <Card
                       key={user.id}
                       className={clsx(
                         "p-3 border transition-all duration-200",
-                        isLocked
-                          ? "opacity-60 cursor-not-allowed"
-                          : "hover:cursor-pointer hover:border-primary hover:shadow-sm",
-                        isSelected && !isLocked
-                          ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                          : ""
+                        "hover:cursor-pointer hover:border-primary hover:shadow-sm",
+                        isSelected ? "border-primary bg-primary/10 ring-2 ring-primary/20" : ""
                       )}
-                      onClick={() => {
-                        if (!isLocked) handleUserSelection(user.id);
-                      }}
+                      onClick={() => handleUserSelection(user.id)}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{user.namaLengkap}</p>
-                          <p className="text-xs text-muted-foreground">{user.email}</p>
-                          <p className="text-xs text-muted-foreground italic">{user.posisi}</p>
-                          {isLocked && (
-                            <Badge variant="destructive" className="mt-1 text-xs">
-                              🔒 Locked
-                            </Badge>
-                          )}
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-sm">{user.username}</p>
+                          <p className="text-xs text-muted-foreground">ID: {user.id}</p>
                         </div>
-                        <div className="flex gap-1 flex-wrap">
-                          {Array.isArray(user.Role) &&
-                            user.Role.map((role, index) => (
-                              <Badge
-                                key={`${user.id}-${role}-${index}`}
-                                className={`text-[10px] px-2 py-0.5 flex items-center gap-1 ${getRoleColor(role)}`}
-                              >
-                                {getRoleIcon(role)}
-                                <span className="capitalize">{role}</span>
-                              </Badge>
-                            ))}
-                        </div>
+                        <Badge className="text-[10px] px-2 py-0.5 bg-yellow-100 text-yellow-800">
+                          <User className="h-3 w-3 mr-1" />
+                          Member
+                        </Badge>
                       </div>
                     </Card>
                   );
                 })
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground">No users matched your search.</p>
-                </div>
+                <div className="text-center py-8 text-muted-foreground">No users found.</div>
               )}
             </div>
             {selectedUser && (
               <div className="text-xs text-muted-foreground mt-1">
                 <UserCheck className="h-3 w-3 inline mr-1" />
-                Selected: {selectedUser.namaLengkap}
+                Selected: {selectedUser.username}
               </div>
             )}
           </div>
@@ -260,7 +206,11 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
                 className="flex-1"
                 accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
               />
-              <Button variant="outline" size="sm" onClick={() => document.querySelector('input[type="file"]').click()}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => document.querySelector('input[type="file"]').click()}
+              >
                 <Upload className="h-4 w-4 mr-2" />
                 Browse
               </Button>

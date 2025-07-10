@@ -3,23 +3,14 @@
 
 import { Button } from "@/interface-adapters/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
+  Card, CardContent, CardHeader, CardTitle, CardDescription,
 } from "@/interface-adapters/components/ui/card";
-import { Input } from "@/interface-adapters/components/ui/input";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/interface-adapters/components/ui/table";
+import { Input } from "@/interface-adapters/components/ui/input";
 import { Search, ArrowLeft } from "lucide-react";
-import DiagramModal from "@/interface-adapters/components/modals/project-instance/diagram-modal";
+import DiagramModal from "@/interface-adapters/components/modals/unassignTask/diagram-modal";
 
 export default function UnassignTaskView({
   tasks,
@@ -27,21 +18,22 @@ export default function UnassignTaskView({
   loading,
   allTasks,
   showDetails,
+  setIsDiagramModalOpen,
   selectedTaskDetails,
   detailsLoading,
   onSearchChange,
   onViewDetail,
   onViewTaskDetail,
   onBackToList,
-onViewDiagram,
-  isModalOpen,
-  selectedTaskForDiagram,
-  onCloseModal,
+  onViewDiagram,
+  isDiagramModalOpen,
+  diagramData,
   diagramLoading,
+  onCloseModal,
   isTaskOverdue,
   formatDate,
   getStatusClassName,
-  getDelegationClassName
+  getDelegationClassName,
 }) {
   if (showDetails) {
     return (
@@ -50,7 +42,7 @@ onViewDiagram,
           <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <CardTitle>Task Details</CardTitle>
-              <CardDescription>Detailed view of tasks for the selected business key.</CardDescription>
+              <CardDescription>Details of tasks under the selected business key.</CardDescription>
             </div>
             <Button onClick={onBackToList} variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -62,9 +54,7 @@ onViewDiagram,
         <Card>
           <CardHeader>
             <CardTitle>Task Details</CardTitle>
-            <CardDescription>
-              Showing {selectedTaskDetails.length} task(s)
-            </CardDescription>
+            <CardDescription>{selectedTaskDetails.length} task(s)</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -98,40 +88,22 @@ onViewDiagram,
                           <div>
                             <div>{formatDate(task.due_date)}</div>
                             {isTaskOverdue(task.due_date) && (
-                              <div className="text-sm text-red-600 font-medium mt-1">
-                                Overdue
-                              </div>
+                              <div className="text-sm text-red-600 font-medium mt-1">Overdue</div>
                             )}
                           </div>
-                        ) : (
-                          "—"
-                        )}
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          getDelegationClassName(task.delegation)
-                        }`}>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getDelegationClassName(task.delegation)}`}>
                           {task.delegation || "—"}
                         </span>
                       </TableCell>
-                     <TableCell className="text-right">
-                        <Button 
-                      onClick={() => onViewDiagram(task)}
-                      variant="outline"
-                      className="mr-2"
-                    >
-                      View Diagram
-                    </Button>
-                    <Button 
-                      onClick={() => onViewDetail(task)}
-                      disabled={detailsLoading}
-                      className="mr-2"
-                    >
-                      {detailsLoading ? "Loading..." : "View"}
-                    </Button>
-                  
-                  </TableCell>
-                      
+                      <TableCell className="text-right space-x-2">
+                        <Button onClick={() => onViewDiagram(task)} variant="outline">View Diagram</Button>
+                        <Button onClick={() => onViewTaskDetail(task)} disabled={detailsLoading}>
+                          {detailsLoading ? "Loading..." : "Detail"}
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -139,6 +111,13 @@ onViewDiagram,
             </Table>
           </CardContent>
         </Card>
+
+        <DiagramModal
+          isOpen={isDiagramModalOpen}
+          onClose={onCloseModal}
+          responseData={diagramData}
+          loading={diagramLoading}
+        />
       </div>
     );
   }
@@ -146,11 +125,9 @@ onViewDiagram,
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <CardTitle>Unassigned Tasks</CardTitle>
-            <CardDescription>View and manage your unassigned tasks.</CardDescription>
-          </div>
+        <CardHeader>
+          <CardTitle>Unassigned Tasks</CardTitle>
+          <CardDescription>View and manage your unassigned tasks.</CardDescription>
         </CardHeader>
       </Card>
 
@@ -175,9 +152,7 @@ onViewDiagram,
       <Card>
         <CardHeader>
           <CardTitle>Available Project</CardTitle>
-          <CardDescription>
-            Showing {tasks.length} of {allTasks.length} tasks
-          </CardDescription>
+          <CardDescription>Showing {tasks.length} of {allTasks.length} tasks</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -193,15 +168,11 @@ onViewDiagram,
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    Loading tasks...
-                  </TableCell>
+                  <TableCell colSpan={5} className="text-center py-4">Loading tasks...</TableCell>
                 </TableRow>
               ) : tasks.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4">
-                    No tasks found
-                  </TableCell>
+                  <TableCell colSpan={5} className="text-center py-4">No tasks found</TableCell>
                 </TableRow>
               ) : (
                 tasks.map((task, index) => (
@@ -210,17 +181,12 @@ onViewDiagram,
                     <TableCell>{task.nama || "Untitled"}</TableCell>
                     <TableCell>{task.customer || "—"}</TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        getStatusClassName(task.status)
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClassName(task.status)}`}>
                         {task.status}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        onClick={() => onViewDetail(task)}
-                        disabled={detailsLoading}
-                      >
+                      <Button onClick={() => onViewDetail(task)} disabled={detailsLoading}>
                         {detailsLoading ? "Loading..." : "View"}
                       </Button>
                     </TableCell>
@@ -231,12 +197,6 @@ onViewDiagram,
           </Table>
         </CardContent>
       </Card>
-      <DiagramModal
-        isOpen={isModalOpen}
-        onClose={onCloseModal}
-        responseData={selectedTaskForDiagram}
-        loading={diagramLoading}
-      />
     </div>
   );
 }

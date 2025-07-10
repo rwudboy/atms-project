@@ -12,8 +12,10 @@ import { toast } from "sonner";
 import { getTaskById } from "@/application-business-layer/usecases/unassign-task/get-task-by-id";
 import { ClaimTask } from "@/application-business-layer/usecases/unassign-task/claim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
+import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 
 export default function UnassignDetailedTask({ taskId }) {
+    const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const router = useRouter();
   const [task, setTask] = useState(null);
   const [reportText, setReportText] = useState("");
@@ -70,10 +72,10 @@ export default function UnassignDetailedTask({ taskId }) {
       ) : (
         <div className="space-y-6">
           {/* Back Button */}
-          <div className="flex items-center justify-between">
+           <div className="flex items-center justify-between">
             <Button
               variant="outline"
-              onClick={() => router.push("/unassignTask")}
+              onClick={() => router.push("/assignTask")}
             >
               ← Back to List
             </Button>
@@ -165,12 +167,21 @@ export default function UnassignDetailedTask({ taskId }) {
           </div>
 
           <div className="flex justify-end pt-4">
-            <Button variant="secondary" onClick={handleClaim}>
-              Claim
-            </Button>
+      <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => setIsDelegateOpen(true)}
+              >
+                Delegate
+              </Button>
           </div>
         </div>
-      )}
+         )}
+            <DelegateTaskDialog
+              taskId={taskId}
+              open={isDelegateOpen}
+              onOpenChange={setIsDelegateOpen}
+            />
     </div>
   );
 }

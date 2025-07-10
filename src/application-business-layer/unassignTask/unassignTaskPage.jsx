@@ -1,4 +1,3 @@
-// File: application-business-layer/unassignTask/UnassignTaskPage.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -6,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getTasks } from "@/application-business-layer/usecases/unassign-task/get-task";
 import { getTaskByBusinessKey } from "@/application-business-layer/usecases/unassign-task/get-task-by-bk";
+import { getTaskById } from "@/application-business-layer/usecases/unassign-task/get-task-by-id";
 import UnassignTaskView from "@/interface-adapters/components/unassign-task/unnassignTaskView";
+import { getDiagram } from "@/application-business-layer/usecases/unassign-task/get-diagram";
+import DiagramModal from "@/interface-adapters/components/modals/unassignTask/diagram-modal";
 
 // Business Functions
 const filterTasks = (tasks, searchTerm) => {
@@ -33,11 +35,6 @@ const generateTaskSlug = (taskName) => {
   return taskName?.toLowerCase().replace(/\s+/g, "-") || "task";
 };
 
-const getTaskDetailUrl = (task) => {
-  const slug = generateTaskSlug(task.name);
-  return `/unassignTask/${task.id}__${slug}`;
-};
-
 const getStatusClassName = (status) => {
   return status === "incative" 
     ? "bg-gray-100 text-gray-800" 
@@ -58,6 +55,8 @@ export default function UnassignTaskPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTaskForDiagram, setSelectedTaskForDiagram] = useState(null);
   const [diagramLoading, setDiagramLoading] = useState(false);
+  const [isDiagramModalOpen, setIsDiagramModalOpen] = useState(false);
+  const [diagramData, setDiagramData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [allTasks, setAllTasks] = useState([]);
   const [selectedTaskDetails, setSelectedTaskDetails] = useState([]);
@@ -65,29 +64,28 @@ export default function UnassignTaskPage() {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const result = await getTasks();
-      
-      // Handle the nested response structure
-      let taskData = [];
-      if (result?.data?.code === 0 && result?.data?.status === true) {
-        taskData = Array.isArray(result.data.data) ? result.data.data : [];
-      }
-      
-      setAllTasks(taskData);
-      setTasks(taskData);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      toast.error("Failed to fetch task list.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const result = await getTasks();
 
-  fetchTasks();
-}, []);
+        let taskData = [];
+        if (result?.data?.code === 0 && result?.data?.status === true) {
+          taskData = Array.isArray(result.data.data) ? result.data.data : [];
+        }
+
+        setAllTasks(taskData);
+        setTasks(taskData);
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        toast.error("Failed to fetch task list.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   useEffect(() => {
     const filteredTasks = filterTasks(allTasks, searchTerm);
@@ -102,7 +100,8 @@ export default function UnassignTaskPage() {
     try {
       setDetailsLoading(true);
       const result = await getTaskByBusinessKey(task.businessKey);
-      
+      console.log("memeg",result)
+
       if (result.status && result.data) {
         const taskData = Array.isArray(result.data) ? result.data : [];
         setSelectedTaskDetails(taskData);
@@ -118,31 +117,47 @@ export default function UnassignTaskPage() {
     }
   };
 
-  const handleViewDiagram = async (task) => {
+const handleViewDiagram = async (instance) => {
+  try {
     setDiagramLoading(true);
-    setIsModalOpen(true);
-    try {
-      // Assuming you have an API function to fetch the diagram data
-      const diagramData = await fetchDiagramData(task.businessKey);
-      setSelectedTaskForDiagram(diagramData);
-    } catch (error) {
-      console.error("Error fetching diagram data:", error);
-      toast.error("Failed to fetch diagram data.");
-      setSelectedTaskForDiagram(null);
-    } finally {
-      setDiagramLoading(false);
+    const result = await getDiagram(instance.id);
+    console.log("Diagram Response:", result);
+
+    if (result?.data?.bpm) {
+      const diagramPayload = {
+        bpm: result.data.bpm,
+        active: result.data.active ?? null, // optional
+      };
+
+      setDiagramData(diagramPayload);
+      console.log(diagramData)
+      setIsDiagramModalOpen(true);
+    } else {
+      toast.error("Diagram data is missing.");
     }
-  };
+  } catch (error) {
+    console.error("Error loading diagram:", error);
+    toast.error("Failed to load diagram");
+  } finally {
+    setDiagramLoading(false);
+  }
+};
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedTaskForDiagram(null);
-  };
 
-  const handleViewTaskDetail = (task) => {
-    const url = getTaskDetailUrl(task);
-    router.push(url);
-  };
+const handleCloseModal = () => {
+  setIsDiagramModalOpen(false);
+};
+
+  const handleViewTaskDetail = async (task) => {
+    setDetailsLoading(true);
+    const result = await getTaskByBusinessKey(task.businessKey);
+
+      const taskId = task.id;
+      const taskName = task.name || "task";
+      const slug = taskName.toLowerCase().replace(/\s+/g, "-");
+      router.push(`/unassignTask/${taskId}__${slug}`);
+   
+};
 
   const handleBackToList = () => {
     setShowDetails(false);
@@ -150,7 +165,7 @@ export default function UnassignTaskPage() {
   };
 
   return (
-  <UnassignTaskView
+    <UnassignTaskView
       tasks={tasks}
       searchTerm={searchTerm}
       loading={loading}
@@ -165,12 +180,15 @@ export default function UnassignTaskPage() {
       onViewDiagram={handleViewDiagram}
       isModalOpen={isModalOpen}
       selectedTaskForDiagram={selectedTaskForDiagram}
-      onCloseModal={handleCloseModal}
-      diagramLoading={diagramLoading}
       isTaskOverdue={isTaskOverdue}
+      responseData={diagramData}
       formatDate={formatDate}
       getStatusClassName={getStatusClassName}
       getDelegationClassName={getDelegationClassName}
+isDiagramModalOpen={isDiagramModalOpen}
+    diagramData={diagramData}
+    diagramLoading={diagramLoading}
+    onCloseModal={handleCloseModal}
     />
   );
 }
