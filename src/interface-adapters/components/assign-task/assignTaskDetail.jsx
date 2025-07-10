@@ -9,10 +9,10 @@ import {
   Avatar,
   AvatarFallback,
 } from "@/interface-adapters/components/ui/avatar";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
-import { sendTaskFiles } from "@/application-business-layer/usecases/assign-task/post-task";
+import { sendTaskFiles } from "@/application-business-layer/usecases/resolve/upload";
 import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
@@ -25,8 +25,10 @@ export default function AssignDetailedTask({ taskId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [variableFiles, setVariableFiles] = useState({});
   const [isSending, setIsSending] = useState(false);
+  const [isDownloading, setIsDownloading] = useState({});
   const [isUnclaiming, setIsUnclaiming] = useState(false);
   const fileInputRefs = useRef({});
+  const downloadLinkRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -42,10 +44,13 @@ export default function AssignDetailedTask({ taskId }) {
         // Initialize file state for each variable
         if (result?.VariablesTask) {
           const initialFiles = {};
+          const initialDownloadStates = {};
           Object.keys(result.VariablesTask).forEach((key) => {
             initialFiles[key] = [];
+            initialDownloadStates[key] = false;
           });
           setVariableFiles(initialFiles);
+          setIsDownloading(initialDownloadStates);
         }
       }
     };
@@ -177,6 +182,23 @@ export default function AssignDetailedTask({ taskId }) {
     toast.success(`File removed from ${formatVariableName(variableKey)}`);
   };
 
+  const handleDownload = (variableKey, value) => {
+  if (!value) return;
+  
+  try {
+    // Construct the download URL
+    const fileName = value;
+    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(fileName)}`;
+    
+    // Open the URL in a new tab
+    window.open(downloadUrl, '_blank');
+    
+    toast.success(`File ${formatVariableName(variableKey)} has been successfully downloaded`);
+  } catch (error) {
+    toast.error(`Failed to open file: ${error.message}`);
+  }
+};
+
   const formatVariableName = (variableName) => {
     return variableName.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
   };
@@ -284,7 +306,7 @@ export default function AssignDetailedTask({ taskId }) {
             </>
           )}
 
-          {/* Variable File Upload Section */}
+          {/* Variable File Upload/Download Section */}
           {task?.VariablesTask && Object.keys(task.VariablesTask).length > 0 && (
             <>
               <Separator />
@@ -294,7 +316,7 @@ export default function AssignDetailedTask({ taskId }) {
                   <div className="bg-muted/50 px-4 py-3 border-b">
                     <div className="grid grid-cols-2 gap-4 font-medium text-sm">
                       <span>Document</span>
-                      <span>Upload Files</span>
+                      <span>Actions</span>
                     </div>
                   </div>
                   <div className="divide-y">
@@ -304,7 +326,9 @@ export default function AssignDetailedTask({ taskId }) {
                           <div>
                             <p className="font-medium text-sm mb-1">{formatVariableName(variableKey)}</p>
                             {variableData.value && (
-                              <p className="text-xs text-muted-foreground mt-1">Current value: {variableData.value}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                File available for download
+                              </p>
                             )}
                           </div>
                           <div className="space-y-3">
@@ -315,45 +339,58 @@ export default function AssignDetailedTask({ taskId }) {
                               type="file"
                               className="hidden"
                               onChange={(e) => handleFileChange(e, variableKey)}
-                              // Removed 'multiple' attribute to enforce single file selection
                             />
                             
-                            {/* Show upload button if no file is selected */}
-                            {(!variableFiles[variableKey] || variableFiles[variableKey].length === 0) ? (
+                            {/* Show download button if variable has a value */}
+                            {variableData.value ? (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleAttachmentClick(variableKey)}
+                                onClick={() => handleDownload(variableKey, variableData.value)}
+                                disabled={isDownloading[variableKey]}
                                 className="w-full"
                               >
-                                <Upload className="h-4 w-4 mr-2" />
-                                Upload File
+                                <Download className="h-4 w-4 mr-2" />
+                                {isDownloading[variableKey] ? "Opening..." : "Download File"}
                               </Button>
                             ) : (
-                              // Show the single file with a remove button
-                              <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
-                                <span className="truncate flex-1" title={variableFiles[variableKey][0].name}>
-                                  {variableFiles[variableKey][0].name}
-                                </span>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => handleAttachmentClick(variableKey)}
-                                  >
-                                    <Upload className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => removeFile(variableKey)}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </Button>
+                              /* Otherwise show upload functionality */
+                              (!variableFiles[variableKey] || variableFiles[variableKey].length === 0) ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleAttachmentClick(variableKey)}
+                                  className="w-full"
+                                >
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload File
+                                </Button>
+                              ) : (
+                                /* Show selected file for upload */
+                                <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
+                                  <span className="truncate flex-1" title={variableFiles[variableKey][0].name}>
+                                    {variableFiles[variableKey][0].name}
+                                  </span>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => handleAttachmentClick(variableKey)}
+                                    >
+                                      <Upload className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0"
+                                      onClick={() => removeFile(variableKey)}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
+                              )
                             )}
                           </div>
                         </div>
@@ -404,7 +441,7 @@ export default function AssignDetailedTask({ taskId }) {
               onClick={handleSend}
               disabled={!Object.values(variableFiles).some((files) => files.length > 0) || isSending}
             >
-              {isSending ? "Completing..." : "Complete Task"}
+              {isSending ? "Sending..." : "Resolve"}
             </Button>
           </div>
         </div>

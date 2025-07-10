@@ -1,10 +1,5 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
 
-/**
- * Adds a new workgroup
- * @param {Object} workgroupData - Data for the new workgroup
- * @returns {Object} Response object with success status, status code, and data
- */
 export async function addWorkgroup(workgroupData) {
   const token = getToken();
   if (!token) {
@@ -29,8 +24,6 @@ export async function addWorkgroup(workgroupData) {
     });
 
     console.log("Add Workgroup status:", response.status);
-    
-    // Get response data if available
     let responseData;
     try {
       responseData = await response.json();
@@ -39,7 +32,6 @@ export async function addWorkgroup(workgroupData) {
       responseData = null;
     }
 
-    // Return standardized response object
     return {
       success: response.status >= 200 && response.status < 300,
       status: response.status,
@@ -57,11 +49,7 @@ export async function addWorkgroup(workgroupData) {
   }
 }
 
-/**
- * Get a default message based on HTTP status code
- * @param {number} statusCode - HTTP status code
- * @returns {string} Default message
- */
+
 function getDefaultMessage(statusCode) {
   switch (statusCode) {
     case 201:
