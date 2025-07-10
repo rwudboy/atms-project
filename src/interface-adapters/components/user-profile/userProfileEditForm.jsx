@@ -31,11 +31,24 @@ const JABATAN_LIST = [
 export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwner }) {
   const [status, setStatus] = useState(user.status || "unlocked");
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || "");
+  const [phoneError, setPhoneError] = useState("");
   const [posisi, setPosisi] = useState(user.posisi || "");
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState("");
 
   const validateAndSave = () => {
+    // Validate phone number first
+    if (userIsOwner && phoneNumber) {
+      if (phoneNumber.length < 10) {
+        setPhoneError("Phone number must be 10-13 digits");
+        return;
+      }
+      if (phoneNumber.length > 13) {
+        setPhoneError("Phone number can't be more than 13 digits");
+        return;
+      }
+    }
+    
     if (userIsOwner && (passwordData.newPassword || passwordData.confirmPassword)) {
       if (passwordData.newPassword.length < 6) {
         setPasswordError("Password must be at least 6 characters long");
@@ -46,6 +59,8 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
         return;
       }
     }
+    
+    setPhoneError("");
     setPasswordError("");
 
     const formData = {};
@@ -78,6 +93,12 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
     if (passwordError) setPasswordError("");
   }
 
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Remove non-digit characters
+    setPhoneNumber(value);
+    if (phoneError) setPhoneError("");
+  }
+
   return (
     <div className="lg:col-span-3">
         <Card className="shadow-lg border-0 bg-white">
@@ -93,12 +114,18 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
                     <div className="space-y-2">
                         <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Phone className="w-4 h-4" /><span>Phone Number</span></label>
                         <Input 
+                            type="number"
                             value={phoneNumber} 
-                            onChange={(e) => setPhoneNumber(e.target.value)} 
+                            onChange={handlePhoneChange}
                             className="bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed" 
-                            placeholder="Enter phone number" 
+                            placeholder="Enter phone number (digits only)"
                             disabled={!userIsOwner}
                         />
+                        {phoneError && (
+                          <div className="flex items-center space-x-2 text-red-600 text-sm">
+                              <AlertCircle className="w-4 h-4" /><span>{phoneError}</span>
+                          </div>
+                        )}
                         {!userIsOwner && (
                             <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
                                 <Info className="w-4 h-4" />
@@ -192,7 +219,13 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
 
                 <div className="flex justify-end space-x-3 mt-6 pt-6 border-t border-slate-200">
                     <Button variant="outline" onClick={onCancel} className="hover:bg-slate-50"><X className="w-4 h-4 mr-2" />Cancel</Button>
-                    <Button onClick={validateAndSave} className="bg-blue-600 hover:bg-blue-700" disabled={!!passwordError}><Save className="w-4 h-4 mr-2" />Save Changes</Button>
+                    <Button 
+                      onClick={validateAndSave} 
+                      className="bg-blue-600 hover:bg-blue-700" 
+                      disabled={!!passwordError || !!phoneError}
+                    >
+                      <Save className="w-4 h-4 mr-2" />Save Changes
+                    </Button>
                 </div>
             </CardContent>
         </Card>
