@@ -62,7 +62,7 @@ export default function UsersPage() {
       if (currentUser) {
         const roles = Array.isArray(currentUser.role) ? currentUser.role : []
         const normalizedRoles = roles.map(r => r.toLowerCase())
-        const onlyUserRole = normalizedRoles.length === 1 && normalizedRoles[0] === 'user'
+        const onlyUserRole = normalizedRoles.length === 1 && normalizedRoles[0] === 'staff'
         
         if (onlyUserRole) {
           router.push(`/userProfile/${currentUser.username}`)

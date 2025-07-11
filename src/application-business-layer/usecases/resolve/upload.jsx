@@ -38,7 +38,7 @@ export async function sendDropdownValues(taskId, dropdownValues) {
   const token = await getToken();
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/inbox/${taskId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/inbox/${taskId}/complete`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
