@@ -15,6 +15,7 @@ import { getTaskById } from "@/application-business-layer/usecases/assign-task/g
 import { sendTaskFiles } from "@/application-business-layer/usecases/resolve/upload";
 import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
+import { Complete } from "@/application-business-layer/usecases/complete/complete";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 
 export default function AssignDetailedTask({ taskId }) {
@@ -88,6 +89,29 @@ export default function AssignDetailedTask({ taskId }) {
     const due = new Date(dueDate);
     return due < now;
   };
+  const handleComplete = async () => {
+  if (!taskId) return;
+
+  setIsSending(true);
+  try {
+    const result = await Complete(taskId);
+    
+    if (result?.success) {
+      // If success is true, show success message and redirect
+      toast.success(result.message || "Task completed successfully");
+      router.push("/assignTask");
+    } else {
+      // If success is false or undefined, show error message
+      toast.error(result?.message || "Failed to complete task");
+    }
+  } catch (error) {
+    // Handle error response
+    const errorMessage = error?.response?.data?.message || "Unexpected error occurred";
+    toast.error(errorMessage);
+  } finally {
+    setIsSending(false);
+  }
+};
 
   const handleUnclaim = async () => {
     if (!taskId) return;
@@ -111,44 +135,53 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleSend = async () => {
-    // Check if at least one variable has files
-    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-    if (!hasFiles) {
-      toast.error("Please attach at least one file to any variable");
+  const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
+  if (!hasFiles) {
+    toast.error("Please attach at least one file to any variable");
+    return;
+  }
+
+  setIsSending(true);
+  try {
+    const promises = Object.entries(variableFiles)
+      .filter(([_, files]) => files.length > 0)
+      .map(([variableKey, files]) => sendTaskFiles(taskId, files, variableKey));
+
+    const results = await Promise.all(promises);
+
+    const successResult = results.find(result => result?.user?.success);
+    if (successResult) {
+      toast.success(successResult.user.message || "Files sent successfully");
+      // Reset all files
+      const resetFiles = {};
+      Object.keys(variableFiles).forEach((key) => {
+        resetFiles[key] = [];
+      });
+      setVariableFiles(resetFiles);
+
+      // Refresh task data
+      const updatedTask = await getTaskById(taskId);
+      setTask(updatedTask || null);
+      
+      // Redirect to /assignTask
+      router.push("/assignTask");
       return;
     }
 
-    setIsSending(true);
-    try {
-      // Send files for each variable that has files
-      const promises = Object.entries(variableFiles)
-        .filter(([_, files]) => files.length > 0)
-        .map(([variableKey, files]) => sendTaskFiles(taskId, files, variableKey));
-
-      const results = await Promise.all(promises);
-      const allSuccessful = results.every((result) => result?.success);
-
-      if (allSuccessful) {
-        toast.success("All files sent successfully");
-        // Reset all files
-        const resetFiles = {};
-        Object.keys(variableFiles).forEach((key) => {
-          resetFiles[key] = [];
-        });
-        setVariableFiles(resetFiles);
-
-        // Refresh task data
-        const updatedTask = await getTaskById(taskId);
-        setTask(updatedTask || null);
-      } else {
-        toast.error("Some files failed to send");
-      }
-    } catch (error) {
-      toast.error("Unexpected error occurred");
-    } finally {
-      setIsSending(false);
+    // Error handling
+    const errorResult = results.find(result => result?.message);
+    if (errorResult) {
+      toast.error(errorResult.message);
+      return;
     }
-  };
+
+    toast.error("Some files failed to send");
+  } catch (error) {
+    toast.error(error?.message || "Unexpected error occurred");
+  } finally {
+    setIsSending(false);
+  }
+};
 
   const handleAttachmentClick = (variableKey) => {
     if (fileInputRefs.current[variableKey]) {
@@ -302,16 +335,6 @@ export default function AssignDetailedTask({ taskId }) {
             </p>
           </div>
 
-          {reportValue && (
-            <>
-              <Separator />
-              <div>
-                <h3 className="font-semibold text-base mb-3">Project Initialization Report</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{reportValue}</p>
-              </div>
-            </>
-          )}
-
           {/* Variable File Upload/Download Section */}
           {task?.VariablesTask && Object.keys(task.VariablesTask).length > 0 && (
             <>
@@ -441,17 +464,22 @@ export default function AssignDetailedTask({ taskId }) {
               <p className="text-sm text-muted-foreground">No comments</p>
             )}
           </div>
-
           <div className="flex justify-end pt-4 gap-2">
-            <Button
-              onClick={handleSend}
-              disabled={
-                (!Object.values(variableFiles).some((files) => files.length > 0) && !hasDownloadedFiles) ||
-                isSending
-              }
-            >
-              {isSending ? "Sending..." : "Resolve"}
-            </Button>
+            {task?.delegition?.toUpperCase() === "RESOLVED" ? (
+              <Button onClick={handleComplete} disabled={isSending}>
+                {isSending ? "Completing..." : "Complete"}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSend}
+                disabled={
+                  (!Object.values(variableFiles).some((files) => files.length > 0) && !hasDownloadedFiles) ||
+                  isSending
+                }
+              >
+                {isSending ? "Sending..." : "Resolve"}
+              </Button>
+            )}
           </div>
         </div>
       )}
