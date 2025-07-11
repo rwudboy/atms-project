@@ -23,12 +23,15 @@ export default function AssignDetailedTask({ taskId }) {
   const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasDownloadedFiles, setHasDownloadedFiles] = useState(false);
   const [variableFiles, setVariableFiles] = useState({});
   const [isSending, setIsSending] = useState(false);
   const [isDownloading, setIsDownloading] = useState({});
   const [isUnclaiming, setIsUnclaiming] = useState(false);
   const fileInputRefs = useRef({});
   const downloadLinkRef = useRef(null);
+
+
 
   useEffect(() => {
     let isMounted = true;
@@ -133,7 +136,7 @@ export default function AssignDetailedTask({ taskId }) {
           resetFiles[key] = [];
         });
         setVariableFiles(resetFiles);
-        
+
         // Refresh task data
         const updatedTask = await getTaskById(taskId);
         setTask(updatedTask || null);
@@ -156,11 +159,11 @@ export default function AssignDetailedTask({ taskId }) {
   const handleFileChange = (e, variableKey) => {
     // Only take the first file if multiple are selected
     const selectedFile = e.target.files?.[0];
-    
+
     if (!selectedFile) {
       return;
     }
-    
+
     // Replace any existing file with the new one
     setVariableFiles((prev) => ({
       ...prev,
@@ -168,7 +171,7 @@ export default function AssignDetailedTask({ taskId }) {
     }));
 
     toast.success(`Added: ${selectedFile.name} to ${formatVariableName(variableKey)}`);
-    
+
     if (fileInputRefs.current[variableKey]) {
       fileInputRefs.current[variableKey].value = "";
     }
@@ -183,21 +186,24 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleDownload = (variableKey, value) => {
-  if (!value) return;
-  
-  try {
-    // Construct the download URL
-    const fileName = value;
-    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(fileName)}`;
-    
-    // Open the URL in a new tab
-    window.open(downloadUrl, '_blank');
-    
-    toast.success(`File ${formatVariableName(variableKey)} has been successfully downloaded`);
-  } catch (error) {
-    toast.error(`Failed to open file: ${error.message}`);
-  }
-};
+    if (!value) return;
+
+    try {
+      // Construct the download URL
+      const fileName = value;
+      const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(fileName)}`;
+
+      // Open the URL in a new tab
+      window.open(downloadUrl, '_blank');
+
+      // Set that a download has been initiated
+      setHasDownloadedFiles(true);
+
+      toast.success(`File ${formatVariableName(variableKey)} has been successfully downloaded`);
+    } catch (error) {
+      toast.error(`Failed to open file: ${error.message}`);
+    }
+  };
 
   const formatVariableName = (variableName) => {
     return variableName.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -340,7 +346,7 @@ export default function AssignDetailedTask({ taskId }) {
                               className="hidden"
                               onChange={(e) => handleFileChange(e, variableKey)}
                             />
-                            
+
                             {/* Show download button if variable has a value */}
                             {variableData.value ? (
                               <Button
@@ -439,7 +445,10 @@ export default function AssignDetailedTask({ taskId }) {
           <div className="flex justify-end pt-4 gap-2">
             <Button
               onClick={handleSend}
-              disabled={!Object.values(variableFiles).some((files) => files.length > 0) || isSending}
+              disabled={
+                (!Object.values(variableFiles).some((files) => files.length > 0) && !hasDownloadedFiles) ||
+                isSending
+              }
             >
               {isSending ? "Sending..." : "Resolve"}
             </Button>
