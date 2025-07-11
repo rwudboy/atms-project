@@ -196,10 +196,6 @@ export default function RolesPage() {
             <CardTitle>Roles List</CardTitle>
             <CardDescription>Showing {roles.length} of {allRoles.length} roles</CardDescription>
           </div>
-          <AddRoleDrawer
-            trigger={<Button>Add Role</Button>}
-            onRoleAdded={fetchRoles}
-          />
         </CardHeader>
         <CardContent>
           <Table>
