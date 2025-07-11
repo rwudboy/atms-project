@@ -196,32 +196,6 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
               className="min-h-[100px] resize-none"
             />
           </div>
-
-          <div className="space-y-2">
-            <Label>Attach File (Optional)</Label>
-            <div className="flex items-center space-x-2">
-              <Input
-                type="file"
-                onChange={handleFileChange}
-                className="flex-1"
-                accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => document.querySelector('input[type="file"]').click()}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Browse
-              </Button>
-            </div>
-            {selectedFile && (
-              <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
-                <FileText className="h-3 w-3" />
-                <span>{selectedFile.name}</span>
-              </div>
-            )}
-          </div>
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
