@@ -165,7 +165,7 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
                       <div className="flex justify-between items-center">
                         <div>
                           <p className="font-medium text-sm">{user.username}</p>
-                          <p className="text-xs text-muted-foreground">ID: {user.id}</p>
+                          <p className="text-xs text-muted-foreground">{user.fullName}</p>
                         </div>
                         <Badge className="text-[10px] px-2 py-0.5 bg-yellow-100 text-yellow-800">
                           <User className="h-3 w-3 mr-1" />
