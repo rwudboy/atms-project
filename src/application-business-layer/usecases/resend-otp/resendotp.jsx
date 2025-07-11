@@ -6,7 +6,6 @@ export async function resendOTPUseCase(email) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resendotp`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
         Accept: "application/json",
         "Content-Type": "application/json",
       },

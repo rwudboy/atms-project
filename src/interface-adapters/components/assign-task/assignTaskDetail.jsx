@@ -9,10 +9,11 @@ import {
   Avatar,
   AvatarFallback,
 } from "@/interface-adapters/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/interface-adapters/components/ui/select";
 import { X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
-import { sendTaskFiles } from "@/application-business-layer/usecases/resolve/upload";
+import { sendTaskFiles,sendDropdownValues } from "@/application-business-layer/usecases/resolve/upload";
 import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 import { Complete } from "@/application-business-layer/usecases/complete/complete";
@@ -26,13 +27,12 @@ export default function AssignDetailedTask({ taskId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [hasDownloadedFiles, setHasDownloadedFiles] = useState(false);
   const [variableFiles, setVariableFiles] = useState({});
+  const [variableStrings, setVariableStrings] = useState({}); // New state for string values
   const [isSending, setIsSending] = useState(false);
   const [isDownloading, setIsDownloading] = useState({});
   const [isUnclaiming, setIsUnclaiming] = useState(false);
   const fileInputRefs = useRef({});
   const downloadLinkRef = useRef(null);
-
-
 
   useEffect(() => {
     let isMounted = true;
@@ -45,15 +45,18 @@ export default function AssignDetailedTask({ taskId }) {
         setTask(result || null);
         setIsLoading(false);
 
-        // Initialize file state for each variable
+        // Initialize file state and string state for each variable
         if (result?.VariablesTask) {
           const initialFiles = {};
+          const initialStrings = {};
           const initialDownloadStates = {};
           Object.keys(result.VariablesTask).forEach((key) => {
             initialFiles[key] = [];
+            initialStrings[key] = result.VariablesTask[key].value || "";
             initialDownloadStates[key] = false;
           });
           setVariableFiles(initialFiles);
+          setVariableStrings(initialStrings);
           setIsDownloading(initialDownloadStates);
         }
       }
@@ -65,6 +68,109 @@ export default function AssignDetailedTask({ taskId }) {
       isMounted = false;
     };
   }, [taskId]);
+
+  // Helper function to check if a variable is a "Check" type
+  const isCheckVariable = (variableKey) => {
+    return variableKey.toLowerCase().includes('check');
+  };
+
+  // Helper function to check if variable has files to upload or strings to send
+  const hasDataToSend = () => {
+    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
+    const hasStrings = Object.entries(variableStrings).some(([key, value]) => {
+      const originalValue = task?.VariablesTask?.[key]?.value || "";
+      return isCheckVariable(key) && value !== originalValue && value !== "";
+    });
+    return hasFiles || hasStrings || hasDownloadedFiles;
+  };
+
+const handleSend = async () => {
+  const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
+  
+  // Get only the changed dropdown values (Check variables that have been modified)
+  const changedDropdowns = {};
+  Object.entries(variableStrings).forEach(([key, value]) => {
+    const originalValue = task?.VariablesTask?.[key]?.value || "";
+    if (isCheckVariable(key) && value !== originalValue && value !== "") {
+      changedDropdowns[key] = value;
+    }
+  });
+  
+  const hasDropdowns = Object.keys(changedDropdowns).length > 0;
+
+  if (!hasFiles && !hasDropdowns && !hasDownloadedFiles) {
+    toast.error("Please attach at least one file, select dropdown values, or download files");
+    return;
+  }
+
+  setIsSending(true);
+  try {
+    const promises = [];
+
+    // Handle file uploads
+    if (hasFiles) {
+      Object.entries(variableFiles)
+        .filter(([_, files]) => files.length > 0)
+        .forEach(([variableKey, files]) => {
+          promises.push(sendTaskFiles(taskId, files, variableKey));
+        });
+    }
+
+    // Handle dropdown values
+    if (hasDropdowns) {
+      promises.push(sendDropdownValues(taskId, changedDropdowns));
+    }
+
+    const results = await Promise.all(promises);
+
+    // Handle success/error based on results
+    const successResult = results.find(result => result?.user?.success || result?.success);
+    if (successResult) {
+      toast.success(successResult.user?.message || successResult.message || "Files and values sent successfully");
+
+      // Reset files
+      setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map(k => [k, []])));
+      
+      // Reset dropdown values to their new values (don't clear them, just update the task)
+      const updatedTask = await getTaskById(taskId);
+      setTask(updatedTask || null);
+      
+      // Update variableStrings with the new task values
+      if (updatedTask?.VariablesTask) {
+        const newStrings = {};
+        Object.keys(updatedTask.VariablesTask).forEach((key) => {
+          newStrings[key] = updatedTask.VariablesTask[key].value || "";
+        });
+        setVariableStrings(newStrings);
+      }
+
+      router.push("/assignTask");
+      return;
+    }
+
+    // Error handling
+    const errorResult = results.find(result => result?.message);
+    if (errorResult) {
+      toast.error(errorResult.message);
+      return;
+    }
+
+    toast.error("Some uploads failed");
+  } catch (error) {
+    toast.error(error?.message || "Unexpected error occurred");
+  } finally {
+    setIsSending(false);
+  }
+};
+
+  const handleStringValueChange = (variableKey, value) => {
+    setVariableStrings(prev => ({
+      ...prev,
+      [variableKey]: value
+    }));
+  };
+
+  // ... (keep all other existing handler functions unchanged)
 
   const formatDate = (dateString) => {
     if (!dateString) return "—";
@@ -89,29 +195,27 @@ export default function AssignDetailedTask({ taskId }) {
     const due = new Date(dueDate);
     return due < now;
   };
-  const handleComplete = async () => {
-  if (!taskId) return;
 
-  setIsSending(true);
-  try {
-    const result = await Complete(taskId);
-    
-    if (result?.success) {
-      // If success is true, show success message and redirect
-      toast.success(result.message || "Task completed successfully");
-      router.push("/assignTask");
-    } else {
-      // If success is false or undefined, show error message
-      toast.error(result?.message || "Failed to complete task");
+  const handleComplete = async () => {
+    if (!taskId) return;
+
+    setIsSending(true);
+    try {
+      const result = await Complete(taskId);
+      
+      if (result?.success) {
+        toast.success(result.message || "Task completed successfully");
+        router.push("/assignTask");
+      } else {
+        toast.error(result?.message || "Failed to complete task");
+      }
+    } catch (error) {
+      const errorMessage = error?.response?.data?.message || "Unexpected error occurred";
+      toast.error(errorMessage);
+    } finally {
+      setIsSending(false);
     }
-  } catch (error) {
-    // Handle error response
-    const errorMessage = error?.response?.data?.message || "Unexpected error occurred";
-    toast.error(errorMessage);
-  } finally {
-    setIsSending(false);
-  }
-};
+  };
 
   const handleUnclaim = async () => {
     if (!taskId) return;
@@ -134,55 +238,6 @@ export default function AssignDetailedTask({ taskId }) {
     }
   };
 
-  const handleSend = async () => {
-  const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-  if (!hasFiles) {
-    toast.error("Please attach at least one file to any variable");
-    return;
-  }
-
-  setIsSending(true);
-  try {
-    const promises = Object.entries(variableFiles)
-      .filter(([_, files]) => files.length > 0)
-      .map(([variableKey, files]) => sendTaskFiles(taskId, files, variableKey));
-
-    const results = await Promise.all(promises);
-
-    const successResult = results.find(result => result?.user?.success);
-    if (successResult) {
-      toast.success(successResult.user.message || "Files sent successfully");
-      // Reset all files
-      const resetFiles = {};
-      Object.keys(variableFiles).forEach((key) => {
-        resetFiles[key] = [];
-      });
-      setVariableFiles(resetFiles);
-
-      // Refresh task data
-      const updatedTask = await getTaskById(taskId);
-      setTask(updatedTask || null);
-      
-      // Redirect to /assignTask
-      router.push("/assignTask");
-      return;
-    }
-
-    // Error handling
-    const errorResult = results.find(result => result?.message);
-    if (errorResult) {
-      toast.error(errorResult.message);
-      return;
-    }
-
-    toast.error("Some files failed to send");
-  } catch (error) {
-    toast.error(error?.message || "Unexpected error occurred");
-  } finally {
-    setIsSending(false);
-  }
-};
-
   const handleAttachmentClick = (variableKey) => {
     if (fileInputRefs.current[variableKey]) {
       fileInputRefs.current[variableKey]?.click();
@@ -190,17 +245,15 @@ export default function AssignDetailedTask({ taskId }) {
   };
 
   const handleFileChange = (e, variableKey) => {
-    // Only take the first file if multiple are selected
     const selectedFile = e.target.files?.[0];
 
     if (!selectedFile) {
       return;
     }
 
-    // Replace any existing file with the new one
     setVariableFiles((prev) => ({
       ...prev,
-      [variableKey]: [selectedFile], // Only store one file
+      [variableKey]: [selectedFile],
     }));
 
     toast.success(`Added: ${selectedFile.name} to ${formatVariableName(variableKey)}`);
@@ -222,14 +275,10 @@ export default function AssignDetailedTask({ taskId }) {
     if (!value) return;
 
     try {
-      // Construct the download URL
       const fileName = value;
       const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(fileName)}`;
 
-      // Open the URL in a new tab
       window.open(downloadUrl, '_blank');
-
-      // Set that a download has been initiated
       setHasDownloadedFiles(true);
 
       toast.success(`File ${formatVariableName(variableKey)} has been successfully downloaded`);
@@ -354,72 +403,96 @@ export default function AssignDetailedTask({ taskId }) {
                         <div className="grid grid-cols-2 gap-4 items-start">
                           <div>
                             <p className="font-medium text-sm mb-1">{formatVariableName(variableKey)}</p>
-                            {variableData.value && (
+                            {variableData.value && !isCheckVariable(variableKey) && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 File available for download
                               </p>
                             )}
+                            {isCheckVariable(variableKey) && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Current status: {variableData.value || "Not set"}
+                              </p>
+                            )}
                           </div>
                           <div className="space-y-3">
-                            <input
-                              ref={(el) => {
-                                if (el) fileInputRefs.current[variableKey] = el;
-                              }}
-                              type="file"
-                              className="hidden"
-                              onChange={(e) => handleFileChange(e, variableKey)}
-                            />
-
-                            {/* Show download button if variable has a value */}
-                            {variableData.value ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDownload(variableKey, variableData.value)}
-                                disabled={isDownloading[variableKey]}
-                                className="w-full"
+                            {isCheckVariable(variableKey) ? (
+                              // Render dropdown for Check variables
+                              <Select
+                                value={variableStrings[variableKey] || ""}
+                                onValueChange={(value) => handleStringValueChange(variableKey, value)}
                               >
-                                <Download className="h-4 w-4 mr-2" />
-                                {isDownloading[variableKey] ? "Opening..." : "Download File"}
-                              </Button>
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="APPROVED">APPROVED</SelectItem>
+                                  <SelectItem value="REJECTED">REJECTED</SelectItem>
+                                </SelectContent>
+                              </Select>
                             ) : (
-                              /* Otherwise show upload functionality */
-                              (!variableFiles[variableKey] || variableFiles[variableKey].length === 0) ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAttachmentClick(variableKey)}
-                                  className="w-full"
-                                >
-                                  <Upload className="h-4 w-4 mr-2" />
-                                  Upload File
-                                </Button>
-                              ) : (
-                                /* Show selected file for upload */
-                                <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
-                                  <span className="truncate flex-1" title={variableFiles[variableKey][0].name}>
-                                    {variableFiles[variableKey][0].name}
-                                  </span>
-                                  <div className="flex gap-2">
+                              // Render file upload/download for non-Check variables
+                              <>
+                                <input
+                                  ref={(el) => {
+                                    if (el) fileInputRefs.current[variableKey] = el;
+                                  }}
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleFileChange(e, variableKey)}
+                                />
+
+                                {/* Show download button if variable has a value */}
+                                {variableData.value ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDownload(variableKey, variableData.value)}
+                                    disabled={isDownloading[variableKey]}
+                                    className="w-full"
+                                  >
+                                    <Download className="h-4 w-4 mr-2" />
+                                    {isDownloading[variableKey] ? "Opening..." : "Download File"}
+                                  </Button>
+                                ) : (
+                                  /* Otherwise show upload functionality */
+                                  (!variableFiles[variableKey] || variableFiles[variableKey].length === 0) ? (
                                     <Button
-                                      variant="ghost"
+                                      variant="outline"
                                       size="sm"
-                                      className="h-6 w-6 p-0"
                                       onClick={() => handleAttachmentClick(variableKey)}
+                                      className="w-full"
                                     >
-                                      <Upload className="h-3 w-3" />
+                                      <Upload className="h-4 w-4 mr-2" />
+                                      Upload File
                                     </Button>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0"
-                                      onClick={() => removeFile(variableKey)}
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              )
+                                  ) : (
+                                    /* Show selected file for upload */
+                                    <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
+                                      <span className="truncate flex-1" title={variableFiles[variableKey][0].name}>
+                                        {variableFiles[variableKey][0].name}
+                                      </span>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-6 w-6 p-0"
+                                          onClick={() => handleAttachmentClick(variableKey)}
+                                        >
+                                          <Upload className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-6 w-6 p-0"
+                                          onClick={() => removeFile(variableKey)}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )
+                                )}
+                              </>
                             )}
                           </div>
                         </div>
@@ -472,10 +545,7 @@ export default function AssignDetailedTask({ taskId }) {
             ) : (
               <Button
                 onClick={handleSend}
-                disabled={
-                  (!Object.values(variableFiles).some((files) => files.length > 0) && !hasDownloadedFiles) ||
-                  isSending
-                }
+                disabled={!hasDataToSend() || isSending}
               >
                 {isSending ? "Sending..." : "Resolve"}
               </Button>
