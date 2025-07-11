@@ -1,11 +1,6 @@
-import { getToken } from "@/framework-drivers/token/tokenService";
+
 
 export async function resendOTPUseCase(email) {
-  const token = getToken();
-  if (!token) {
-    console.error("No token found.");
-    throw new Error("No token found.");
-  }
 
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/resendotp`, {
