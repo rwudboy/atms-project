@@ -38,12 +38,31 @@ export function RegisterForm({ className, ...props }) {
   const strengthColor = passwordStrength.color;
 
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setShowErrors(true);
-    setLoading(true);
+ // RegisterForm.jsx
+const handleRegister = async (e) => {
+  e.preventDefault();
+  setShowErrors(true);
+  setLoading(true);
 
-    const newErrors = validateUserRegistration({
+  const newErrors = validateUserRegistration({
+    fullName,
+    username,
+    password,
+    email,
+    birth,
+    phone,
+    jabatan,
+  });
+
+  setErrors(newErrors);
+
+  if (Object.keys(newErrors).length > 0) {
+    setLoading(false);
+    return;
+  }
+
+  try {
+    await registerUserUseCase({
       fullName,
       username,
       password,
@@ -53,45 +72,30 @@ export function RegisterForm({ className, ...props }) {
       jabatan,
     });
 
-    setErrors(newErrors);
+    // Store the email in localStorage
+    localStorage.setItem('registeredEmail', email);
 
-    if (Object.keys(newErrors).length > 0) {
-      setLoading(false);
-      return;
-    }
+    Swal.fire({
+      icon: "success",
+      title: "Registered Successfully!",
+      text: "Redirecting to OTP verification...",
+      timer: 2000,
+      showConfirmButton: false,
+    });
 
-    try {
-      await registerUserUseCase({
-        fullName,
-        username,
-        password,
-        email,
-        birth,
-        phone,
-        jabatan,
-      });
-
-      Swal.fire({
-        icon: "success",
-        title: "Registered Successfully!",
-        text: "Redirecting to OTP verification...",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-
-      setTimeout(() => {
-        window.location.href = "/otp";
-      }, 2000);
-    } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Registration Failed",
-        text: error.message,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    setTimeout(() => {
+      window.location.href = "/otp";
+    }, 2000);
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Registration Failed",
+      text: error.message,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <form onSubmit={handleRegister} className={cn("flex flex-col gap-6", className)} {...props}>

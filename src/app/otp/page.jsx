@@ -1,12 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/interface-adapters/components/ui/input-otp";
-import { Button } from "@/interface-adapters/components/ui/button";
+import { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -14,15 +10,66 @@ import {
   CardHeader,
   CardTitle,
 } from "@/interface-adapters/components/ui/card";
+import { Button } from "@/interface-adapters/components/ui/button";
 import { Shield, ArrowLeft, RotateCcw } from "lucide-react";
-import { toast } from "sonner";
-import Swal from "sweetalert2";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/interface-adapters/components/ui/input-otp";
+import { resendOTPUseCase } from "@/application-business-layer/usecases/resend-otp/resendotp";
 import { otpUserUseCase } from "@/application-business-layer/usecases/otp/otpUser";
+
+const RESEND_DELAY = 5 * 60; // 5 minutes in seconds
 
 export default function OTPPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [email, setEmail] = useState("");
+  const [countdown, setCountdown] = useState(0);
+
+  // Restore countdown on mount
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("registeredEmail");
+    const lastResend = localStorage.getItem("lastResend");
+
+    if (storedEmail) {
+      setEmail(storedEmail);
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "No email found",
+        text: "Please register first",
+        confirmButtonText: "Go to Register",
+      }).then(() => {
+        window.location.href = "/register";
+      });
+    }
+
+    if (lastResend) {
+      const elapsed = Math.floor((Date.now() - parseInt(lastResend)) / 1000);
+      if (elapsed < RESEND_DELAY) {
+        setCountdown(RESEND_DELAY - elapsed);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => {
+          const next = prev - 1;
+          if (next <= 0) {
+            localStorage.removeItem("lastResend");
+          }
+          return next;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleSubmit = async () => {
     if (otp.length !== 5) {
@@ -36,6 +83,8 @@ export default function OTPPage() {
 
       if (response?.user?.success === true && response?.user?.message === true) {
         await Swal.fire("Success", "OTP verified successfully!", "success");
+        localStorage.removeItem("registeredEmail");
+        localStorage.removeItem("lastResend");
         window.location.href = "/login";
       } else {
         throw new Error("OTP verification failed");
@@ -47,12 +96,47 @@ export default function OTPPage() {
     }
   };
 
+  const handleResendOTP = async () => {
+    if (!email) {
+      Swal.fire("Error", "Email not found. Please register again.", "error");
+      return;
+    }
 
+    setResending(true);
+    try {
+      const result = await resendOTPUseCase(email);
 
-
+      if (result.status) {
+        toast.success(result.message || "OTP resent successfully!");
+        const now = Date.now();
+        localStorage.setItem("lastResend", now.toString());
+        setCountdown(RESEND_DELAY);
+      } else {
+        throw new Error(result.message || "Failed to resend OTP");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to resend OTP");
+      console.error("Resend OTP error:", error);
+    } finally {
+      setResending(false);
+    }
+  };
 
   const handleBackToLogin = () => {
-    window.location.href = "/login";
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You will need to register again if you go back.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, go back",
+      cancelButtonText: "No, stay here",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem("registeredEmail");
+        localStorage.removeItem("lastResend");
+        window.location.href = "/login";
+      }
+    });
   };
 
   return (
@@ -65,9 +149,12 @@ export default function OTPPage() {
             </div>
             <div>
               <CardTitle className="text-2xl font-bold">Verify Your Account</CardTitle>
-              <CardDescription className="mt-2">
-                We've sent a 5-digit verification code to your email. Please enter it below to continue.
-              </CardDescription>
+              {email && (
+                <CardDescription className="mt-2">
+                  We've sent a 5-digit verification code to {email}. Please enter it below to
+                  continue.
+                </CardDescription>
+              )}
             </div>
           </CardHeader>
 
@@ -100,17 +187,22 @@ export default function OTPPage() {
             </div>
 
             <div className="text-center space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Didn't receive the code?
-              </p>
+              <p className="text-sm text-muted-foreground">Didn't receive the code?</p>
               <Button
                 variant="outline"
-                disabled={resending}
+                disabled={resending || countdown > 0}
+                onClick={handleResendOTP}
                 className="font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
                 type="button"
               >
-                <RotateCcw className={`w-4 h-4 mr-2 ${resending ? 'animate-spin' : ''}`} />
-                {resending ? "Resending..." : "Resend verification code"}
+                <RotateCcw className={`w-4 h-4 mr-2 ${resending ? "animate-spin" : ""}`} />
+                {resending
+                  ? "Resending..."
+                  : countdown > 0
+                  ? `Wait ${Math.floor(countdown / 60)
+                      .toString()
+                      .padStart(1, "0")}:${(countdown % 60).toString().padStart(2, "0")}`
+                  : "Resend verification code"}
               </Button>
             </div>
 
