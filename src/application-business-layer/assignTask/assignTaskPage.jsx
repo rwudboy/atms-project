@@ -1,4 +1,3 @@
-// File: application-business-layer/assignTask/AssignedTaskPage.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,6 +6,7 @@ import { toast } from "sonner";
 import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
 import AssignedTaskView from "@/interface-adapters/components/assign-task/assignTaskView";
 import usePagination from "@/framework-drivers/hooks/usePagination";
+import { getDiagram } from "@/application-business-layer/usecases/unassign-task/get-diagram";
 
 // Business Functions
 const filterTasksByName = (tasks, searchTerm) => {
@@ -46,6 +46,11 @@ export default function AssignedTaskPage() {
   const [filteredTasks, setFilteredTasks] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  
+  // Diagram modal state
+  const [isDiagramModalOpen, setIsDiagramModalOpen] = useState(false);
+  const [diagramData, setDiagramData] = useState(null);
+  const [diagramLoading, setDiagramLoading] = useState(false);
 
   // Use the pagination hook (5 items per page)
   const {
@@ -92,6 +97,36 @@ export default function AssignedTaskPage() {
     router.push(url);
   };
 
+  const handleViewDiagram = async (task) => {
+    try {
+      setDiagramLoading(true);
+      const result = await getDiagram(task.id);
+      console.log("Diagram Response:", result);
+  
+      if (result?.data?.bpm) {
+        const diagramPayload = {
+          bpm: result.data.bpm,
+          active: result.data.active ?? null, // optional
+        };
+  
+        setDiagramData(diagramPayload);
+        setIsDiagramModalOpen(true);
+      } else {
+        toast.error("Diagram data is missing.");
+      }
+    } catch (error) {
+      console.error("Error loading diagram:", error);
+      toast.error("Failed to load diagram");
+    } finally {
+      setDiagramLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsDiagramModalOpen(false);
+    setDiagramData(null);
+  };
+
   return (
     <AssignedTaskView
       tasks={displayTasks}
@@ -103,6 +138,11 @@ export default function AssignedTaskPage() {
       onSearchChange={handleSearchChange}
       onPageChange={handlePageChange}
       onViewDetail={handleViewDetail}
+      onViewDiagram={handleViewDiagram}
+      isDiagramModalOpen={isDiagramModalOpen}
+      diagramData={diagramData}
+      diagramLoading={diagramLoading}
+      onCloseModal={handleCloseModal}
       isTaskOverdue={isTaskOverdue}
       formatTaskDate={formatTaskDate}
     />

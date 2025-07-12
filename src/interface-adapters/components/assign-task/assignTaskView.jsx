@@ -1,4 +1,3 @@
-// File: interface-adapters/components/assign-task/assignTaskView.jsx
 "use client";
 
 import { Button } from "@/interface-adapters/components/ui/button";
@@ -21,6 +20,7 @@ import {
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Search, Eye } from "lucide-react";
 import { Pagination, PaginationInfo } from "@/interface-adapters/components/ui/pagination";
+import DiagramModal from "@/interface-adapters/components/modals/unassignTask/diagram-modal";
 
 export default function AssignedTaskView({
   tasks,
@@ -32,6 +32,11 @@ export default function AssignedTaskView({
   onSearchChange,
   onPageChange,
   onViewDetail,
+  onViewDiagram,
+  isDiagramModalOpen,
+  diagramData,
+  diagramLoading,
+  onCloseModal,
   isTaskOverdue,
   formatTaskDate,
 }) {
@@ -85,13 +90,13 @@ export default function AssignedTaskView({
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-4">
+                  <TableCell colSpan={3} className="text-center py-4">
                     Loading...
                   </TableCell>
                 </TableRow>
               ) : tasks.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-4">
+                  <TableCell colSpan={3} className="text-center py-4">
                     No tasks found
                   </TableCell>
                 </TableRow>
@@ -109,7 +114,15 @@ export default function AssignedTaskView({
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onViewDiagram(task)}
+                        disabled={diagramLoading}
+                      >
+                        {diagramLoading ? "Loading..." : "View Diagram"}
+                      </Button>
                       <Button
                         variant="secondary"
                         size="sm"
@@ -134,6 +147,14 @@ export default function AssignedTaskView({
           />
         </CardContent>
       </Card>
+
+      {/* Diagram Modal */}
+      <DiagramModal
+        isOpen={isDiagramModalOpen}
+        onClose={onCloseModal}
+        responseData={diagramData}
+        loading={diagramLoading}
+      />
     </div>
   );
 }
