@@ -230,10 +230,6 @@ export default function RolesPage() {
                         setSelectedRole(role)
                         setModalOpen(true)
                       }}>Edit</Button>
-                      <Button variant="destructive" size="sm" onClick={() => {
-                        setRoleToDelete(role)
-                        setDeleteModalOpen(true)
-                      }}>Delete</Button>
                     </TableCell>
                   </TableRow>
                 ))

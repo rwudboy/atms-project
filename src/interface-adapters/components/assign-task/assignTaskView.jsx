@@ -51,24 +51,6 @@ export default function AssignedTaskView({
         </CardHeader>
       </Card>
 
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Search Tasks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by name..."
-              className="pl-8"
-              value={searchTerm}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Task List</CardTitle>
