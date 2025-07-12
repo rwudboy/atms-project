@@ -90,7 +90,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
       onOpenChange(false)
       refetchWorkgroups()
     } catch (error) {
-      toast.error("Failed to remove users")
+      toast.error("Failed to remove users :",error.message)
       console.error("Error removing users:", error)
     }
   }

@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/interface-adapters/compon
 import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Button } from "@/interface-adapters/components/ui/button"
 import {
-  User, Mail, Phone, Calendar,  Globe, Briefcase, Edit, Lock, Unlock
+  User, Mail, Phone, Calendar, Globe, Briefcase, Edit, Lock, Unlock
 } from "lucide-react"
 
 
@@ -36,15 +36,15 @@ const formatDate = (dateString) => {
 
 
 const InfoField = ({ icon: Icon, label, children }) => (
-    <div className="space-y-2">
-      <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
-        <Icon className="w-4 h-4 text-slate-500" />
-        <span>{label}</span>
-      </label>
-      <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 min-h-[42px] flex items-center">
-        <div className="text-slate-900 font-medium w-full">{children}</div>
-      </div>
+  <div className="space-y-2">
+    <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+      <Icon className="w-4 h-4 text-slate-500" />
+      <span>{label}</span>
+    </label>
+    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 min-h-[42px] flex items-center">
+      <div className="text-slate-900 font-medium w-full">{children}</div>
     </div>
+  </div>
 );
 
 
@@ -58,19 +58,20 @@ export default function UserProfileView({ user, onEdit }) {
         <Card className="shadow-lg border-0 bg-white">
           <CardHeader className="text-center pb-4">
             <div className="flex justify-center mb-4">
-                <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
-                    <AvatarImage src="/placeholder.svg?height=96&width=96" />
-                    <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-                        {getInitials(user.fullName)}
-                    </AvatarFallback>
-                </Avatar>
+              <Avatar className="w-24 h-24 border-4 border-white shadow-lg">
+                <AvatarImage src="/placeholder.svg?height=96&width=96" />
+                <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                  {getInitials(user.fullName)}
+                </AvatarFallback>
+              </Avatar>
             </div>
             <CardTitle className="text-xl font-bold text-slate-900">{user.fullName}</CardTitle>
-            {(user.posisi || user.department) && (
+            {(user.jabatan || user.department || user.posisi) && (
               <CardDescription className="text-slate-600">
-                {[user.posisi, user.department].filter(Boolean).join(" • ")}
+                {[user.jabatan, user.department].filter(Boolean).join(" • ")}
               </CardDescription>
             )}
+
             {Array.isArray(user.role) && user.role.length > 0 && (
               <div className="flex justify-center flex-wrap gap-2 mt-3">
                 {user.role.map((role, index) => (
@@ -83,20 +84,20 @@ export default function UserProfileView({ user, onEdit }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3 text-sm">
-                {user.id && (
-                  <div className="flex items-center space-x-3">
-                      <User className="w-4 h-4 text-slate-500" />
-                      <span className="text-slate-600">ID:</span>
-                      <span className="font-mono text-slate-900">{user.id}</span>
-                  </div>
-                )}
-                {user.joinDate && (
-                  <div className="flex items-center space-x-3">
-                      <Calendar className="w-4 h-4 text-slate-500" />
-                      <span className="text-slate-600">Joined:</span>
-                      <span className="text-slate-900">{formatDate(user.joinDate)}</span>
-                  </div>
-                )}
+              {user.id && (
+                <div className="flex items-center space-x-3">
+                  <User className="w-4 h-4 text-slate-500" />
+                  <span className="text-slate-600">ID:</span>
+                  <span className="font-mono text-slate-900">{user.id}</span>
+                </div>
+              )}
+              {user.joinDate && (
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-4 h-4 text-slate-500" />
+                  <span className="text-slate-600">Joined:</span>
+                  <span className="text-slate-900">{formatDate(user.joinDate)}</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -123,7 +124,7 @@ export default function UserProfileView({ user, onEdit }) {
           <CardContent>
             {/* --- THIS IS THE CORRECTED LINE --- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
+
               <InfoField icon={User} label="Full Name">
                 {user.fullName || "Not provided"}
               </InfoField>
@@ -135,14 +136,15 @@ export default function UserProfileView({ user, onEdit }) {
               <InfoField icon={Phone} label="Phone Number">
                 <span className="font-mono">{user.phoneNumber || "Not provided"}</span>
               </InfoField>
-              
+
               <InfoField icon={Calendar} label="Date of Birth">
                 {formatDate(user.TanggalLahir)}
               </InfoField>
 
               <InfoField icon={Briefcase} label="Position">
-                {user.posisi || "Not provided"}
+                {user.posisi || user.jabatan ||"Not provided"}
               </InfoField>
+
 
               <InfoField icon={Globe} label="Username">
                 <span className="font-mono">@{user.username || "N/A"}</span>
@@ -161,7 +163,7 @@ export default function UserProfileView({ user, onEdit }) {
                   </Badge>
                 )}
               </InfoField>
-              
+
             </div>
           </CardContent>
         </Card>

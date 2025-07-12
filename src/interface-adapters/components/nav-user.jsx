@@ -116,7 +116,7 @@ export function NavUser({ user }) {
                   </div>
                 </div>
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -140,7 +140,7 @@ export function NavUser({ user }) {
                   Notifications
                 </DropdownMenuItem>
               </DropdownMenuGroup>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator /> */}
               <DropdownMenuItem
                 onSelect={() => {
                   localStorage.removeItem("authToken");

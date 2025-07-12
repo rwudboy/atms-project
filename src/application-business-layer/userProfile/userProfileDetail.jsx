@@ -70,14 +70,13 @@ export default function UserProfilePage({ username }) {
         await updateUserDetails(user.id, payload);
 
         // Update local state based on the successfully saved data.
-        setUser((prevUser) => ({
-            ...prevUser,
-            // Use the status from the payload if it exists, otherwise keep the previous state.
-            status: payload.status !== undefined ? payload.status : prevUser.status,
-            // Use user details from the payload if they exist.
-            phoneNumber: payload.user?.phoneNumber !== undefined ? payload.user.phoneNumber : prevUser.phoneNumber,
-            posisi: payload.user?.posisi !== undefined ? payload.user.posisi : prevUser.posisi,
-        }));
+       setUser((prevUser) => ({
+  ...prevUser,
+  status: payload.status !== undefined ? payload.status : prevUser.status,
+  phoneNumber: payload.user?.phoneNumber !== undefined ? payload.user.phoneNumber : prevUser.phoneNumber,
+  jabatan: payload.user?.jabatan !== undefined ? payload.user.jabatan : prevUser.jabatan,
+}));
+
         
         setIsEditing(false);
         toast.success("Profile Updated Successfully", {

@@ -126,8 +126,8 @@ export default function UnassignTaskView({
     <div className="container mx-auto py-10">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Unassigned Tasks</CardTitle>
-          <CardDescription>View and manage your unassigned tasks.</CardDescription>
+          <CardTitle>Unassign Tasks</CardTitle>
+          <CardDescription>View and manage your unassign tasks.</CardDescription>
         </CardHeader>
       </Card>
 
