@@ -70,12 +70,13 @@ export default function UserProfilePage({ username }) {
         await updateUserDetails(user.id, payload);
 
         // Update local state based on the successfully saved data.
-       setUser((prevUser) => ({
+   setUser((prevUser) => ({
   ...prevUser,
   status: payload.status !== undefined ? payload.status : prevUser.status,
   phoneNumber: payload.user?.phoneNumber !== undefined ? payload.user.phoneNumber : prevUser.phoneNumber,
-  jabatan: payload.user?.jabatan !== undefined ? payload.user.jabatan : prevUser.jabatan,
+  posisi: payload.user?.jabatan !== undefined ? payload.user.jabatan : prevUser.posisi, // <- this line
 }));
+
 
         
         setIsEditing(false);
