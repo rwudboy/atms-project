@@ -18,6 +18,7 @@ export async function viewWorkgroup(id) {
     });
 
     const data = await response.json();
+    console.log(data.workgroup)
 
     if (!response.ok) {
       throw new Error(data.message || `Failed to fetch workgroup: ${response.status}`);

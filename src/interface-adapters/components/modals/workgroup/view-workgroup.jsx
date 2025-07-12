@@ -186,7 +186,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                         <div className="flex-1">
                           <p className="font-medium">{username || "Unknown User"}</p>
                           <p className="text-sm text-muted-foreground">Member</p>
-                          <Badge variant="outline" className="text-xs bg-green-100 text-green-600">{userRole}</Badge>
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-600">
+  {user.role?.length > 0 ? user.role : "staff"}  {/* Use the full role value */}
+</Badge>
                         </div>
                         <div className="flex items-center gap-2">
                           <Button
