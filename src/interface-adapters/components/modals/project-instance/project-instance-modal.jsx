@@ -87,7 +87,6 @@ export default function ProjectInstanceModal({
             <Label htmlFor="name-project">Name Project</Label>
             <Input
               id="name-project"
-              value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
               placeholder="Enter project name"
               required
