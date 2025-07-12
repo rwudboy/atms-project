@@ -150,7 +150,7 @@ export function DeleteUserRoleDialog({ username, children, onSuccess }) {
             onClick={handleDeleteRole}
             disabled={!selectedRole || isDeleting || deletableRoles.length === 0}
           >
-            {isDeleting ? "Deleting..." : "Delete Role"}
+            {isDeleting ? "Removing..." : "Remove Role"}
           </Button>
         </DialogFooter>
       </DialogContent>

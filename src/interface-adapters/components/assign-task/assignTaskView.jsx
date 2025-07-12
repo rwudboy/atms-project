@@ -79,7 +79,6 @@ export default function AssignedTaskView({
               <TableRow>
                 <TableHead>Task Name</TableHead>
                 <TableHead>Due Date</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -109,11 +108,6 @@ export default function AssignedTaskView({
                           </Badge>
                         )}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">
-                        {task.status || "Open"}
-                      </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

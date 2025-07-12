@@ -9,11 +9,21 @@ import {
   Avatar,
   AvatarFallback,
 } from "@/interface-adapters/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/interface-adapters/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/interface-adapters/components/ui/select";
 import { X, Upload, Download } from "lucide-react";
 import { toast } from "sonner";
 import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
-import { sendTaskFiles,sendDropdownValues } from "@/application-business-layer/usecases/resolve/upload";
+import {
+  sendTaskFiles,
+  sendDropdownValues,
+} from "@/application-business-layer/usecases/resolve/upload";
+import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 import { Complete } from "@/application-business-layer/usecases/complete/complete";
@@ -21,16 +31,19 @@ import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/
 
 export default function AssignDetailedTask({ taskId }) {
   const router = useRouter();
+
   const [task, setTask] = useState(null);
+  const [role, setRole] = useState(null);
   const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasDownloadedFiles, setHasDownloadedFiles] = useState(false);
   const [variableFiles, setVariableFiles] = useState({});
-  const [variableStrings, setVariableStrings] = useState({}); // New state for string values
+  const [variableStrings, setVariableStrings] = useState({});
   const [isSending, setIsSending] = useState(false);
   const [isDownloading, setIsDownloading] = useState({});
   const [isUnclaiming, setIsUnclaiming] = useState(false);
+
   const fileInputRefs = useRef({});
   const downloadLinkRef = useRef(null);
 
@@ -62,40 +75,57 @@ export default function AssignDetailedTask({ taskId }) {
       }
     };
 
+    const fetchRole = async () => {
+      try {
+        const { data } = await getUserDetail();
+        const user = data.user;
+        const roles = user?.role || [];
+        const selectedRole = roles[0] || "guest";
+        // Normalize role to uppercase
+        const capitalizedRole = selectedRole.toUpperCase();
+        if (isMounted) {
+          setRole(capitalizedRole);
+        }
+      } catch (error) {
+        console.error("Error fetching user detail:", error);
+      }
+    };
+
     fetchTask();
+    fetchRole();
 
     return () => {
       isMounted = false;
     };
   }, [taskId]);
 
-  // Helper function to check if a variable is a "Check" type
-  const isCheckVariable = (variableKey) => {
-    return variableKey.toLowerCase().includes('check');
-  };
+  const isCheckVariable = (variableKey) =>
+    variableKey.toLowerCase().includes("check");
 
-  // Helper function to check if variable has files to upload or strings to send
   const hasDataToSend = () => {
-    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-    const hasStrings = Object.entries(variableStrings).some(([key, value]) => {
-      const originalValue = task?.VariablesTask?.[key]?.value || "";
-      return isCheckVariable(key) && value !== originalValue && value !== "";
-    });
+    const hasFiles = Object.values(variableFiles).some(
+      (files) => files.length > 0
+    );
+    const hasStrings = Object.entries(variableStrings).some(
+      ([key, value]) => {
+        const original = task?.VariablesTask?.[key]?.value || "";
+        return isCheckVariable(key) && value !== original && value !== "";
+      }
+    );
     return hasFiles || hasStrings || hasDownloadedFiles;
   };
 
-const handleSend = async () => {
+  const handleSend = async () => {
   const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-  
-  // Get only the changed dropdown values (Check variables that have been modified)
   const changedDropdowns = {};
+
   Object.entries(variableStrings).forEach(([key, value]) => {
-    const originalValue = task?.VariablesTask?.[key]?.value || "";
-    if (isCheckVariable(key) && value !== originalValue && value !== "") {
-      changedDropdowns[key] = value;
+    const original = task?.VariablesTask?.[key]?.value || "";
+    if (isCheckVariable(key) && value !== original && value !== "") {
+      changedDropdowns[key] = { type: "String", value: value, valueInfo: {} };
     }
   });
-  
+
   const hasDropdowns = Object.keys(changedDropdowns).length > 0;
 
   if (!hasFiles && !hasDropdowns && !hasDownloadedFiles) {
@@ -106,196 +136,128 @@ const handleSend = async () => {
   setIsSending(true);
   try {
     const promises = [];
-
-    // Handle file uploads
     if (hasFiles) {
       Object.entries(variableFiles)
-        .filter(([_, files]) => files.length > 0)
-        .forEach(([variableKey, files]) => {
-          promises.push(sendTaskFiles(taskId, files, variableKey));
+        .filter(([, files]) => files.length > 0)
+        .forEach(([key, files]) => {
+          promises.push(sendTaskFiles(taskId, files, key));
         });
     }
-
-    // Handle dropdown values
     if (hasDropdowns) {
       promises.push(sendDropdownValues(taskId, changedDropdowns));
     }
 
     const results = await Promise.all(promises);
-
-    // Handle success/error based on results
-    const successResult = results.find(result => result?.user?.success || result?.success);
-    if (successResult) {
-      toast.success(successResult.user?.message || successResult.message || "Files and values sent successfully");
-
-      // Reset files
-      setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map(k => [k, []])));
-      
-      // Reset dropdown values to their new values (don't clear them, just update the task)
-      const updatedTask = await getTaskById(taskId);
-      setTask(updatedTask || null);
-      
-      // Update variableStrings with the new task values
-      if (updatedTask?.VariablesTask) {
+    const success = results.find((r) => r?.user?.success || r?.success);
+    if (success) {
+      toast.success(success.user?.message || success.message || "Sent successfully");
+      setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
+      const updated = await getTaskById(taskId);
+      setTask(updated || null);
+      if (updated?.VariablesTask) {
         const newStrings = {};
-        Object.keys(updatedTask.VariablesTask).forEach((key) => {
-          newStrings[key] = updatedTask.VariablesTask[key].value || "";
+        Object.keys(updated.VariablesTask).forEach((k) => {
+          newStrings[k] = updated.VariablesTask[k].value || "";
         });
         setVariableStrings(newStrings);
       }
-
       router.push("/assignTask");
       return;
     }
-
-    // Error handling
-    const errorResult = results.find(result => result?.message);
-    if (errorResult) {
-      toast.error(errorResult.message);
+    const err = results.find((r) => r?.message);
+    if (err) {
+      toast.error(err.message);
       return;
     }
-
     toast.error("Some uploads failed");
-  } catch (error) {
-    toast.error(error?.message || "Unexpected error occurred");
+  } catch (e) {
+    toast.error(e?.message || "Unexpected error occurred");
   } finally {
     setIsSending(false);
   }
 };
 
-  const handleStringValueChange = (variableKey, value) => {
-    setVariableStrings(prev => ({
-      ...prev,
-      [variableKey]: value
-    }));
+  const handleStringValueChange = (key, value) => {
+    setVariableStrings((prev) => ({ ...prev, [key]: value }));
   };
 
-  // ... (keep all other existing handler functions unchanged)
+  const formatDate = (dStr) =>
+    dStr
+      ? new Date(dStr).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+      : "—";
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const getPriorityLabel = (p) => (p >= 80 ? "High" : p >= 60 ? "Medium" : "Low");
 
-  const getPriorityLabel = (priority) => {
-    if (priority >= 80) return "High";
-    if (priority >= 60) return "Medium";
-    return "Low";
-  };
-
-  const isTaskOverdue = (dueDate) => {
-    if (!dueDate) return false;
-    const now = new Date();
-    const due = new Date(dueDate);
-    return due < now;
-  };
+  const isTaskOverdue = (due) => (due ? new Date(due) < new Date() : false);
 
   const handleComplete = async () => {
-    if (!taskId) return;
-
     setIsSending(true);
     try {
       const result = await Complete(taskId);
-      
       if (result?.success) {
         toast.success(result.message || "Task completed successfully");
         router.push("/assignTask");
       } else {
-        toast.error(result?.message || "Failed to complete task");
+        toast.error(result.message || "Failed to complete task");
       }
-    } catch (error) {
-      const errorMessage = error?.response?.data?.message || "Unexpected error occurred";
-      toast.error(errorMessage);
+    } catch (e) {
+      toast.error(e?.response?.data?.message || "Unexpected error");
     } finally {
       setIsSending(false);
     }
   };
 
   const handleUnclaim = async () => {
-    if (!taskId) return;
-
     setIsUnclaiming(true);
     try {
       const result = await UnclaimTask(taskId);
       if (result.status) {
         toast.success(result.message || "Task unclaimed successfully");
-        const updatedTask = await getTaskById(taskId);
-        setTask(updatedTask || null);
-        router.push(`/assignTask`);
+        const updated = await getTaskById(taskId);
+        setTask(updated || null);
+        router.push("/assignTask");
       } else {
         toast.error(result.message || "Failed to unclaim task");
       }
-    } catch (error) {
-      toast.error("Unexpected error occurred while unclaiming task");
+    } catch (e) {
+      toast.error("Unexpected error while unclaiming task");
     } finally {
       setIsUnclaiming(false);
     }
   };
 
-  const handleAttachmentClick = (variableKey) => {
-    if (fileInputRefs.current[variableKey]) {
-      fileInputRefs.current[variableKey]?.click();
-    }
+  const handleAttachmentClick = (key) => fileInputRefs.current[key]?.click();
+
+  const handleFileChange = (e, key) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVariableFiles((prev) => ({ ...prev, [key]: [file] }));
+    toast.success(`Added: ${file.name} to ${key.replace(/_/g, " ")}`);
+    fileInputRefs.current[key].value = "";
   };
 
-  const handleFileChange = (e, variableKey) => {
-    const selectedFile = e.target.files?.[0];
-
-    if (!selectedFile) {
-      return;
-    }
-
-    setVariableFiles((prev) => ({
-      ...prev,
-      [variableKey]: [selectedFile],
-    }));
-
-    toast.success(`Added: ${selectedFile.name} to ${formatVariableName(variableKey)}`);
-
-    if (fileInputRefs.current[variableKey]) {
-      fileInputRefs.current[variableKey].value = "";
-    }
+  const removeFile = (key) => {
+    setVariableFiles((prev) => ({ ...prev, [key]: [] }));
+    toast.success(`File removed from ${key.replace(/_/g, " ")}`);
   };
 
-  const removeFile = (variableKey) => {
-    setVariableFiles((prev) => ({
-      ...prev,
-      [variableKey]: [],
-    }));
-    toast.success(`File removed from ${formatVariableName(variableKey)}`);
+  const handleDownload = (key, val) => {
+    if (!val) return;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(val)}`;
+    window.open(url, "_blank");
+    setHasDownloadedFiles(true);
+    toast.success(`Downloaded ${key.replace(/_/g, " ")}`);
   };
-
-  const handleDownload = (variableKey, value) => {
-    if (!value) return;
-
-    try {
-      const fileName = value;
-      const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(fileName)}`;
-
-      window.open(downloadUrl, '_blank');
-      setHasDownloadedFiles(true);
-
-      toast.success(`File ${formatVariableName(variableKey)} has been successfully downloaded`);
-    } catch (error) {
-      toast.error(`Failed to open file: ${error.message}`);
-    }
-  };
-
-  const formatVariableName = (variableName) => {
-    return variableName.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
-  };
-
-  const reportValue = task?.VariablesTask?.Project_Initialization_Report?.value || "";
 
   return (
     <div className="container mx-auto py-10 max-w-6xl">
-      {isLoading || !task ? (
+      {(isLoading || !task || role === null) && (
         <div className="space-y-4">
           <Skeleton className="h-6 w-1/3" />
           <Skeleton className="h-4 w-1/2" />
@@ -303,30 +265,23 @@ const handleSend = async () => {
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-3/4" />
         </div>
-      ) : (
+      )}
+
+      {!isLoading && task && role !== null && (
         <div className="space-y-6">
+          {/* Back & Delegate */}
           <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={() => router.push("/assignTask")}
-            >
+            <Button variant="outline" onClick={() => router.push("/assignTask")}>
               ← Back to List
             </Button>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700"
-                onClick={() => setIsDelegateOpen(true)}
-              >
-                Delegate
-              </Button>
-            </div>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsDelegateOpen(true)}>
+              Delegate
+            </Button>
           </div>
 
+          {/* Title & Overdue Badge */}
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold">
-              {task.task_name || "Task Detail"}
-            </h1>
+            <h1 className="text-xl font-semibold">{task.task_name || "Task Detail"}</h1>
             {isTaskOverdue(task.due_date) && (
               <Badge variant="destructive" className="bg-red-600">
                 Overdue
@@ -334,9 +289,9 @@ const handleSend = async () => {
             )}
           </div>
 
+          {/* Task Info */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <h3 className="font-semibold text-base mb-4">Task Details</h3>
+            <div className="lg:col-span-2 space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground mb-1">Task name</p>
@@ -377,6 +332,7 @@ const handleSend = async () => {
 
           <Separator />
 
+          {/* Description */}
           <div>
             <h3 className="font-semibold text-base mb-3">Description</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -384,8 +340,8 @@ const handleSend = async () => {
             </p>
           </div>
 
-          {/* Variable File Upload/Download Section */}
-          {task?.VariablesTask && Object.keys(task.VariablesTask).length > 0 && (
+          {/* Required Documents */}
+          {task.VariablesTask && Object.keys(task.VariablesTask).length > 0 && (
             <>
               <Separator />
               <div>
@@ -398,99 +354,89 @@ const handleSend = async () => {
                     </div>
                   </div>
                   <div className="divide-y">
-                    {Object.entries(task.VariablesTask).map(([variableKey, variableData]) => (
-                      <div key={variableKey} className="p-4">
+                    {Object.entries(task.VariablesTask).map(([key, data]) => (
+                      <div key={key} className="p-4">
                         <div className="grid grid-cols-2 gap-4 items-start">
                           <div>
-                            <p className="font-medium text-sm mb-1">{formatVariableName(variableKey)}</p>
-                            {variableData.value && !isCheckVariable(variableKey) && (
+                            <p className="font-medium text-sm mb-1">{key.replace(/_/g, " ")}</p>
+                            {!isCheckVariable(key) && data.value && (
                               <p className="text-xs text-muted-foreground mt-1">
                                 File available for download
                               </p>
                             )}
-                            {isCheckVariable(variableKey) && (
+                            {isCheckVariable(key) && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Current status: {variableData.value || "Not set"}
+                                Current status: {data.value || "Not set"}
                               </p>
                             )}
                           </div>
                           <div className="space-y-3">
-                            {isCheckVariable(variableKey) ? (
-                              // Render dropdown for Check variables
+                            {isCheckVariable(key) ? (
                               <Select
-                                value={variableStrings[variableKey] || ""}
-                                onValueChange={(value) => handleStringValueChange(variableKey, value)}
+                                value={variableStrings[key] || ""}
+                                onValueChange={(v) => handleStringValueChange(key, v)}
                               >
                                 <SelectTrigger className="w-full">
                                   <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="APPROVED">APPROVED</SelectItem>
-                                  <SelectItem value="REJECTED">REJECTED</SelectItem>
+                                  <SelectItem value="approved">APPROVED</SelectItem>
+                                  <SelectItem value="rejected">REJECTED</SelectItem>
                                 </SelectContent>
                               </Select>
                             ) : (
-                              // Render file upload/download for non-Check variables
                               <>
                                 <input
-                                  ref={(el) => {
-                                    if (el) fileInputRefs.current[variableKey] = el;
-                                  }}
+                                  ref={(el) => (fileInputRefs.current[key] = el)}
                                   type="file"
                                   className="hidden"
-                                  onChange={(e) => handleFileChange(e, variableKey)}
+                                  onChange={(e) => handleFileChange(e, key)}
                                 />
-
-                                {/* Show download button if variable has a value */}
-                                {variableData.value ? (
+                                {data.value ? (
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleDownload(variableKey, variableData.value)}
-                                    disabled={isDownloading[variableKey]}
                                     className="w-full"
+                                    onClick={() => handleDownload(key, data.value)}
+                                    disabled={isDownloading[key]}
                                   >
                                     <Download className="h-4 w-4 mr-2" />
-                                    {isDownloading[variableKey] ? "Opening..." : "Download File"}
+                                    {isDownloading[key] ? "Opening..." : "Download File"}
+                                  </Button>
+                                ) : !variableFiles[key]?.length ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    onClick={() => handleAttachmentClick(key)}
+                                  >
+                                    <Upload className="h-4 w-4 mr-2" />
+                                    Upload File
                                   </Button>
                                 ) : (
-                                  /* Otherwise show upload functionality */
-                                  (!variableFiles[variableKey] || variableFiles[variableKey].length === 0) ? (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleAttachmentClick(variableKey)}
-                                      className="w-full"
-                                    >
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Upload File
-                                    </Button>
-                                  ) : (
-                                    /* Show selected file for upload */
-                                    <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
-                                      <span className="truncate flex-1" title={variableFiles[variableKey][0].name}>
-                                        {variableFiles[variableKey][0].name}
-                                      </span>
-                                      <div className="flex gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0"
-                                          onClick={() => handleAttachmentClick(variableKey)}
-                                        >
-                                          <Upload className="h-3 w-3" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0"
-                                          onClick={() => removeFile(variableKey)}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      </div>
+                                  <div className="flex items-center justify-between p-2 bg-muted/30 rounded-md text-xs">
+                                    <span className="truncate flex-1" title={variableFiles[key][0].name}>
+                                      {variableFiles[key][0].name}
+                                    </span>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => handleAttachmentClick(key)}
+                                      >
+                                        <Upload className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => removeFile(key)}
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
                                     </div>
-                                  )
+                                  </div>
                                 )}
                               </>
                             )}
@@ -506,15 +452,16 @@ const handleSend = async () => {
 
           <Separator />
 
+          {/* Comments */}
           <div>
             <h3 className="font-semibold text-base mb-4">Comments</h3>
             {Array.isArray(task.comment) && task.comment.length > 0 ? (
               <div className="space-y-4">
-                {task.comment.map((comment, index) => (
-                  <div key={index} className="flex gap-3">
+                {task.comment.map((c, i) => (
+                  <div key={i} className="flex gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs">
-                        {comment.user
+                        {c.user
                           ?.split(" ")
                           .map((n) => n[0])
                           .join("") || "U"}
@@ -522,12 +469,10 @@ const handleSend = async () => {
                     </Avatar>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">
-                          {comment.user || "Unknown"}
-                        </span>
+                        <span className="font-medium text-sm">{c.user || "Unknown"}</span>
                       </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        {comment.description || ""}
+                        {c.description}
                       </p>
                     </div>
                   </div>
@@ -537,22 +482,26 @@ const handleSend = async () => {
               <p className="text-sm text-muted-foreground">No comments</p>
             )}
           </div>
+
+          {/* Resolve / Complete Button */}
           <div className="flex justify-end pt-4 gap-2">
-            {task?.delegition?.toUpperCase() === "RESOLVED" ? (
+            {task.delegition?.toUpperCase() === "RESOLVED" ? (
               <Button onClick={handleComplete} disabled={isSending}>
                 {isSending ? "Completing..." : "Complete"}
               </Button>
             ) : (
-              <Button
-                onClick={handleSend}
-                disabled={!hasDataToSend() || isSending}
-              >
-                {isSending ? "Sending..." : "Resolve"}
+              <Button onClick={handleSend} disabled={!hasDataToSend() || isSending}>
+                {isSending
+                  ? "Sending..."
+                  : role === "MANAGER"
+                    ? "Complete"
+                    : "Resolve"}
               </Button>
             )}
           </div>
         </div>
       )}
+
       <DelegateTaskDialog
         taskId={taskId}
         open={isDelegateOpen}

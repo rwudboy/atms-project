@@ -18,7 +18,7 @@ export async function sendTaskFiles(taskId, files, fieldName, stringValue = null
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/inbox/${taskId}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/inbox/${taskId}/resolve`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
