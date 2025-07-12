@@ -96,12 +96,6 @@ export default function UnassignDetailedTask({ taskId }) {
                   <p className="font-medium">{task.assignee || "Unassigned"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground mb-1">Priority</p>
-                  <Badge variant="secondary" className="w-fit">
-                    {getPriorityLabel(task.priority ?? 0)}
-                  </Badge>
-                </div>
-                <div>
                   <p className="text-muted-foreground mb-1">Due date</p>
                   <p className="font-medium">{formatDate(task.due_date)}</p>
                 </div>

@@ -81,7 +81,7 @@ export function DeleteUserRoleDialog({ username, children, onSuccess }) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            Delete User Role
+            Remove User Role
           </DialogTitle>
           <DialogDescription>
             Remove a role from {user?.fullName || username}. This action cannot be undone.

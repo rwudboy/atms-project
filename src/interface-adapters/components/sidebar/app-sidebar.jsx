@@ -99,7 +99,12 @@ export function AppSidebar(props) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="#">
-                <IconInnerShadowTop className="!size-5" />
+                    <img
+      src="/icon.jpg"
+      alt="testimage"
+      className="!size-5 object-cover rounded" // match !size-5
+    />
+
                 <span className="text-base font-semibold">ATMS.</span>
               </a>
             </SidebarMenuButton>

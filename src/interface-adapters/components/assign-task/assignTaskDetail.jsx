@@ -192,8 +192,6 @@ export default function AssignDetailedTask({ taskId }) {
       })
       : "—";
 
-  const getPriorityLabel = (p) => (p >= 80 ? "High" : p >= 60 ? "Medium" : "Low");
-
   const isTaskOverdue = (due) => (due ? new Date(due) < new Date() : false);
 
   const handleComplete = async () => {
@@ -300,12 +298,6 @@ export default function AssignDetailedTask({ taskId }) {
                 <div>
                   <p className="text-muted-foreground mb-1">Assigned to</p>
                   <p className="font-medium">{task.assignee || "Unassigned"}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground mb-1">Priority</p>
-                  <Badge variant="secondary" className="w-fit">
-                    {getPriorityLabel(task.priority ?? 0)}
-                  </Badge>
                 </div>
                 <div>
                   <p className="text-muted-foreground mb-1">Due date</p>

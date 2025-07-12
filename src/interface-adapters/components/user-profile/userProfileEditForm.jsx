@@ -12,6 +12,7 @@ import {
 import {
   User, Mail, Phone, Lock, Unlock, Save, X, AlertCircle, Briefcase, Info
 } from "lucide-react"
+import { Eye, EyeOff } from "lucide-react";
 
 const JABATAN_LIST = [
   "Project Manager",
@@ -33,6 +34,8 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || "");
   const [phoneError, setPhoneError] = useState("");
   const [jabatan, setJabatan] = useState(user.posisi || "");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState("");
@@ -148,6 +151,41 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
             </div>
 
             <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                <Lock className="w-4 h-4" />
+                <span>New Password</span>
+              </label>
+              <div className="relative">
+                <Input
+                  type={showNewPassword ? "text" : "password"}
+                  value={passwordData.newPassword}
+                  onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                  className="bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed pr-10"
+                  placeholder="Enter new password"
+                  disabled={!userIsOwner}
+                />
+                {userIsOwner && (
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                    onClick={() => setShowNewPassword(v => !v)}
+                    aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  >
+                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                )}
+              </div>
+              {!userIsOwner && (
+                <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
+                  <Info className="w-4 h-4" />
+                  <span>You can only change your own password.</span>
+                </div>
+              )}
+            </div>
+
+
+            <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Briefcase className="w-4 h-4" /><span>Position</span></label>
               <Select value={jabatan} onValueChange={setJabatan} disabled={!userIsOwner}>
                 <SelectTrigger className="bg-slate-50 w-full disabled:opacity-60 disabled:cursor-not-allowed">
@@ -168,34 +206,34 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
             </div>
 
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Lock className="w-4 h-4" /><span>New Password</span></label>
-              <Input
-                type="password"
-                value={passwordData.newPassword}
-                onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
-                className="bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed"
-                placeholder="Enter new password"
-                disabled={!userIsOwner}
-              />
-              {!userIsOwner && (
-                <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
-                  <Info className="w-4 h-4" />
-                  <span>You can only change your own password.</span>
-                </div>
-              )}
-            </div>
+
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Lock className="w-4 h-4" /><span>Confirm New Password</span></label>
-              <Input
-                type="password"
-                value={passwordData.confirmPassword}
-                onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
-                className={`bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed ${passwordError ? 'border-red-300' : ''}`}
-                placeholder="Confirm new password"
-                disabled={!userIsOwner}
-              />
+              <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">
+                <Lock className="w-4 h-4" />
+                <span>Confirm New Password</span>
+              </label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                  className={`bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed pr-10 ${passwordError ? 'border-red-300' : ''}`}
+                  placeholder="Confirm new password"
+                  disabled={!userIsOwner}
+                />
+                {userIsOwner && (
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                    onClick={() => setShowConfirmPassword(v => !v)}
+                    aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                )}
+              </div>
               {passwordError && (
                 <div className="flex items-center space-x-2 text-red-600 text-sm">
                   <AlertCircle className="w-4 h-4" /><span>{passwordError}</span>
