@@ -9,7 +9,7 @@ export default function DashboardPage() {
         {/* Dashboard Header */}
         <div className="text-center space-y-4">
           <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">
-            Audit Trail <span className="text-primary">Dashboard</span>
+            Audit Trail <span className="text-primary">Management System</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Monitor user activities, manage records, and maintain accountability across your systems with ease and clarity.
