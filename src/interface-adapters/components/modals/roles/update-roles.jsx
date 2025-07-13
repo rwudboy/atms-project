@@ -84,20 +84,6 @@ export const EditRoleModal = ({ isOpen, onClose, role, onSave }) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Editable input */}
-          <div className="space-y-2">
-            <Label htmlFor="role-name" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Role Name
-            </Label>
-            <Input
-              id="role-name"
-              placeholder="Enter role name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full"
-            />
-          </div>
 
           {/* Disabled input field */}
           <div className="space-y-2">
