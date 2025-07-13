@@ -51,45 +51,52 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   const downloadLinkRef = useRef(null);
 
   useEffect(() => {
-    let isMounted = true;
+  let isMounted = true;
 
-    const fetchTask = async () => {
-      if (!taskId) {
-        return;
-      }
+  const fetchTask = async () => {
+    if (!taskId) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const result = await getTaskById(taskId);
       
-      try {
-        setIsLoading(true);
-        const result = await getTaskById(taskId);
+      if (!isMounted) return;
+      
+      setTask(result || null);
+      
+      // Initialize file state and string state for each variable
+      if (result?.VariablesTask) {
+        const initialFiles = {};
+        const initialStrings = {};
+        const initialDownloadStates = {};
         
-        if (!isMounted) return;
-        
-        setTask(result || null);
-        
-        // Initialize file state and string state for each variable
-        if (result?.VariablesTask) {
-          const initialFiles = {};
-          const initialStrings = {};
-          const initialDownloadStates = {};
+        Object.keys(result.VariablesTask).forEach((key) => {
+          initialFiles[key] = [];
           
-          Object.keys(result.VariablesTask).forEach((key) => {
-            initialFiles[key] = [];
+          // For dropdown variables, ensure the value is set
+          if (isCheckVariable(key)) {
+            // Use the current value or default to an empty string
+            initialStrings[key] = result.VariablesTask[key].value?.toLowerCase() || "";
+          } else {
             initialStrings[key] = result.VariablesTask[key].value || "";
-            initialDownloadStates[key] = false;
-          });
+          }
           
-          setVariableFiles(initialFiles);
-          setVariableStrings(initialStrings);
-          setIsDownloading(initialDownloadStates);
-        }
-      } catch (error) {
-        console.error("Error fetching task:", error);
-        toast.error("Failed to load task details");
-      } finally {
-        if (isMounted) setIsLoading(false);
+          initialDownloadStates[key] = false;
+        });
+        
+        setVariableFiles(initialFiles);
+        setVariableStrings(initialStrings);
+        setIsDownloading(initialDownloadStates);
       }
-    };
-
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      toast.error("Failed to load task details");
+    } finally {
+      if (isMounted) setIsLoading(false);
+    }
+  };
     const fetchRole = async () => {
       try {
         const { data } = await getUserDetail();
@@ -115,80 +122,110 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   }, [taskId]);
 
   const hasDataToSend = () => {
-    const hasFiles = Object.values(variableFiles).some(
-      (files) => files.length > 0
-    );
-    const hasStrings = Object.entries(variableStrings).some(
-      ([key, value]) => {
-        const original = task?.VariablesTask?.[key]?.value || "";
-        return isCheckVariable(key) && value !== original && value !== "";
+  const hasFiles = Object.values(variableFiles).some(
+    (files) => files.length > 0
+  );
+
+  const hasChangedDropdowns = Object.entries(variableStrings).some(
+    ([key, value]) => {
+      if (!isCheckVariable(key)) return false;
+      const original = task?.VariablesTask?.[key]?.value?.toLowerCase() || "";
+      return value !== original && value !== "";
+    }
+  );
+
+  return hasFiles || hasChangedDropdowns || hasDownloadedFiles;
+};
+
+const handleSend = async () => {
+  const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
+  
+  // Get all dropdown variables, regardless of whether they've changed
+  const allDropdownValues = {};
+  
+  Object.entries(task?.VariablesTask || {}).forEach(([key, data]) => {
+    if (isCheckVariable(key)) {
+      // Use the current value from variableStrings, or fall back to the original value
+      const currentValue = variableStrings[key] || data.value?.toLowerCase() || "";
+      
+      // Always include dropdown values, even if they haven't changed
+      allDropdownValues[key] = { 
+        type: "String", 
+        value: currentValue, 
+        valueInfo: {} 
+      };
+    }
+  });
+
+  // Log the payload for debugging
+  console.log("All dropdown values to send:", allDropdownValues);
+  
+  const hasDropdowns = Object.keys(allDropdownValues).length > 0;
+  const hasDownloads = hasDownloadedFiles;
+
+  // Check if we have any data to send
+  if (!hasFiles && !hasDropdowns && !hasDownloads) {
+    toast.error("Please attach at least one file, select dropdown values, or download files");
+    return;
+  }
+
+  setIsSending(true);
+  try {
+    const promises = [];
+    
+    // Handle file uploads
+    if (hasFiles) {
+      Object.entries(variableFiles)
+        .filter(([, files]) => files.length > 0)
+        .forEach(([key, files]) => {
+          promises.push(sendTaskFiles(taskId, files, key));
+        });
+    }
+    
+    // Always send dropdown values if they exist
+    if (hasDropdowns) {
+      promises.push(sendDropdownValues(taskId, allDropdownValues));
+    }
+
+    // Process results
+    const results = await Promise.all(promises);
+    const success = results.find((r) => r?.user?.success || r?.success);
+    
+    if (success) {
+      toast.success(success.user?.message || success.message || "Sent successfully");
+      
+      // Reset files
+      setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
+      
+      // Refresh task data
+      const updated = await getTaskById(taskId);
+      setTask(updated || null);
+      
+      if (updated?.VariablesTask) {
+        const newStrings = {};
+        Object.keys(updated.VariablesTask).forEach((k) => {
+          newStrings[k] = updated.VariablesTask[k].value || "";
+        });
+        setVariableStrings(newStrings);
       }
-    );
-    return hasFiles || hasStrings || hasDownloadedFiles;
-  };
-
-  const handleSend = async () => {
-    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-    const changedDropdowns = {};
-
-    Object.entries(variableStrings).forEach(([key, value]) => {
-      const original = task?.VariablesTask?.[key]?.value || "";
-      if (isCheckVariable(key) && value !== original && value !== "") {
-        changedDropdowns[key] = { type: "String", value: value, valueInfo: {} };
-      }
-    });
-
-    const hasDropdowns = Object.keys(changedDropdowns).length > 0;
-
-    if (!hasFiles && !hasDropdowns && !hasDownloadedFiles) {
-      toast.error("Please attach at least one file, select dropdown values, or download files");
+      
+      router.push("/assignTask");
       return;
     }
-
-    setIsSending(true);
-    try {
-      const promises = [];
-      if (hasFiles) {
-        Object.entries(variableFiles)
-          .filter(([, files]) => files.length > 0)
-          .forEach(([key, files]) => {
-            promises.push(sendTaskFiles(taskId, files, key));
-          });
-      }
-      if (hasDropdowns) {
-        promises.push(sendDropdownValues(taskId, changedDropdowns));
-      }
-
-      const results = await Promise.all(promises);
-      const success = results.find((r) => r?.user?.success || r?.success);
-      if (success) {
-        toast.success(success.user?.message || success.message || "Sent successfully");
-        setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
-        const updated = await getTaskById(taskId);
-        setTask(updated || null);
-        if (updated?.VariablesTask) {
-          const newStrings = {};
-          Object.keys(updated.VariablesTask).forEach((k) => {
-            newStrings[k] = updated.VariablesTask[k].value || "";
-          });
-          setVariableStrings(newStrings);
-        }
-        router.push("/assignTask");
-        return;
-      }
-      const err = results.find((r) => r?.message);
-      if (err) {
-        toast.error(err.message);
-        return;
-      }
-      toast.error("Some uploads failed");
-    } catch (e) {
-      toast.error(e?.message || "Unexpected error occurred");
-    } finally {
-      setIsSending(false);
+    
+    const err = results.find((r) => r?.message);
+    if (err) {
+      toast.error(err.message);
+      return;
     }
-  };
-
+    
+    toast.error("Some uploads failed");
+  } catch (e) {
+    toast.error(e?.message || "Unexpected error occurred");
+  } finally {
+    setIsSending(false);
+  }
+};
   const handleStringValueChange = (key, value) => {
     setVariableStrings((prev) => ({ ...prev, [key]: value }));
   };
