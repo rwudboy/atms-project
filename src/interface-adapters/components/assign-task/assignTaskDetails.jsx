@@ -1,7 +1,6 @@
+// File: interface-adapters/components/assign-task/AssignDetailedTaskView.jsx
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { Separator } from "@/interface-adapters/components/ui/separator";
@@ -16,243 +15,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/interface-adapters/components/ui/select";
-import { X, Upload, Download } from "lucide-react";
-import { toast } from "sonner";
-import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
-import {
-  sendTaskFiles,
-  sendDropdownValues,
-} from "@/application-business-layer/usecases/resolve/upload";
-import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
-import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
-import { Complete } from "@/application-business-layer/usecases/complete/complete";
-import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
+import { X, Upload, Download } from "lucide-react";
 
-export default function AssignDetailedTask({ taskId }) {
-  const router = useRouter();
-
-  const [task, setTask] = useState(null);
-  const [role, setRole] = useState(null);
-  const [isDelegateOpen, setIsDelegateOpen] = useState(false);
-  const [reportText, setReportText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasDownloadedFiles, setHasDownloadedFiles] = useState(false);
-  const [variableFiles, setVariableFiles] = useState({});
-  const [variableStrings, setVariableStrings] = useState({});
-  const [isSending, setIsSending] = useState(false);
-  const [isDownloading, setIsDownloading] = useState({});
-  const [isUnclaiming, setIsUnclaiming] = useState(false);
-
-  const fileInputRefs = useRef({});
-  const downloadLinkRef = useRef(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchTask = async () => {
-      if (!taskId) return;
-      setIsLoading(true);
-      const result = await getTaskById(taskId);
-      if (isMounted) {
-        setTask(result || null);
-        setIsLoading(false);
-
-        // Initialize file state and string state for each variable
-        if (result?.VariablesTask) {
-          const initialFiles = {};
-          const initialStrings = {};
-          const initialDownloadStates = {};
-          Object.keys(result.VariablesTask).forEach((key) => {
-            initialFiles[key] = [];
-            initialStrings[key] = result.VariablesTask[key].value || "";
-            initialDownloadStates[key] = false;
-          });
-          setVariableFiles(initialFiles);
-          setVariableStrings(initialStrings);
-          setIsDownloading(initialDownloadStates);
-        }
-      }
-    };
-
-    const fetchRole = async () => {
-      try {
-        const { data } = await getUserDetail();
-        const user = data.user;
-        const roles = user?.role || [];
-        const selectedRole = roles[0] || "guest";
-        // Normalize role to uppercase
-        const capitalizedRole = selectedRole.toUpperCase();
-        if (isMounted) {
-          setRole(capitalizedRole);
-        }
-      } catch (error) {
-        console.error("Error fetching user detail:", error);
-      }
-    };
-
-    fetchTask();
-    fetchRole();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [taskId]);
-
-  const isCheckVariable = (variableKey) =>
-    variableKey.toLowerCase().includes("check");
-
-  const hasDataToSend = () => {
-    const hasFiles = Object.values(variableFiles).some(
-      (files) => files.length > 0
-    );
-    const hasStrings = Object.entries(variableStrings).some(
-      ([key, value]) => {
-        const original = task?.VariablesTask?.[key]?.value || "";
-        return isCheckVariable(key) && value !== original && value !== "";
-      }
-    );
-    return hasFiles || hasStrings || hasDownloadedFiles;
-  };
-
-  const handleSend = async () => {
-  const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-  const changedDropdowns = {};
-
-  Object.entries(variableStrings).forEach(([key, value]) => {
-    const original = task?.VariablesTask?.[key]?.value || "";
-    if (isCheckVariable(key) && value !== original && value !== "") {
-      changedDropdowns[key] = { type: "String", value: value, valueInfo: {} };
-    }
-  });
-
-  const hasDropdowns = Object.keys(changedDropdowns).length > 0;
-
-  if (!hasFiles && !hasDropdowns && !hasDownloadedFiles) {
-    toast.error("Please attach at least one file, select dropdown values, or download files");
-    return;
-  }
-
-  setIsSending(true);
-  try {
-    const promises = [];
-    if (hasFiles) {
-      Object.entries(variableFiles)
-        .filter(([, files]) => files.length > 0)
-        .forEach(([key, files]) => {
-          promises.push(sendTaskFiles(taskId, files, key));
-        });
-    }
-    if (hasDropdowns) {
-      promises.push(sendDropdownValues(taskId, changedDropdowns));
-    }
-
-    const results = await Promise.all(promises);
-    const success = results.find((r) => r?.user?.success || r?.success);
-    if (success) {
-      toast.success(success.user?.message || success.message || "Sent successfully");
-      setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
-      const updated = await getTaskById(taskId);
-      setTask(updated || null);
-      if (updated?.VariablesTask) {
-        const newStrings = {};
-        Object.keys(updated.VariablesTask).forEach((k) => {
-          newStrings[k] = updated.VariablesTask[k].value || "";
-        });
-        setVariableStrings(newStrings);
-      }
-      router.push("/assignTask");
-      return;
-    }
-    const err = results.find((r) => r?.message);
-    if (err) {
-      toast.error(err.message);
-      return;
-    }
-    toast.error("Some uploads failed");
-  } catch (e) {
-    toast.error(e?.message || "Unexpected error occurred");
-  } finally {
-    setIsSending(false);
-  }
-};
-
-  const handleStringValueChange = (key, value) => {
-    setVariableStrings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const formatDate = (dStr) =>
-    dStr
-      ? new Date(dStr).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-      : "—";
-
-  const isTaskOverdue = (due) => (due ? new Date(due) < new Date() : false);
-
-  const handleComplete = async () => {
-    setIsSending(true);
-    try {
-      const result = await Complete(taskId);
-      if (result?.success) {
-        toast.success(result.message || "Task completed successfully");
-        router.push("/assignTask");
-      } else {
-        toast.error(result.message || "Failed to complete task");
-      }
-    } catch (e) {
-      toast.error(e?.response?.data?.message || "Unexpected error");
-    } finally {
-      setIsSending(false);
-    }
-  };
-
-  const handleUnclaim = async () => {
-    setIsUnclaiming(true);
-    try {
-      const result = await UnclaimTask(taskId);
-      if (result.status) {
-        toast.success(result.message || "Task unclaimed successfully");
-        const updated = await getTaskById(taskId);
-        setTask(updated || null);
-        router.push("/assignTask");
-      } else {
-        toast.error(result.message || "Failed to unclaim task");
-      }
-    } catch (e) {
-      toast.error("Unexpected error while unclaiming task");
-    } finally {
-      setIsUnclaiming(false);
-    }
-  };
-
-  const handleAttachmentClick = (key) => fileInputRefs.current[key]?.click();
-
-  const handleFileChange = (e, key) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setVariableFiles((prev) => ({ ...prev, [key]: [file] }));
-    toast.success(`Added: ${file.name} to ${key.replace(/_/g, " ")}`);
-    fileInputRefs.current[key].value = "";
-  };
-
-  const removeFile = (key) => {
-    setVariableFiles((prev) => ({ ...prev, [key]: [] }));
-    toast.success(`File removed from ${key.replace(/_/g, " ")}`);
-  };
-
-  const handleDownload = (key, val) => {
-    if (!val) return;
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(val)}`;
-    window.open(url, "_blank");
-    setHasDownloadedFiles(true);
-    toast.success(`Downloaded ${key.replace(/_/g, " ")}`);
-  };
-
+export default function AssignDetailedTaskView({
+  task,
+  role,
+  isLoading,
+  hasDownloadedFiles,
+  variableFiles,
+  variableStrings,
+  isSending,
+  isDownloading,
+  isUnclaiming,
+  fileInputRefs,
+  onNavigateBack,
+  onOpenDelegate,
+  onStringValueChange,
+  onSend,
+  onComplete,
+  onUnclaim,
+  onAttachmentClick,
+  onFileChange,
+  onRemoveFile,
+  onDownload,
+  formatDate,
+  isTaskOverdue,
+  isCheckVariable,
+  hasDataToSend,
+  taskId
+}) {
   return (
     <div className="container mx-auto py-10 max-w-6xl">
       {(isLoading || !task || role === null) && (
@@ -269,10 +61,10 @@ export default function AssignDetailedTask({ taskId }) {
         <div className="space-y-6">
           {/* Back & Delegate */}
           <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={() => router.push("/assignTask")}>
+            <Button variant="outline" onClick={onNavigateBack}>
               ← Back to List
             </Button>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsDelegateOpen(true)}>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={onOpenDelegate}>
               Delegate
             </Button>
           </div>
@@ -366,7 +158,7 @@ export default function AssignDetailedTask({ taskId }) {
                             {isCheckVariable(key) ? (
                               <Select
                                 value={variableStrings[key] || ""}
-                                onValueChange={(v) => handleStringValueChange(key, v)}
+                                onValueChange={(v) => onStringValueChange(key, v)}
                               >
                                 <SelectTrigger className="w-full">
                                   <SelectValue placeholder="Select status" />
@@ -382,14 +174,14 @@ export default function AssignDetailedTask({ taskId }) {
                                   ref={(el) => (fileInputRefs.current[key] = el)}
                                   type="file"
                                   className="hidden"
-                                  onChange={(e) => handleFileChange(e, key)}
+                                  onChange={(e) => onFileChange(e, key)}
                                 />
                                 {data.value ? (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     className="w-full"
-                                    onClick={() => handleDownload(key, data.value)}
+                                    onClick={() => onDownload(key, data.value)}
                                     disabled={isDownloading[key]}
                                   >
                                     <Download className="h-4 w-4 mr-2" />
@@ -400,7 +192,7 @@ export default function AssignDetailedTask({ taskId }) {
                                     variant="outline"
                                     size="sm"
                                     className="w-full"
-                                    onClick={() => handleAttachmentClick(key)}
+                                    onClick={() => onAttachmentClick(key)}
                                   >
                                     <Upload className="h-4 w-4 mr-2" />
                                     Upload File
@@ -415,7 +207,7 @@ export default function AssignDetailedTask({ taskId }) {
                                         variant="ghost"
                                         size="sm"
                                         className="h-6 w-6 p-0"
-                                        onClick={() => handleAttachmentClick(key)}
+                                        onClick={() => onAttachmentClick(key)}
                                       >
                                         <Upload className="h-3 w-3" />
                                       </Button>
@@ -423,7 +215,7 @@ export default function AssignDetailedTask({ taskId }) {
                                         variant="ghost"
                                         size="sm"
                                         className="h-6 w-6 p-0"
-                                        onClick={() => removeFile(key)}
+                                        onClick={() => onRemoveFile(key)}
                                       >
                                         <X className="h-3 w-3" />
                                       </Button>
@@ -476,29 +268,30 @@ export default function AssignDetailedTask({ taskId }) {
           </div>
 
           {/* Resolve / Complete Button */}
-          <div className="flex justify-end pt-4 gap-2">
-            {task.delegition?.toUpperCase() === "RESOLVED" ? (
-              <Button onClick={handleComplete} disabled={isSending}>
-                {isSending ? "Completing..." : "Complete"}
-              </Button>
-            ) : (
-              <Button onClick={handleSend} disabled={!hasDataToSend() || isSending}>
-                {isSending
-                  ? "Sending..."
-                  : role === "MANAGER"
-                    ? "Complete"
-                    : "Resolve"}
-              </Button>
-            )}
-          </div>
+<div className="flex justify-end pt-4 gap-2">
+  {/* Case 3: Manager + non-null variables + null delegation = "Select Dropdown" */}
+  {role === "MANAGER" && 
+   !task?.delegition && 
+   task?.VariablesTask && 
+   Object.entries(task.VariablesTask).some(([key]) => key.startsWith("Check_")) ? (
+    <Button onClick={onSend} disabled={!hasDataToSend() || isSending}>
+      {isSending ? "Sending..." : "Select Dropdown"}
+    </Button>
+  ) : /* Case 2: Manager + RESOLVED delegation = "Complete" */
+    (role === "MANAGER" && task.delegition?.toUpperCase() === "RESOLVED") ? (
+      <Button onClick={onComplete} disabled={isSending}>
+        {isSending ? "Completing..." : "Complete"}
+      </Button>
+    ) : /* Case 1: Staff + PENDING delegation = "Resolve" (default case) */
+      (
+        <Button onClick={onSend} disabled={!hasDataToSend() || isSending}>
+          {isSending ? "Sending..." : "Resolve"}
+        </Button>
+      )
+  }
+</div>
         </div>
       )}
-
-      <DelegateTaskDialog
-        taskId={taskId}
-        open={isDelegateOpen}
-        onOpenChange={setIsDelegateOpen}
-      />
     </div>
   );
 }
