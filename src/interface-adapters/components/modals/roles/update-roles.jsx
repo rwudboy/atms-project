@@ -8,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/interface-adapters/components/ui/dialog";
-import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Label } from "@/interface-adapters/components/ui/label";
 import {
@@ -19,38 +18,27 @@ import {
   SelectValue,
 } from "@/interface-adapters/components/ui/select";
 import { Badge } from "@/interface-adapters/components/ui/badge";
-import { User, Shield, CheckCircle, XCircle } from "lucide-react";
+import { Shield, CheckCircle, XCircle } from "lucide-react";
 
 export const EditRoleModal = ({ isOpen, onClose, role, onSave }) => {
-  const [name, setName] = useState("");
   const [status, setStatus] = useState("active");
 
   useEffect(() => {
-    if (role) {
-      setName(role.name || "");
-      setStatus(role.status || "active");
-    } else {
-      setName("");
-      setStatus("active");
-    }
+    setStatus(role?.status || "active");
   }, [role]);
 
- const handleSave = () => {
-  if (!name.trim()) return;
-  onSave({
-    id: role?.uuid, 
-    body: {
-      RoleName: name.trim(),
-      status,
-    },
-  });
+  const handleSave = () => {
+    onSave({
+      id: role?.uuid, 
+      body: {
+        status,
+      },
+    });
 
-  onClose();
-};
-
+    onClose();
+  };
 
   const handleClose = () => {
-    setName("");
     setStatus("active");
     onClose();
   };
@@ -75,20 +63,6 @@ export const EditRoleModal = ({ isOpen, onClose, role, onSave }) => {
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="role-name" className="text-sm font-medium flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Role Name
-            </Label>
-            <Input
-              id="role-name"
-              placeholder="Enter role name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="h-10 w-full"
-            />
-          </div>
-
           <div className="space-y-2">
             <Label className="text-sm font-medium flex items-center gap-2">
               <CheckCircle className="h-4 w-4" />
@@ -128,7 +102,6 @@ export const EditRoleModal = ({ isOpen, onClose, role, onSave }) => {
                   <Shield className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium">{name || "Role Name"}</p>
                   <p className="text-xs text-muted-foreground">Preview</p>
                 </div>
               </div>
@@ -152,7 +125,7 @@ export const EditRoleModal = ({ isOpen, onClose, role, onSave }) => {
             <Button variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={!name.trim()} className="min-w-[80px]">
+            <Button onClick={handleSave} className="min-w-[80px]">
               {role ? "Update" : "Create"}
             </Button>
           </div>
