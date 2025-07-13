@@ -105,16 +105,23 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
         }
     }
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "Not set"
-        return new Date(dateString).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-        })
-    }
+    const formatTimeStamp = (timestamp) => {
+  if (!timestamp) return "Not set"
+  
+  const date = typeof timestamp === "number" ? new Date(timestamp) : new Date(timestamp)
+  
+  if (isNaN(date.getTime())) {
+    return "Invalid date"
+  }
+  
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
 
     const SkeletonTaskCard = () => (
         <Card className="border-l-4 border-l-muted">
@@ -309,14 +316,7 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                                                 <span className="text-muted-foreground">
                                                                     Created:
                                                                 </span>
-                                                                <span>{formatDate(task.created)}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                                                <span className="text-muted-foreground">
-                                                                    Due Date:
-                                                                </span>
-                                                                <span>{formatDate(task.due_date)}</span>
+                                                                <span>{formatTimeStamp(task.createBy)}</span>
                                                             </div>
                                                             {task.followUp && (
                                                                 <div className="flex items-center gap-2">

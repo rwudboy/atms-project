@@ -11,7 +11,6 @@ import {
 } from "@/application-business-layer/usecases/resolve/upload";
 import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
-import { sendTaskFileManager } from "@/application-business-layer/usecases/complete/complete-manager";
 import { Complete } from "@/application-business-layer/usecases/complete/complete";
 import AssignDetailedTaskView from "@/interface-adapters/components/assign-task/assignTaskDetails";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
@@ -129,66 +128,66 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   };
 
   const handleSend = async () => {
-  const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-  const changedDropdowns = {};
+    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
+    const changedDropdowns = {};
 
-  Object.entries(variableStrings).forEach(([key, value]) => {
-    const original = task?.VariablesTask?.[key]?.value || "";
-    if (isCheckVariable(key) && value !== original && value !== "") {
-      changedDropdowns[key] = { type: "String", value: value, valueInfo: {} };
-    }
-  });
-
-  const hasDropdowns = Object.keys(changedDropdowns).length > 0;
-
-  if (!hasFiles && !hasDropdowns && !hasDownloadedFiles) {
-    toast.error("Please attach at least one file, select dropdown values, or download files");
-    return;
-  }
-
-  setIsSending(true);
-  try {
-    const promises = [];
-    if (hasFiles) {
-      Object.entries(variableFiles)
-        .filter(([, files]) => files.length > 0)
-        .forEach(([key, files]) => {
-          promises.push(sendTaskFiles(taskId, files, key));
-        });
-    }
-    if (hasDropdowns) {
-      promises.push(sendDropdownValues(taskId, changedDropdowns));
-    }
-
-    const results = await Promise.all(promises);
-    const success = results.find((r) => r?.user?.success || r?.success);
-    if (success) {
-      toast.success(success.user?.message || success.message || "Sent successfully");
-      setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
-      const updated = await getTaskById(taskId);
-      setTask(updated || null);
-      if (updated?.VariablesTask) {
-        const newStrings = {};
-        Object.keys(updated.VariablesTask).forEach((k) => {
-          newStrings[k] = updated.VariablesTask[k].value || "";
-        });
-        setVariableStrings(newStrings);
+    Object.entries(variableStrings).forEach(([key, value]) => {
+      const original = task?.VariablesTask?.[key]?.value || "";
+      if (isCheckVariable(key) && value !== original && value !== "") {
+        changedDropdowns[key] = { type: "String", value: value, valueInfo: {} };
       }
-      router.push("/assignTask");
+    });
+
+    const hasDropdowns = Object.keys(changedDropdowns).length > 0;
+
+    if (!hasFiles && !hasDropdowns && !hasDownloadedFiles) {
+      toast.error("Please attach at least one file, select dropdown values, or download files");
       return;
     }
-    const err = results.find((r) => r?.message);
-    if (err) {
-      toast.error(err.message);
-      return;
+
+    setIsSending(true);
+    try {
+      const promises = [];
+      if (hasFiles) {
+        Object.entries(variableFiles)
+          .filter(([, files]) => files.length > 0)
+          .forEach(([key, files]) => {
+            promises.push(sendTaskFiles(taskId, files, key));
+          });
+      }
+      if (hasDropdowns) {
+        promises.push(sendDropdownValues(taskId, changedDropdowns));
+      }
+
+      const results = await Promise.all(promises);
+      const success = results.find((r) => r?.user?.success || r?.success);
+      if (success) {
+        toast.success(success.user?.message || success.message || "Sent successfully");
+        setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
+        const updated = await getTaskById(taskId);
+        setTask(updated || null);
+        if (updated?.VariablesTask) {
+          const newStrings = {};
+          Object.keys(updated.VariablesTask).forEach((k) => {
+            newStrings[k] = updated.VariablesTask[k].value || "";
+          });
+          setVariableStrings(newStrings);
+        }
+        router.push("/assignTask");
+        return;
+      }
+      const err = results.find((r) => r?.message);
+      if (err) {
+        toast.error(err.message);
+        return;
+      }
+      toast.error("Some uploads failed");
+    } catch (e) {
+      toast.error(e?.message || "Unexpected error occurred");
+    } finally {
+      setIsSending(false);
     }
-    toast.error("Some uploads failed");
-  } catch (e) {
-    toast.error(e?.message || "Unexpected error occurred");
-  } finally {
-    setIsSending(false);
-  }
-};
+  };
 
   const handleStringValueChange = (key, value) => {
     setVariableStrings((prev) => ({ ...prev, [key]: value }));
@@ -197,39 +196,15 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   const handleComplete = async () => {
     setIsSending(true);
     try {
-      // Check if the user is a MANAGER and the task delegation is null
-      if (role === "MANAGER" && !task?.delegition) {
-        // Prepare variables for sendTaskFileManager
-        const filesToUpload = Object.values(variableFiles).flatMap((files) => files);
-        const fieldName = Object.keys(variableFiles).find((key) => variableFiles[key].length > 0);
-        const stringValues = Object.entries(variableStrings).reduce((acc, [key, value]) => {
-          if (isCheckVariable(key) && value !== (task?.VariablesTask?.[key]?.value || "")) {
-            acc[key] = value;
-          }
-          return acc;
-        }, {});
-
-        // Call sendTaskFileManager to complete the task with files and string values
-        const result = await sendTaskFileManager(taskId, filesToUpload, fieldName, stringValues);
-
-        if (result.success) {
-          toast.success(result.message || "Task completed with files successfully");
-          router.push("/assignTask");
-        } else {
-          toast.error(result.message || "Failed to complete task with files");
-        }
+      const result = await Complete(taskId);
+      if (result?.success) {
+        toast.success(result.message || "Task completed successfully");
+        router.push("/assignTask");
       } else {
-        // Call the original Complete function for other cases
-        const result = await Complete(taskId);
-        if (result?.success) {
-          toast.success(result.message || "Task completed successfully");
-          router.push("/assignTask");
-        } else {
-          toast.error(result.message || "Failed to complete task");
-        }
+        toast.error(result.message || "Failed to complete task");
       }
     } catch (e) {
-      toast.error(e?.response?.data?.message || "Unexpected error occurred");
+      toast.error(e?.response?.data?.message || "Unexpected error");
     } finally {
       setIsSending(false);
     }
