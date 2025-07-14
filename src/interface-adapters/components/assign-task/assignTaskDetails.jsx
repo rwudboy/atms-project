@@ -274,28 +274,40 @@ export default function AssignDetailedTaskView({
           </div>
 
           {/* Resolve / Complete Button */}
-          <div className="flex justify-end pt-4 gap-2">
-            {/* Case 3: Manager + non-null variables + null delegation = "Select Dropdown" */}
-            {role === "MANAGER" &&
-              !task?.delegition &&
-              task?.VariablesTask &&
-              Object.entries(task.VariablesTask).some(([key]) => key.startsWith("Check_")) ? (
-              <Button onClick={onSend}>
-                {isSending ? "Sending..." : "Select Dropdown"}
-              </Button>
-            ) : /* Case 2: Manager + RESOLVED delegation = "Complete" */
-              (role === "MANAGER" && task.delegition?.toUpperCase() === "RESOLVED") ? (
-                <Button onClick={onComplete} disabled={isSending}>
-                  {isSending ? "Completing..." : "Complete"}
-                </Button>
-              ) : /* Case 1: Staff + PENDING delegation = "Resolve" (default case) */
-                (
-                  <Button onClick={onSend} disabled={!hasDataToSend() || isSending}>  
-                    {isSending ? "Sending..." : "Resolve"}
-                  </Button>
-                )
-            }
-          </div>
+<div className="flex justify-end pt-4 gap-2">
+  {/* Hide button for MANAGER with no Check_ variables */}
+  {!(role === "MANAGER" && 
+    (!task?.VariablesTask || 
+     !Object.entries(task.VariablesTask).some(([key]) => key.startsWith("Check_")))) && (
+    <>
+      {/* Manager cases */}
+      {role === "MANAGER" && (
+        <>
+          {/* Case 1: No delegation & has Check_ variables */}
+          {!task?.delegition && task?.VariablesTask && (
+            <Button onClick={onSend}>
+              {isSending ? "Completing..." : "Complete"}
+            </Button>
+          )}
+          
+          {/* Case 2: Resolved delegation */}
+          {task.delegition?.toUpperCase() === "RESOLVED" && (
+            <Button onClick={onComplete} disabled={isSending}>
+              {isSending ? "Completing..." : "Complete"}
+            </Button>
+          )}
+        </>
+      )}
+      
+      {/* Staff/default case */}
+      {role !== "MANAGER" && (
+        <Button onClick={onSend} disabled={!hasDataToSend() || isSending}>  
+          {isSending ? "Sending..." : "Resolve"}
+        </Button>
+      )}
+    </>
+  )}
+</div>
         </div>
       )}
     </div>
