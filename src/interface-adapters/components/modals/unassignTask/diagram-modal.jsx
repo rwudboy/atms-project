@@ -6,7 +6,6 @@ import { Button } from "@/interface-adapters/components/ui/button";
 import {
   ZoomIn, ZoomOut,
   ArrowLeft, ArrowRight, ArrowUp, ArrowDown,
-  X,
 } from "lucide-react";
 import BpmnJS from "bpmn-js/dist/bpmn-navigated-viewer.production.min.js";
 import "bpmn-js/dist/assets/diagram-js.css";
@@ -29,29 +28,30 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
       }
 
       await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (!canvasRef.current) return;
+
       bpmnViewerRef.current = new BpmnJS({ container: canvasRef.current });
 
       try {
         await bpmnViewerRef.current.importXML(bpmXml);
-
         const canvas = bpmnViewerRef.current.get("canvas");
-        const elementRegistry = bpmnViewerRef.current.get("elementRegistry");
         canvas.zoom("fit-viewport");
 
-        // Add highlight style for background
-        const style = document.createElement("style");
-        style.innerHTML = `
-          .highlight .djs-visual > :nth-child(1) {
-            fill: rgba(253, 224, 71, 0.6) !important; /* yellow-400 */
-          }
-        `;
-        document.head.appendChild(style);
+        const styleId = "bpmn-highlight-style";
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement("style");
+            style.id = styleId;
+            style.innerHTML = `
+              .highlight .djs-visual > :nth-child(1) {
+                fill: rgba(253, 224, 71, 0.6) !important;
+              }
+            `;
+            document.head.appendChild(style);
+        }
 
-        // Highlight active element
         if (activeElementId) {
           canvas.addMarker(activeElementId, "highlight");
         }
-
         setError(null);
       } catch (err) {
         console.error("Failed to render diagram:", err);
@@ -70,17 +70,15 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
   }, [isOpen, bpmXml, activeElementId]);
 
   const handleZoom = (factor) => {
-    const canvas = bpmnViewerRef.current?.get("canvas");
-    if (!canvas) return;
-    const currentZoom = canvas.zoom();
-    canvas.zoom(currentZoom * factor);
+    bpmnViewerRef.current?.get("canvas").zoom(factor, 'auto');
   };
 
   const handlePan = (direction) => {
     const canvas = bpmnViewerRef.current?.get("canvas");
     if (!canvas) return;
+    
     const viewbox = canvas.viewbox();
-    const delta = 100;
+    const delta = 100 / viewbox.scale;
 
     if (direction === "left") viewbox.x -= delta;
     if (direction === "right") viewbox.x += delta;
@@ -93,44 +91,36 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="w-[90vw] h-[90vh] p-4"
+        className="w-[90vw] h-[90vh] p-4 flex flex-col"
         style={{ maxWidth: "none", maxHeight: "none" }}
       >
-        <div className="flex justify-between items-center mb-2">
+        {/* 👇 THIS LINE IS MODIFIED 👇 */}
+        <div className="flex justify-between items-center mb-2 flex-shrink-0 pr-8">
           <h2 className="text-lg font-semibold">Process Diagram</h2>
+          
           <div className="flex gap-2">
-            <Button variant="outline" size="icon" onClick={() => handlePan("left")}>
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handlePan("right")}>
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handlePan("up")}>
-              <ArrowUp className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handlePan("down")}>
-              <ArrowDown className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handleZoom(1.2)}>
-              <ZoomIn className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handleZoom(0.8)}>
-              <ZoomOut className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="w-4 h-4" />
-            </Button>
+            <Button variant="outline" size="icon" onClick={() => handlePan("left")}><ArrowLeft className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handlePan("right")}><ArrowRight className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handlePan("up")}><ArrowUp className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handlePan("down")}><ArrowDown className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handleZoom(1.2)}><ZoomIn className="w-4 h-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handleZoom(0.8)}><ZoomOut className="w-4 h-4" /></Button>
           </div>
         </div>
 
-        {loading && <div className="text-center py-8">Loading diagram...</div>}
-        {error && <div className="text-center text-red-600 py-4">{error}</div>}
-
-        <div
-          ref={canvasRef}
-          className="w-full h-full border rounded bg-white"
-          style={{ minHeight: "700px" }}
-        />
+        <div className="w-full flex-grow border rounded bg-white relative">
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center">Loading diagram...</div>
+          )}
+          {error && (
+            <div className="absolute inset-0 flex items-center justify-center text-red-600">{error}</div>
+          )}
+          <div
+            ref={canvasRef}
+            className="w-full h-full"
+            style={{ display: loading || error ? 'none' : 'block' }}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -93,7 +93,7 @@ export default function DashboardPage() {
               },
               {
                 title: "Project Instance",
-                description: "Access and use your instance whenever you want.",
+                description: "Access and use your instance.",
                 href: "/projectInstance",
                 icon: <LayoutDashboard className="h-8 w-8" />,
               },

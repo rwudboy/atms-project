@@ -9,7 +9,7 @@ import {
   DialogDescription,
 } from "@/interface-adapters/components/ui/dialog";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { X, ZoomIn, ZoomOut, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
+import { ZoomIn, ZoomOut, ArrowUp, ArrowDown, ArrowLeft, ArrowRight } from "lucide-react";
 import BpmnJS from 'bpmn-js/dist/bpmn-viewer.production.min.js';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
@@ -107,7 +107,7 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="p-2 [button[aria-label='Close']]:hidden"
+        className="p-2"
         style={{
           maxWidth: "none",
           width: "1600px",
@@ -117,7 +117,7 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
           flexDirection: 'column',
         }}
       >
-        <DialogHeader className="flex-shrink-0 flex flex-row items-center justify-between pb-2 border-b">
+        <DialogHeader className="flex-shrink-0 flex flex-row items-center justify-between pb-2 border-b pr-12">
           <div>
             <DialogTitle className="text-xl">BPMN Diagram</DialogTitle>
             <DialogDescription>
@@ -125,32 +125,12 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2">
-            {/* Navigation controls */}
-            <Button variant="outline" size="icon" onClick={() => navigateView('left')}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => navigateView('right')}>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => navigateView('up')}>
-              <ArrowUp className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => navigateView('down')}>
-              <ArrowDown className="h-4 w-4" />
-            </Button>
-            
-            {/* Zoom controls */}
-            <Button variant="outline" size="icon" onClick={() => handleZoom(1.2)}>
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => handleZoom(0.8)}>
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-            
-            {/* Close button */}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-5 w-5" />
-            </Button>
+            <Button variant="outline" size="icon" onClick={() => navigateView('left')}><ArrowLeft className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => navigateView('right')}><ArrowRight className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => navigateView('up')}><ArrowUp className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => navigateView('down')}><ArrowDown className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handleZoom(1.2)}><ZoomIn className="h-4 w-4" /></Button>
+            <Button variant="outline" size="icon" onClick={() => handleZoom(0.8)}><ZoomOut className="h-4 w-4" /></Button>
           </div>
         </DialogHeader>
         <div className="relative flex-grow w-full h-full mt-2 border rounded-lg overflow-hidden">
