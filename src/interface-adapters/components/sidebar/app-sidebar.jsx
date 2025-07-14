@@ -21,6 +21,8 @@ import {
   IconBook,
   IconUserEdit,
   IconArchive,
+  IconReport,
+  IconListDetails,
 } from "@tabler/icons-react";
 
 import { NavSecondary } from "@/interface-adapters/components/nav-secondary";
@@ -36,7 +38,6 @@ import {
 } from "@/interface-adapters/components/ui/sidebar";
 
 export function AppSidebar(props) {
-
   const [name, setName] = useState("Loading...");
   const [email, setEmail] = useState("Loading...");
   const [hydrated, setHydrated] = useState(false);
@@ -61,38 +62,26 @@ export function AppSidebar(props) {
   }, []);
 
   const loading = useAuthGuard();
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-      </div>
-    );
-  }
-
+  if (loading) return <div className="flex justify-center items-center min-h-screen"></div>;
+  if (!hydrated) return null;
 
   const projectSubItems = [
     { title: "Project Instance", url: "/projectInstance", icon: IconFolder },
     { title: "Archives", url: "/archives", icon: IconArchive },
     { title: "Unassign Task", url: "/unassignTask", icon: IconListCheck },
     { title: "Assign Task", url: "/assignTask", icon: IconInbox },
-
   ];
 
   const referenceItems = [
     { title: "Customers", url: "/customer", icon: IconUsers },
     { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
     { title: "Roles", url: "/roles", icon: IconUserEdit },
-
-
   ];
 
   const userManagement = [
     { title: "User Profile", url: "/userProfile", icon: IconUsers },
     { title: "User Role", url: "/userRole", icon: IconUserEdit },
-
   ];
-
-  if (!hydrated) return null;
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -100,15 +89,14 @@ export function AppSidebar(props) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
+              <Link href="#" className="flex items-center gap-2">
                 <img
                   src="/icon.jpg"
                   alt="testimage"
-                  className="!size-5 object-cover rounded" // match !size-5
+                  className="!size-5 object-cover rounded"
                 />
-
                 <span className="text-base font-semibold">ATMS.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -116,7 +104,6 @@ export function AppSidebar(props) {
 
       <SidebarContent>
         <SidebarMenu className="px-4">
-
           {/* Dashboard */}
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
@@ -140,20 +127,21 @@ export function AppSidebar(props) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {isProjectsOpen && projectSubItems.map((item, index) => (
-            <SidebarMenuItem key={index}>
-              <SidebarMenuButton asChild>
-                <Link href={item.url} className="flex items-center gap-2 pl-8">
-                  <item.icon className="size-4" />
-                  {item.title}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {isProjectsOpen &&
+            projectSubItems.map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url} className="flex items-center gap-2 pl-8">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
 
           {/* User Management - Collapsible */}
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsUserManagementOpen(!isUserManagementOpen)}>
+            <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
               <IconUsers className="mr-2 size-5" />
               <span>User Management</span>
               {isUserManagementOpen ? (
@@ -164,16 +152,17 @@ export function AppSidebar(props) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {isUserManagementOpen && userManagement.map((item, index) => (
-            <SidebarMenuItem key={index}>
-              <SidebarMenuButton asChild>
-                <Link href={item.url} className="flex items-center gap-2 pl-8">
-                  <item.icon className="size-4" />
-                  {item.title}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {isUserManagementOpen &&
+            userManagement.map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url} className="flex items-center gap-2 pl-8">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
 
           {/* Reference - Collapsible */}
           <SidebarMenuItem>
@@ -188,20 +177,21 @@ export function AppSidebar(props) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {isReferenceOpen && referenceItems.map((item, index) => (
-            <SidebarMenuItem key={index}>
-              <SidebarMenuButton asChild>
-                <Link href={item.url} className="flex items-center gap-2 pl-8">
-                  <item.icon className="size-4" />
-                  {item.title}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {isReferenceOpen &&
+            referenceItems.map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url} className="flex items-center gap-2 pl-8">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
 
           {/* Other Main Items */}
-
-          {/* <SidebarMenuItem>
+          {/* 
+          <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <a href="#" className="flex items-center gap-2">
                 <IconReport className="size-5" />
@@ -217,7 +207,8 @@ export function AppSidebar(props) {
                 My Task
               </a>
             </SidebarMenuButton>
-          </SidebarMenuItem> */}
+          </SidebarMenuItem>
+          */}
         </SidebarMenu>
 
         {/* <NavSecondary items={navSecondary} className="mt-auto" /> */}
