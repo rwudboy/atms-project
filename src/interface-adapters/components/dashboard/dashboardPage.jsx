@@ -87,7 +87,7 @@ export default function DashboardPage() {
               },
               {
                 title: "Unassign Task",
-                description: "Unassigned Task (for manager only)",
+                description: "Unassigned Task",
                 href: "/unassignTask",
                 icon: <ListChecks className="h-8 w-8" />,
               },
