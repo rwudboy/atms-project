@@ -120,13 +120,15 @@ export default function UnassignTaskPage() {
 const handleViewDiagram = async (instance) => {
   try {
     setDiagramLoading(true);
+    setSelectedTaskForDiagram(instance);
     const result = await getDiagram(instance.id);
     console.log("Diagram Response:", result);
 
     if (result?.data?.bpm) {
       const diagramPayload = {
         bpm: result.data.bpm,
-        active: result.data.active ?? null, // optional
+        active: result.data.active ?? null,
+        tahap: result.data.tahap??null, // optional
       };
 
       setDiagramData(diagramPayload);
@@ -189,6 +191,7 @@ isDiagramModalOpen={isDiagramModalOpen}
     diagramData={diagramData}
     diagramLoading={diagramLoading}
     onCloseModal={handleCloseModal}
+    task={selectedTaskForDiagram}
     />
   );
 }

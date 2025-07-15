@@ -244,7 +244,7 @@ export default function AssignDetailedTaskView({
 
           {/* Comments */}
           <div>
-            <h3 className="font-semibold text-base mb-4">Comments</h3>
+            <h3 className="font-semibold text-base mb-4">Note</h3>
             {Array.isArray(task.comment) && task.comment.length > 0 ? (
               <div className="space-y-4">
                 {task.comment.map((c, i) => (
@@ -290,9 +290,16 @@ export default function AssignDetailedTaskView({
                 </Button>
               ) : /* Case 1: Staff + PENDING delegation = "Resolve" (default case) */
                 (
-                  <Button onClick={onSend} disabled={!hasDataToSend() || isSending}>  
-                    {isSending ? "Sending..." : "Resolve"}
-                  </Button>
+                 <Button
+  onClick={onSend}
+  disabled={!hasDataToSend() || isSending}
+>
+  {isSending
+    ? "Sending..."
+    : role === "MANAGER"
+    ? "Complete"
+    : "Resolve"}
+</Button>
                 )
             }
           </div>

@@ -65,6 +65,7 @@ export default function AssignedTaskView({
             <TableHeader>
               <TableRow>
                 <TableHead>Task Name</TableHead>
+                <TableHead>Project Name</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -86,6 +87,7 @@ export default function AssignedTaskView({
                 tasks.map((task) => (
                   <TableRow key={task.id}>
                     <TableCell className="font-medium">{task.name}</TableCell>
+                    <TableCell className="font-medium">{task.projek.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {formatTaskDate(task.due_date)}

@@ -32,6 +32,7 @@ export default function UnassignTaskView({
   onCloseModal,
   isTaskOverdue,
   formatDate,
+  selectedTaskForDiagram,
   getStatusClassName,
   getDelegationClassName,
 }) {
@@ -117,6 +118,7 @@ export default function UnassignTaskView({
           onClose={onCloseModal}
           responseData={diagramData}
           loading={diagramLoading}
+        task={selectedTaskForDiagram}
         />
       </div>
     );
