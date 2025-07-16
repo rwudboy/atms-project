@@ -176,14 +176,6 @@ export default function WorkgroupsPage() {
               Manage and view all workgroup data across your organization.
             </CardDescription>
           </div>
-          <AddWorkgroupDrawer
-            onWorkgroupAdded={fetchWorkgroups}
-            trigger={
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Add Workgroup
-              </Button>
-            }
-          />
         </CardHeader>
       </Card>
 

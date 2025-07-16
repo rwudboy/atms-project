@@ -66,6 +66,7 @@ export default function AssignedTaskView({
               <TableRow>
                 <TableHead>Task Name</TableHead>
                 <TableHead>Project Name</TableHead>
+                <TableHead>Customer</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -88,6 +89,7 @@ export default function AssignedTaskView({
                   <TableRow key={task.id}>
                     <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell className="font-medium">{task.projek.name}</TableCell>
+                    <TableCell className="font-medium">{task.projek.customer}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {formatTaskDate(task.due_date)}
