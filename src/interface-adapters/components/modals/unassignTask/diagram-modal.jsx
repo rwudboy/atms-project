@@ -96,7 +96,10 @@ export default function DiagramModal({ isOpen, onClose, responseData, loading })
       >
         {/* 👇 THIS LINE IS MODIFIED 👇 */}
         <div className="flex justify-between items-center mb-2 flex-shrink-0 pr-8">
-          <h2 className="text-lg font-semibold">Process Diagram</h2>
+        <h2 className="text-lg font-semibold">
+  Step : {responseData?.tahap ?? "—"}
+</h2>
+
           
           <div className="flex gap-2">
             <Button variant="outline" size="icon" onClick={() => handlePan("left")}><ArrowLeft className="w-4 h-4" /></Button>

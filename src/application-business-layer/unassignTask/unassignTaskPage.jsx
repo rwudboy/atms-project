@@ -122,7 +122,7 @@ const handleViewDiagram = async (instance) => {
     setDiagramLoading(true);
     setSelectedTaskForDiagram(instance);
     const result = await getDiagram(instance.id);
-    console.log("Diagram Response:", result);
+    console.log(tes)
 
     if (result?.data?.bpm) {
       const diagramPayload = {

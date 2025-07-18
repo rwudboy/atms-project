@@ -1,6 +1,6 @@
 import { getToken } from "@/framework-drivers/token/tokenService";
 
-export async function getUsers() {
+export async function getUsers(id) {
   const token = getToken();
   if (!token) {
     console.error("No token found.");
@@ -8,24 +8,26 @@ export async function getUsers() {
   }
 
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/workgroup`, {
+    const query = id ? `?intanceid=${encodeURIComponent(id)}` : "";
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/workgroup${query}`, {
       method: "GET",
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Accept": "application/json",
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
       },
     });
 
-    const result = await response.json();
+    const data = await response.json();
 
-    // Fixed validation logic to match your API response structure
-    if (!response.ok || !result.data || !Array.isArray(result.data)) {
-      throw new Error(result.message || "Failed to fetch users");
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch user");
     }
 
-    return result;
+    return data
+
+
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return { data: [] }; // Return consistent structure
+    console.error("Error fetching user:", error);
+    return [];
   }
-}
+}              

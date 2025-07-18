@@ -21,7 +21,7 @@ import { DelegateTask } from "@/application-business-layer/usecases/assign-task/
 import { toast } from "sonner";
 import clsx from "clsx";
 
-export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
+export default function DelegateTaskDialog({ taskId, instanceId, open, onOpenChange }) {
   const [searchUser, setSearchUser] = useState("");
   const [comment, setComment] = useState("");
   const [userList, setUserList] = useState([]);
@@ -41,24 +41,29 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
   }, [open]);
 
   useEffect(() => {
-   const fetchUsers = async () => {
-  try {
-    setLoading(true);
-    const res = await getUsers();
-    console.log(res)
-    const workgroup = res?.data?.[0];
-    setUserList(workgroup?.username_workgroup || []);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    toast.error("Failed to fetch users.");
-    setUserList([]);
-  } finally {
-    setLoading(false);
-  }
-};
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        // Pass the instanceId to getUsers
+        const res = await getUsers(instanceId);
+        console.log("Get Users Response:", res);
+        console.log("Using Instance ID:", instanceId);
+        
+        const workgroup = res?.data?.[0];
+        setUserList(workgroup?.username_workgroup || []);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        toast.error("Failed to fetch users.");
+        setUserList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (open) fetchUsers();
-  }, [open]);
+    if (open && instanceId) {
+      fetchUsers();
+    }
+  }, [open, instanceId]);
 
   useEffect(() => {
     const filtered = userList.filter((user) =>
@@ -130,6 +135,11 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
           </DialogTitle>
           <DialogDescription>
             Select a user from the workgroup to delegate this task to.
+            {instanceId && (
+              <span className="block text-xs text-muted-foreground mt-1">
+                Instance ID: {instanceId}
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -176,7 +186,9 @@ export default function DelegateTaskDialog({ taskId, open, onOpenChange }) {
                   );
                 })
               ) : (
-                <div className="text-center py-8 text-muted-foreground">No users found.</div>
+                <div className="text-center py-8 text-muted-foreground">
+                  {instanceId ? "No users found." : "No instance ID available."}
+                </div>
               )}
             </div>
             {selectedUser && (
