@@ -64,10 +64,11 @@ export default function AssignedTaskView({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Task Name</TableHead>
                 <TableHead>Project Name</TableHead>
+                <TableHead>Task Name</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Due Date</TableHead>
+                <TableHead>Status </TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -87,9 +88,10 @@ export default function AssignedTaskView({
               ) : (
                 tasks.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell className="font-medium">{task.projek.name}</TableCell>
+                    <TableCell className="font-medium">{task.name}</TableCell>
                     <TableCell className="font-medium">{task.projek.customer}</TableCell>
+
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {formatTaskDate(task.due_date)}
@@ -100,6 +102,24 @@ export default function AssignedTaskView({
                         )}
                       </div>
                     </TableCell>
+             <TableCell className="font-medium">
+  {task.delegation === null ? (
+    "Not Delegated"
+  ) : (
+    <Badge
+      variant="outline"
+      className={
+        task.delegation === "RESOLVED"
+          ? "bg-green-500 text-white"
+          : task.delegation === "PENDING"
+          ? "bg-yellow-400 text-black"
+          : ""
+      }
+    >
+      {task.delegation}
+    </Badge>
+  )}
+</TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button
                         variant="outline"
