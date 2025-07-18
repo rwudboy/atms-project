@@ -126,14 +126,12 @@ export default function AssignTaskView({
                         <ButtonWithBadge 
                           onClick={() => onViewDiagram(task)} 
                           variant="outline"
-                          notificationCount={task.Resolve || task.resolve || 0}
                         >
                           View Diagram
                         </ButtonWithBadge>
                         <ButtonWithBadge 
                           onClick={() => onViewTaskDetail(task)} 
                           disabled={detailButtonLoading[task.id]}
-                          notificationCount={task.Resolve || task.resolve || 0}
                         >
                           {detailButtonLoading[task.id] ? "Loading..." : "Detail"}
                         </ButtonWithBadge>
