@@ -38,6 +38,9 @@ export default function AssignTaskView({
   viewButtonLoading = {},
   detailButtonLoading = {},
 }) {
+  const [diagramButtonLoading, setDiagramButtonLoading] = useState({});
+  const [taskDetailLoading, setTaskDetailLoading] = useState({});
+
   // Sort tasks alphabetically by project name (nama)
   const sortedTasks = [...tasks].sort((a, b) => {
     const nameA = (a.nama || "").toLowerCase();
@@ -58,6 +61,30 @@ export default function AssignTaskView({
       )}
     </div>
   );
+
+  // Handle view diagram with loading state
+  const handleViewDiagram = async (task) => {
+    setDiagramButtonLoading(prev => ({ ...prev, [task.id]: true }));
+    try {
+      await onViewDiagram(task);
+    } finally {
+      setDiagramButtonLoading(prev => ({ ...prev, [task.id]: false }));
+    }
+  };
+
+  // Handle task detail with loading state for route navigation
+  const handleViewTaskDetail = async (task) => {
+    setTaskDetailLoading(prev => ({ ...prev, [task.id]: true }));
+    try {
+      await onViewTaskDetail(task);
+      // Note: Loading state will persist until component unmounts due to route change
+      // This is intentional as user will navigate away from this page
+    } catch (error) {
+      // Only reset loading state if there's an error and user stays on page
+      setTaskDetailLoading(prev => ({ ...prev, [task.id]: false }));
+      console.error("Error navigating to task detail:", error);
+    }
+  };
 
   if (showDetails) {
     return (
@@ -124,16 +151,17 @@ export default function AssignTaskView({
                       </TableCell>
                       <TableCell className="text-right space-x-2">
                         <ButtonWithBadge 
-                          onClick={() => onViewDiagram(task)} 
+                          onClick={() => handleViewDiagram(task)} 
                           variant="outline"
+                          disabled={diagramButtonLoading[task.id]}
                         >
-                          View Diagram
+                          {diagramButtonLoading[task.id] ? "Loading..." : "View Diagram"}
                         </ButtonWithBadge>
                         <ButtonWithBadge 
-                          onClick={() => onViewTaskDetail(task)} 
-                          disabled={detailButtonLoading[task.id]}
+                          onClick={() => handleViewTaskDetail(task)} 
+                          disabled={taskDetailLoading[task.id] || detailButtonLoading[task.id]}
                         >
-                          {detailButtonLoading[task.id] ? "Loading..." : "Detail"}
+                          {(taskDetailLoading[task.id] || detailButtonLoading[task.id]) ? "Loading..." : "Detail"}
                         </ButtonWithBadge>
                       </TableCell>
                     </TableRow>
@@ -220,7 +248,7 @@ export default function AssignTaskView({
                       <TableCell>{task.customer || "—"}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClassName(task.status)}`}>
-                          {task.status}
+                          {task.status ? task.status.toUpperCase() : "—"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">

@@ -45,6 +45,17 @@ export default function AssignDetailedTaskView({
   hasDataToSend,
   taskId
 }) {
+  // Filter out null, undefined, or empty comments
+  const validComments = Array.isArray(task?.comment) 
+    ? task.comment.filter(c => 
+        c && 
+        c.description && 
+        c.description.trim() !== "" && 
+        c.description !== null && 
+        c.description !== undefined
+      )
+    : [];
+
   return (
     <div className="container mx-auto py-10 max-w-6xl">
       {(isLoading || !task || role === null) && (
@@ -60,17 +71,17 @@ export default function AssignDetailedTaskView({
       {!isLoading && task && role !== null && (
         <div className="space-y-6">
           {/* Back & Delegate */}
-       {/* Back & Delegate */}
-<div className="flex items-center justify-between">
-  <Button variant="outline" onClick={onNavigateBack}>
-    ← Back to List
-  </Button>
-  {role === "MANAGER" && (
-    <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={onOpenDelegate}>
-      Delegate
-    </Button>
-  )}
-</div>
+          <div className="flex items-center justify-between">
+            <Button variant="outline" onClick={onNavigateBack}>
+              ← Back to List
+            </Button>
+            {role === "MANAGER" && (
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={onOpenDelegate}>
+                Delegate
+              </Button>
+            )}
+          </div>
+
           {/* Title & Overdue Badge */}
           <div className="flex items-center gap-3">
             <h1 className="text-xl font-semibold">{task.task_name || "Task Detail"}</h1>
@@ -157,24 +168,24 @@ export default function AssignDetailedTaskView({
                             )}
                           </div>
                           <div className="space-y-3">
-                          {isCheckVariable(key) ? (
-  <Select
-    value={
-      variableStrings[key] || 
-      (data.value ? data.value.toLowerCase() : "") || 
-      ""
-    }
-    onValueChange={(v) => onStringValueChange(key, v)}
-  >
-    <SelectTrigger className="w-full">
-      <SelectValue placeholder="Select status" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="approved">APPROVED</SelectItem>
-      <SelectItem value="rejected">REJECTED</SelectItem>
-    </SelectContent>
-  </Select>
-) :(
+                            {isCheckVariable(key) ? (
+                              <Select
+                                value={
+                                  variableStrings[key] || 
+                                  (data.value ? data.value.toLowerCase() : "") || 
+                                  ""
+                                }
+                                onValueChange={(v) => onStringValueChange(key, v)}
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="approved">APPROVED</SelectItem>
+                                  <SelectItem value="rejected">REJECTED</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            ) : (
                               <>
                                 <input
                                   ref={(el) => (fileInputRefs.current[key] = el)}
@@ -245,9 +256,9 @@ export default function AssignDetailedTaskView({
           {/* Comments */}
           <div>
             <h3 className="font-semibold text-base mb-4">Note</h3>
-            {Array.isArray(task.comment) && task.comment.length > 0 ? (
+            {validComments.length > 0 ? (
               <div className="space-y-4">
-                {task.comment.map((c, i) => (
+                {validComments.map((c, i) => (
                   <div key={i} className="flex gap-3">
                     <Avatar className="h-8 w-8">
                       <AvatarFallback className="text-xs">
@@ -269,12 +280,12 @@ export default function AssignDetailedTaskView({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No comments</p>
+              <p className="text-sm text-muted-foreground">No note from manager</p>
             )}
           </div>
 
           {/* Resolve / Complete Button */}
- <div className="flex justify-end pt-4 gap-2">
+          <div className="flex justify-end pt-4 gap-2">
             {/* Case 3: Manager + non-null variables + null delegation = "Select Dropdown" */}
             {role === "MANAGER" &&
               !task?.delegition &&
@@ -290,16 +301,16 @@ export default function AssignDetailedTaskView({
                 </Button>
               ) : /* Case 1: Staff + PENDING delegation = "Resolve" (default case) */
                 (
-                 <Button
-  onClick={onSend}
-  disabled={!hasDataToSend() || isSending}
->
-  {isSending
-    ? "Sending..."
-    : role === "MANAGER"
-    ? "Complete"
-    : "Resolve"}
-</Button>
+                  <Button
+                    onClick={onSend}
+                    disabled={!hasDataToSend() || isSending}
+                  >
+                    {isSending
+                      ? "Sending..."
+                      : role === "MANAGER"
+                      ? "Complete"
+                      : "Resolve"}
+                  </Button>
                 )
             }
           </div>

@@ -238,7 +238,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
       const result = await Complete(taskId);
       if (result?.success) {
         toast.success(result.message || "Task completed successfully");
-        router.push("/assignTask");
+        router.push("/task");
       } else {
         toast.error(result.message || "Failed to complete task");
       }
@@ -257,7 +257,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
         toast.success(result.message || "Task unclaimed successfully");
         const updated = await getTaskById(taskId);
         setTask(updated || null);
-        router.push("/assignTask");
+        router.push("/task");
       } else {
         toast.error(result.message || "Failed to unclaim task");
       }
@@ -291,12 +291,9 @@ export default function AssignDetailedTaskContainer({ taskId }) {
     toast.success(`Downloaded ${key.replace(/_/g, " ")}`);
   };
 
-  const handleNavigateBack = () => router.push("/assignTask");
+  const handleNavigateBack = () => router.push("/task");
   
   const handleDelegateOpen = () => {
-    // Console log the task ID and Instance ID when delegate button is clicked
-    console.log("Task ID:", taskId);
-    console.log("Instance ID:", task?.InstanceId);
     setIsDelegateOpen(true);
   };
 
