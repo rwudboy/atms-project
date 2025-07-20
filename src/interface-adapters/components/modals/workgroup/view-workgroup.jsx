@@ -144,13 +144,6 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                   {workgroup.status?.toUpperCase()}
                 </Badge>
               </div>
-
-              <div className="space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Project</h3>
-                <p className="text-lg font-semibold">
-                  {workgroup.project?.length > 0 ? `${workgroup.project[0].name}` : "No Project"}
-                </p>
-              </div>
             </div>
 
             <Separator />

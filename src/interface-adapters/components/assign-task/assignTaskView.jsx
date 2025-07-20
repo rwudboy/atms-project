@@ -187,8 +187,8 @@ export default function AssignTaskView({
     <div className="container mx-auto py-10">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Assign Tasks</CardTitle>
-          <CardDescription>View and manage your assign tasks.</CardDescription>
+          <CardTitle>Tasks</CardTitle>
+          <CardDescription>View and manage your tasks.</CardDescription>
         </CardHeader>
       </Card>
 
