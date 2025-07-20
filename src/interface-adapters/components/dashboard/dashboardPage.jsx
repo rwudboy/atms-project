@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
 } from "lucide-react"
 import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
+import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 
 // Animation variants
 const containerVariants = {
@@ -42,21 +43,45 @@ const itemVariants = {
 
 export default function DashboardPage() {
   const [taskCount, setTaskCount] = useState(0)
+  const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const { data } = await getUserDetail();
+        const user = data.user;
+        const roles = user?.role || [];
+        const selectedRole = roles[0] || "guest";
+        setUserRole(selectedRole.toLowerCase());
+      } catch (error) {
+        console.error("Error fetching user role:", error);
+      }
+    };
+
     const fetchTasks = async () => {
       try {
         const response = await getTasks()
         if (response?.data?.status && Array.isArray(response.data.data)) {
-          setTaskCount(response.data.data.length)
+          if (userRole === "manager") {
+            // For managers: count tasks where Resolve is not 0
+            const unresolvedCount = response.data.data.filter(task => task.Resolve !== 0).length
+            setTaskCount(unresolvedCount)
+          } else {
+            // For other roles: count total tasks
+            setTaskCount(response.data.data.length)
+          }
         }
       } catch (error) {
         console.error("Error fetching tasks:", error)
       }
     }
 
-    fetchTasks()
-  }, [])
+    fetchUserRole().then(() => {
+      if (userRole !== null) {
+        fetchTasks()
+      }
+    })
+  }, [userRole])
 
   return (
     <motion.div
@@ -136,7 +161,7 @@ export default function DashboardPage() {
                         <CardDescription className="text-base text-muted-foreground leading-relaxed">
                           {item.description}
                         </CardDescription>
-                      </div>
+                        </div>
                     </CardContent>
                   </Card>
                 </motion.div>
