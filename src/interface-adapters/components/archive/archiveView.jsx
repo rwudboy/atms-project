@@ -134,7 +134,7 @@ export default function ArchiveView({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Project Name</TableHead>
                 <TableHead>Business Key</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Status</TableHead>

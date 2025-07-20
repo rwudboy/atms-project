@@ -194,7 +194,7 @@ export default function AssignTaskView({
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Search Tasks</CardTitle>
+          <CardTitle>Search Project</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
