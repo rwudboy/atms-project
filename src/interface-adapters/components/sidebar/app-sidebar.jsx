@@ -68,8 +68,7 @@ export function AppSidebar(props) {
   const projectSubItems = [
     { title: "Project Instance", url: "/projectInstance", icon: IconFolder },
     { title: "Archives", url: "/archives", icon: IconArchive },
-    { title: "Unassign Task", url: "/unassignTask", icon: IconListCheck },
-    { title: "Assign Task", url: "/assignTask", icon: IconInbox },
+    { title: "Task", url: "/task", icon: IconInbox },
   ];
 
   const referenceItems = [

@@ -114,9 +114,6 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                 <DialogTitle className="text-xl">
                   {loading ? "Loading..." : workgroup?.name || "Unknown"}
                 </DialogTitle>
-                <DialogDescription>
-                  {workgroup?.project?.length > 0 ? `View Detail Project` : "No Project"}
-                </DialogDescription>
               </div>
             </div>
           </div>

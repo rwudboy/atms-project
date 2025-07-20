@@ -9,8 +9,8 @@ import UserProfile from "@/app/userProfile/page";
 import ProjectInstance from "@/app/projectInstance/page";
 import ArchivesPage from "@/app/archives/page";
 import UnassignTask from "@/app/unassignTask/page";
-import AssignTask from "@/app/assignTask/page";
-import UserRole from "@/app/assignTask/page";
+import AssignTask from "@/app/task/page";
+import UserRole from "@/app/task/page";
 import Overdue from "@/app/overdue/page";
 import ForgotPassword from "@/app/forgotPassword/page";
 
@@ -25,8 +25,8 @@ export default function Page({ params }) {
     userProfile: < UserProfile/>,
     projectInstances :<ProjectInstance />,
     archives :<ArchivesPage />,
-    unassignTask:<UnassignTask />,
-    assignTask :<AssignTask />,
+    // unassignTask:<UnassignTask />,
+    task :<AssignTask />,
     userRole :<UserRole />,
     Overdue :<Overdue />,
     ForgotPassword :<ForgotPassword />

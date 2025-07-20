@@ -166,7 +166,7 @@ export default function UnassignTaskPage() {
     try {
       const taskName = task.name || "task";
       const slug = taskName.toLowerCase().replace(/\s+/g, "-");
-      router.push(`/assignTask/${taskKey}__${slug}`);
+      router.push(`/task/${taskKey}__${slug}`);
     } catch (error) {
       console.error("Error navigating to task detail:", error);
       toast.error("Unable to navigate to task detail");

@@ -210,7 +210,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
           setVariableStrings(newStrings);
         }
         
-        router.push("/assignTask");
+        router.push("/task");
         return;
       }
       
