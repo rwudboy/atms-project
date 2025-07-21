@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
+import { Badge } from "@/interface-adapters/components/ui/badge";
+import {
+  Card, CardContent, CardHeader, CardTitle, CardDescription
+} from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/interface-adapters/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/interface-adapters/components/ui/dialog";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "@/interface-adapters/components/ui/table";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
+} from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit } from "lucide-react";
 import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
@@ -21,21 +28,18 @@ export default function CustomersPage() {
   const [customerToDelete, setCustomerToDelete] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
-  
-  // Edit modal states
   const [showEditModal, setShowEditModal] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState(null);
 
   useEffect(() => {
-    const delayDebounce = setTimeout(async () => {
+    const fetchCustomers = async () => {
       setLoading(true);
-      const result = await getCustomers(searchTerm);
+      const result = await getCustomers();
       setCustomers(result);
       setLoading(false);
-    }, 1000); // 1 second debounce
-
-    return () => clearTimeout(delayDebounce); // Cleanup
-  }, [searchTerm]);
+    };
+    fetchCustomers();
+  }, []);
 
   const handleDeleteClick = (id) => {
     setCustomerToDelete(id);
@@ -70,21 +74,15 @@ export default function CustomersPage() {
   const handleUpdateCustomer = async (customerId, formData) => {
     try {
       await editCustomer(customerId, formData);
-      
-      // Update the customer in the local state
-      setCustomers(customers.map(customer => 
-        customer.id === customerId 
-          ? { ...customer, ...formData }
-          : customer
+      setCustomers(customers.map(customer =>
+        customer.id === customerId ? { ...customer, ...formData } : customer
       ));
-      
       toast.success("Customer updated successfully!");
       setShowEditModal(false);
       setCustomerToEdit(null);
     } catch (error) {
-      console.error("Error updating customer:", error);
       toast.error("Failed to update customer.");
-      throw error; // Re-throw to let the modal handle loading state
+      throw error;
     }
   };
 
@@ -92,6 +90,10 @@ export default function CustomersPage() {
     const updatedCustomers = await getCustomers();
     setCustomers(updatedCustomers);
   };
+
+  const filteredCustomers = customers.filter((customer) =>
+    customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="container mx-auto py-10">
@@ -146,39 +148,35 @@ export default function CustomersPage() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4">
-                    Loading...
-                  </TableCell>
+                  <TableCell colSpan={7} className="text-center py-4">Loading...</TableCell>
                 </TableRow>
-              ) : customers.length === 0 ? (
+              ) : filteredCustomers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-4">
-                    No customers found
-                  </TableCell>
+                  <TableCell colSpan={7} className="text-center py-4">No customers found</TableCell>
                 </TableRow>
               ) : (
-                customers.map((customer) => (
+                filteredCustomers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="font-medium">{customer.name}</TableCell>
                     <TableCell>{customer.address}</TableCell>
                     <TableCell>{customer.city}</TableCell>
                     <TableCell>{customer.country}</TableCell>
-                    <TableCell>{customer.status}</TableCell>
+                    <TableCell>
+                     <Badge
+  variant={customer.status?.toLowerCase() === "active" ? "success" : "default"}
+  className="uppercase"
+>
+  {customer.status}
+</Badge>
+
+                    </TableCell>
                     <TableCell>{customer.category}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleEditClick(customer)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => handleEditClick(customer)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          onClick={() => handleDeleteClick(customer.id)}
-                        >
+                        <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(customer.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -202,28 +200,17 @@ export default function CustomersPage() {
                 : "Are you sure you want to delete this customer? This action cannot be undone."}
             </DialogDescription>
           </DialogHeader>
-
           {deleteError && (
             <Alert variant="destructive" className="mt-4">
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{deleteError}</AlertDescription>
             </Alert>
           )}
-
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancel
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDeleteCustomer}>
+              {confirmDeleteStep ? "Yes, Delete Permanently" : "Delete"}
             </Button>
-
-            {!confirmDeleteStep ? (
-              <Button variant="destructive" onClick={handleDeleteCustomer}>
-                Delete
-              </Button>
-            ) : (
-              <Button variant="destructive" onClick={handleDeleteCustomer}>
-                Yes, Delete Permanently
-              </Button>
-            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

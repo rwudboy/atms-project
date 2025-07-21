@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/interface-adapte
 
 // Use Cases (Application Layer)
 import { getProjects } from "@/application-business-layer/usecases/project-instance/get-project";
-import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
+import { getCustomers } from "@/application-business-layer/usecases/project-instance/get-customer";
 import { getDiagram } from "@/application-business-layer/usecases/project-instance/get-diagram";
 
 // Child Presentational Components

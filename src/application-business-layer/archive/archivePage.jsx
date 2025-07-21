@@ -19,7 +19,7 @@ const formatArchiveStatus = (status) => {
 };
 
 const getStatusVariant = (status) => {
-  return status === "UNLOCKED" ? "success" : "default";
+  return status === "active" ? "success" : "default";
 };
 
 const ITEMS_PER_PAGE = 5;

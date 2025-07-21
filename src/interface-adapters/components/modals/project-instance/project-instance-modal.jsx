@@ -14,7 +14,7 @@ import { Button } from "@/interface-adapters/components/ui/button";
 import { Check } from "lucide-react";
 import { cn } from "@/interface-adapters/lib/utils";
 import { useState, useEffect } from "react";
-import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
+import { getCustomers } from "@/application-business-layer/usecases/project-instance/get-customer";
 import { createProjects } from "@/application-business-layer/usecases/project-instance/create-project";
 import { toast } from "sonner"; 
 
@@ -32,21 +32,39 @@ export default function ProjectInstanceModal({
   const [searchTerm, setSearchTerm] = useState("");
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [allCustomers, setAllCustomers] = useState([]); // Store all customers for search
 
+  // Load all customers when modal opens
   useEffect(() => {
-    const delayDebounce = setTimeout(async () => {
-      setLoading(true);
-      const result = await getCustomers(searchTerm);
-      const mapped = result.map((cust) => ({
-        value: cust.id,
-        label: cust.name,
-      }));
-      setCustomers(mapped);
-      setLoading(false);
-    }, 1000);
+    if (isOpen) {
+      const fetchCustomers = async () => {
+        setLoading(true);
+        const result = await getCustomers(""); // Get all customers initially
+        const mapped = result.map((cust) => ({
+          value: cust.id,
+          label: cust.name,
+        }));
+        setAllCustomers(mapped);
+        setCustomers(mapped);
+        setLoading(false);
+      };
+      
+      fetchCustomers();
+    }
+  }, [isOpen]);
 
-    return () => clearTimeout(delayDebounce);
-  }, [searchTerm]);
+  // Regular search function (no debounce)
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    if (term === "") {
+      setCustomers(allCustomers);
+    } else {
+      const filtered = allCustomers.filter(customer =>
+        customer.label.toLowerCase().includes(term.toLowerCase())
+      );
+      setCustomers(filtered);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +82,6 @@ export default function ProjectInstanceModal({
     } else {
       toast.error(`Failed to start project ${contractNumber}`);
     }
-
   };
 
   return (
@@ -110,7 +127,7 @@ export default function ProjectInstanceModal({
               id="customer-search"
               placeholder="Type to search..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
             />
             <div className="border rounded-md max-h-40 overflow-y-auto mt-2">
               {loading ? (

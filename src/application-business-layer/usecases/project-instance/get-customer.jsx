@@ -8,8 +8,7 @@ export async function getCustomers() {
   }
 
   try {
-    // const query = searchTerm ? `?search=${encodeURIComponent(searchTerm)}` : "";
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customers`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/customers/process`, {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`,
