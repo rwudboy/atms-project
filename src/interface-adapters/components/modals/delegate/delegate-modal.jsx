@@ -46,8 +46,6 @@ export default function DelegateTaskDialog({ taskId, instanceId, open, onOpenCha
         setLoading(true);
         // Pass the instanceId to getUsers
         const res = await getUsers(instanceId);
-        console.log("Get Users Response:", res);
-        console.log("Using Instance ID:", instanceId);
         
         const workgroup = res?.data?.[0];
         setUserList(workgroup?.username_workgroup || []);
@@ -131,21 +129,16 @@ export default function DelegateTaskDialog({ taskId, instanceId, open, onOpenCha
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Send className="h-5 w-5 text-primary" />
-            <span>User Delegation Task</span>
+            <span>Staff Delegation Task</span>
           </DialogTitle>
           <DialogDescription>
-            Select a user from the workgroup to delegate this task to.
-            {instanceId && (
-              <span className="block text-xs text-muted-foreground mt-1">
-                Instance ID: {instanceId}
-              </span>
-            )}
+            Select a Staff from the workgroup to delegate this task to.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Search User</Label>
+            <Label>Search Staff</Label>
             <Input
               placeholder="Search by username..."
               value={searchUser}
@@ -155,7 +148,7 @@ export default function DelegateTaskDialog({ taskId, instanceId, open, onOpenCha
           </div>
 
           <div className="space-y-2">
-            <Label>Select User <span className="text-destructive">*</span></Label>
+            <Label>Select Staff <span className="text-destructive">*</span></Label>
             <div className="grid gap-3 max-h-72 overflow-y-auto">
               {loading ? (
                 <div className="text-center py-8 text-muted-foreground">Loading users...</div>
