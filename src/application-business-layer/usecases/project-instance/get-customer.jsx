@@ -22,7 +22,7 @@ export async function getCustomers() {
       throw new Error(data.message || "Failed to fetch customers");
     }
 
-    return Array.isArray(data.user) ? data.user : [];
+    return data
   } catch (error) {
     console.error("Error fetching customers:", error);
     return [];

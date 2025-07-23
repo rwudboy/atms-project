@@ -16,7 +16,7 @@ import { cn } from "@/interface-adapters/lib/utils";
 import { useState, useEffect } from "react";
 import { getCustomers } from "@/application-business-layer/usecases/project-instance/get-customer";
 import { createProjects } from "@/application-business-layer/usecases/project-instance/create-project";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
 
 export default function ProjectInstanceModal({
   isOpen,
@@ -32,34 +32,42 @@ export default function ProjectInstanceModal({
   const [searchTerm, setSearchTerm] = useState("");
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [allCustomers, setAllCustomers] = useState([]); // Store all customers for search
+  const [allCustomers, setAllCustomers] = useState([]);
 
-  // Load all customers when modal opens
   useEffect(() => {
     if (isOpen) {
       const fetchCustomers = async () => {
         setLoading(true);
-        const result = await getCustomers(""); // Get all customers initially
-        const mapped = result.map((cust) => ({
-          value: cust.id,
-          label: cust.name,
-        }));
-        setAllCustomers(mapped);
-        setCustomers(mapped);
-        setLoading(false);
+        try {
+          const result = await getCustomers("");
+          const data = result?.data || []; // Extract 'data' array safely
+          console.log(data)
+
+          const mapped = data.map((cust) => ({
+            value: cust.id,
+            label: cust.name,
+          }));
+
+          setAllCustomers(mapped);
+          setCustomers(mapped);
+        } catch (error) {
+          console.error("Failed to fetch customers", error);
+          toast.error("Error fetching customers.");
+        } finally {
+          setLoading(false);
+        }
       };
-      
+
       fetchCustomers();
     }
   }, [isOpen]);
 
-  // Regular search function (no debounce)
   const handleSearch = (term) => {
     setSearchTerm(term);
-    if (term === "") {
+    if (!term) {
       setCustomers(allCustomers);
     } else {
-      const filtered = allCustomers.filter(customer =>
+      const filtered = allCustomers.filter((customer) =>
         customer.label.toLowerCase().includes(term.toLowerCase())
       );
       setCustomers(filtered);
@@ -129,6 +137,7 @@ export default function ProjectInstanceModal({
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
             />
+
             <div className="border rounded-md max-h-40 overflow-y-auto mt-2">
               {loading ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground">
