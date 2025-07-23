@@ -117,31 +117,31 @@ export default function DashboardPage() {
             variants={containerVariants}
           >
             {[
-              {
-                title: "User Profile",
-                description: "Manage your personal account settings, security preferences, and user information to keep your profile up to date.",
-                href: "/userProfile",
-                icon: <User className="h-8 w-8" />,
-                showBadge: false,
-                badgeCount: 0,
-              },
-              {
-                title: "Task",
-                description: "View, assign, and track all your tasks efficiently. Monitor progress and ensure timely completion of assignments.",
-                href: "/task",
-                icon: <ListChecks className="h-8 w-8" />,
-                showBadge: taskCount > 0,
-                badgeCount: taskCount,
-              },
-              {
-                title: "Project Instance",
-                description: "Access and manage your project instances. Monitor system performance and configure project-specific settings.",
-                href: "/projectInstance",
-                icon: <LayoutDashboard className="h-8 w-8" />,
-                showBadge: false,
-                badgeCount: 0,
-              },
-            ].map((item, index) => (
+  {
+    title: "User Profile",
+    description: "Manage your personal account settings, security preferences, and user information to keep your profile up to date.",
+    href: "/userProfile",
+    icon: <User className="h-8 w-8" />,
+    showBadge: false,
+    badgeCount: 0,
+  },
+  {
+    title: "Task",
+    description: "View, assign, and track all your tasks efficiently. Monitor progress and ensure timely completion of assignments.",
+    href: "/task",
+    icon: <ListChecks className="h-8 w-8" />,
+    showBadge: taskCount > 0,
+    badgeCount: taskCount,
+  },
+  ...(userRole !== "staff" ? [{
+    title: "Project Instance",
+    description: "Access and manage your project instances. Monitor system performance and configure project-specific settings.",
+    href: "/projectInstance",
+    icon: <LayoutDashboard className="h-8 w-8" />,
+    showBadge: false,
+    badgeCount: 0,
+  }] : []),
+].map((item, index) => (
               <Link href={item.href} passHref key={index}>
                 <motion.div variants={itemVariants} className="h-full">
                   <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-border hover:border-primary group flex flex-col justify-between">

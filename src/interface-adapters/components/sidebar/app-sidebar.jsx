@@ -44,6 +44,7 @@ export function AppSidebar(props) {
   const [isProjectsOpen, setIsProjectsOpen] = useState(false);
   const [isUserManagementOpen, setIsUserManagmentOpen] = useState(false);
   const [isReferenceOpen, setIsReferenceOpen] = useState(false);
+    const [userRole, setUserRole] = useState(null)
 
   useEffect(() => {
     setHydrated(true);
@@ -52,8 +53,10 @@ export function AppSidebar(props) {
         const { data } = await getUserDetail();
         const userName = data?.user?.username || "Guest";
         const userEmail = data?.user?.email || "no-email@example.com";
+       const role = data?.user.role?.[0] || null;
         setName(userName);
         setEmail(userEmail);
+        setUserRole(role);
       } catch (error) {
         console.error("Error fetching user detail:", error);
       }
@@ -103,112 +106,131 @@ export function AppSidebar(props) {
 
       <SidebarContent>
         <SidebarMenu className="px-4">
-          {/* Dashboard */}
-          <SidebarMenuItem>
+  {userRole === "staff" ? (
+    <>
+      {/* User Management (Only User Profile) */}
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
+          <IconUsers className="mr-2 size-5" />
+          <span>User Management</span>
+          {isUserManagementOpen ? (
+            <IconChevronUp className="ml-auto size-4" />
+          ) : (
+            <IconChevronDown className="ml-auto size-4" />
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      {isUserManagementOpen && (
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <Link href="/userProfile" className="flex items-center gap-2 pl-8">
+              <IconUsers className="size-4" />
+              User Profile
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
+
+      {/* Task (Direct Access) */}
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <Link href="/task" className="flex items-center gap-2">
+            <IconInbox className="size-5" />
+            Task
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </>
+  ) : (
+    <>
+      {/* Non-staff: Full Sidebar */}
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <IconDashboard className="size-5" />
+            Dashboard
+          </Link>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      {/* Projects */}
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
+          <IconFolder className="mr-2 size-5" />
+          <span>Projects</span>
+          {isProjectsOpen ? (
+            <IconChevronUp className="ml-auto size-4" />
+          ) : (
+            <IconChevronDown className="ml-auto size-4" />
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      {isProjectsOpen &&
+        projectSubItems.map((item, index) => (
+          <SidebarMenuItem key={index}>
             <SidebarMenuButton asChild>
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <IconDashboard className="size-5" />
-                Dashboard
+              <Link href={item.url} className="flex items-center gap-2 pl-8">
+                <item.icon className="size-4" />
+                {item.title}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+        ))}
 
-          {/* Projects - Collapsible */}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
-              <IconFolder className="mr-2 size-5" />
-              <span>Projects</span>
-              {isProjectsOpen ? (
-                <IconChevronUp className="ml-auto size-4" />
-              ) : (
-                <IconChevronDown className="ml-auto size-4" />
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+      {/* User Management */}
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
+          <IconUsers className="mr-2 size-5" />
+          <span>User Management</span>
+          {isUserManagementOpen ? (
+            <IconChevronUp className="ml-auto size-4" />
+          ) : (
+            <IconChevronDown className="ml-auto size-4" />
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
 
-          {isProjectsOpen &&
-            projectSubItems.map((item, index) => (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url} className="flex items-center gap-2 pl-8">
-                    <item.icon className="size-4" />
-                    {item.title}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-
-          {/* User Management - Collapsible */}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
-              <IconUsers className="mr-2 size-5" />
-              <span>User Management</span>
-              {isUserManagementOpen ? (
-                <IconChevronUp className="ml-auto size-4" />
-              ) : (
-                <IconChevronDown className="ml-auto size-4" />
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {isUserManagementOpen &&
-            userManagement.map((item, index) => (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url} className="flex items-center gap-2 pl-8">
-                    <item.icon className="size-4" />
-                    {item.title}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-
-          {/* Reference - Collapsible */}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsReferenceOpen(!isReferenceOpen)}>
-              <IconBook className="mr-2 size-5" />
-              <span>Reference</span>
-              {isReferenceOpen ? (
-                <IconChevronUp className="ml-auto size-4" />
-              ) : (
-                <IconChevronDown className="ml-auto size-4" />
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {isReferenceOpen &&
-            referenceItems.map((item, index) => (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url} className="flex items-center gap-2 pl-8">
-                    <item.icon className="size-4" />
-                    {item.title}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-
-          {/* Other Main Items */}
-          {/* 
-          <SidebarMenuItem>
+      {isUserManagementOpen &&
+        userManagement.map((item, index) => (
+          <SidebarMenuItem key={index}>
             <SidebarMenuButton asChild>
-              <a href="#" className="flex items-center gap-2">
-                <IconReport className="size-5" />
-                Reports
-              </a>
+              <Link href={item.url} className="flex items-center gap-2 pl-8">
+                <item.icon className="size-4" />
+                {item.title}
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
+        ))}
 
-          <SidebarMenuItem>
+      {/* Reference */}
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={() => setIsReferenceOpen(!isReferenceOpen)}>
+          <IconBook className="mr-2 size-5" />
+          <span>Reference</span>
+          {isReferenceOpen ? (
+            <IconChevronUp className="ml-auto size-4" />
+          ) : (
+            <IconChevronDown className="ml-auto size-4" />
+          )}
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      {isReferenceOpen &&
+        referenceItems.map((item, index) => (
+          <SidebarMenuItem key={index}>
             <SidebarMenuButton asChild>
-              <a href="#" className="flex items-center gap-2">
-                <IconListDetails className="size-5" />
-                My Task
-              </a>
+              <Link href={item.url} className="flex items-center gap-2 pl-8">
+                <item.icon className="size-4" />
+                {item.title}
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          */}
-        </SidebarMenu>
+        ))}
+    </>
+  )}
+</SidebarMenu>
 
         {/* <NavSecondary items={navSecondary} className="mt-auto" /> */}
       </SidebarContent>

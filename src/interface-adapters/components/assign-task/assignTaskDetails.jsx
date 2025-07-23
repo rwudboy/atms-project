@@ -21,6 +21,7 @@ import { X, Upload, Download } from "lucide-react";
 export default function AssignDetailedTaskView({
   task,
   role,
+  delegition,
   isLoading,
   hasDownloadedFiles,
   variableFiles,
@@ -75,11 +76,20 @@ export default function AssignDetailedTaskView({
             <Button variant="outline" onClick={onNavigateBack}>
               ← Back to List
             </Button>
-            {role === "MANAGER" && (
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={onOpenDelegate}>
-                Delegate
-              </Button>
-            )}
+        {role === "MANAGER" && (
+  <Button
+    size="sm"
+    onClick={onOpenDelegate}
+    className={
+      task?.delegition?.toUpperCase() === "RESOLVED"
+        ? "bg-yellow-500 hover:bg-yellow-600 text-white"
+        : "bg-blue-600 hover:bg-blue-700 text-white"
+    }
+  >
+    {task?.delegition?.toUpperCase() === "RESOLVED" ? "Revise Task" : "Delegate"}
+  </Button>
+)}
+
           </div>
 
           {/* Title & Overdue Badge */}

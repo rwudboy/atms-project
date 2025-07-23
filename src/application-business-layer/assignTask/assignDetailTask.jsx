@@ -37,6 +37,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   const router = useRouter();
   const [task, setTask] = useState(null);
   const [role, setRole] = useState(null);
+  const [delegition, setdelegition] = useState(null);
   const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -61,7 +62,8 @@ export default function AssignDetailedTaskContainer({ taskId }) {
       try {
         setIsLoading(true);
         const result = await getTaskById(taskId);
-        
+        const delegition = result.delegition;
+        setdelegition(delegition);
         if (!isMounted) return;
         
         setTask(result || null);
@@ -302,6 +304,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
       <AssignDetailedTaskView
         task={task}
         role={role}
+        delegition={delegition}
         isLoading={isLoading}
         hasDownloadedFiles={hasDownloadedFiles}
         variableFiles={variableFiles}
