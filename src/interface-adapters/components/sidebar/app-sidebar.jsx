@@ -102,29 +102,15 @@ export function AppSidebar(props) {
         <SidebarMenu className="px-4">
           {userRole === "staff" ? (
             <>
-              {/* User Profile only */}
+              {/* User Profile (no dropdown for staff) */}
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
-                  <IconUsers className="mr-2 size-5" />
-                  <span>User Management</span>
-                  {isUserManagementOpen ? (
-                    <IconChevronUp className="ml-auto size-4" />
-                  ) : (
-                    <IconChevronDown className="ml-auto size-4" />
-                  )}
+                <SidebarMenuButton asChild>
+                  <Link href="/userProfile" className="flex items-center gap-2">
+                    <IconUsers className="size-5" />
+                    User Profile
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              {isUserManagementOpen && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link href="/userProfile" className="flex items-center gap-2 pl-8">
-                      <IconUsers className="size-4" />
-                      User Profile
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
 
               {/* Task */}
               <SidebarMenuItem>
