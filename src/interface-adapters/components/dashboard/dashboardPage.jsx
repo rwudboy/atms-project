@@ -74,7 +74,6 @@ export default function DashboardPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
         <p className="ml-2 text-lg text-muted-foreground">Loading dashboard...</p>
       </div>
     );
