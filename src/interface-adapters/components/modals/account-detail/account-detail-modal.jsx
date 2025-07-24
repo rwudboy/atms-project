@@ -10,7 +10,7 @@ import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/interface-adapters/components/ui/select";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
+import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import useAuth
 
 const jabatan = [
   "Project Manager",
@@ -28,6 +28,8 @@ const jabatan = [
 ];
 
 export default function AccountDetailModal({ isOpen, onOpenChange, defaultValues = {}, onSave }) {
+  const { user } = useAuth(); // Get the authenticated user from the context
+
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -37,37 +39,16 @@ export default function AccountDetailModal({ isOpen, onOpenChange, defaultValues
   const [position, setPosition] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
-  
-    const fetchUserData = async () => {
-      try {
-        const { data } = await getUserDetail();
-        const dataUser = data.user;
-  
-        if (dataUser && isMounted) {
-          const roles = dataUser.Role?.split(",").map(r => r.trim()) || [];
-
-          setUsername(dataUser.username || "");
-          setEmail(dataUser.email || "");
-          setPassword(""); 
-          setPhone(dataUser.phone || "");
-          setDate(dataUser.TanggalLahir || "");
-          setPosition("");
-        }
-      } catch (error) {
-        console.error("Error fetching user detail:", error);
-      }
-    };
-  
-    if (isOpen) {
-      fetchUserData();
+    if (isOpen && user) {
+      setUsername(user.username || "");
+      setEmail(user.email || "");
+      setPassword("");
+      setPhone(user.phoneNumber || "");
+      setDate(user.TanggalLahir || "");
+      setPosition(user.posisi || "");
     }
-  
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen]);
-     
+  }, [isOpen, user]);
+
   const handleSave = () => {
     if (onSave) {
       onSave({
@@ -82,7 +63,7 @@ export default function AccountDetailModal({ isOpen, onOpenChange, defaultValues
     }
 
     if (onOpenChange) {
-      onOpenChange(false); 
+      onOpenChange(false);
     }
   };
 

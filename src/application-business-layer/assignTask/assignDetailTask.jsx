@@ -9,13 +9,12 @@ import {
   sendTaskFiles,
   sendDropdownValues,
 } from "@/application-business-layer/usecases/resolve/upload";
-import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
 import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
 import { Complete } from "@/application-business-layer/usecases/complete/complete";
 import AssignDetailedTaskView from "@/interface-adapters/components/assign-task/assignTaskDetails";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
-// Business logic functions
 const isCheckVariable = (variableKey) =>
   variableKey?.toLowerCase().includes("check");
 
@@ -33,11 +32,12 @@ const formatDate = (dStr) =>
 const isTaskOverdue = (due) => (due ? new Date(due) < new Date() : false);
 
 export default function AssignDetailedTaskContainer({ taskId }) {
-  
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
   const [task, setTask] = useState(null);
   const [role, setRole] = useState(null);
-  const [delegition, setdelegition] = useState(null);
+  const [delegition, setDelegition] = useState(null);
   const [isDelegateOpen, setIsDelegateOpen] = useState(false);
   const [reportText, setReportText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -49,45 +49,48 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   const [isUnclaiming, setIsUnclaiming] = useState(false);
 
   const fileInputRefs = useRef({});
-  const downloadLinkRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchTask = async () => {
+    const fetchTaskAndSetRole = async () => {
       if (!taskId) {
+        if (isMounted) setIsLoading(false);
         return;
       }
-      
+
+      if (user) {
+        const userRoles = user.role || [];
+        setRole(userRoles.toUpperCase());
+      }
+
       try {
         setIsLoading(true);
         const result = await getTaskById(taskId);
-        const delegition = result.delegition;
-        setdelegition(delegition);
+        const delegationData = result.delegition;
         if (!isMounted) return;
-        
+
+        setDelegition(delegationData);
         setTask(result || null);
-        
-        // Initialize file state and string state for each variable
+
         if (result?.VariablesTask) {
           const initialFiles = {};
           const initialStrings = {};
           const initialDownloadStates = {};
-          
+
           Object.keys(result.VariablesTask).forEach((key) => {
             initialFiles[key] = [];
-            
-            // For dropdown variables, ensure the value is set
+
             if (isCheckVariable(key)) {
-              // Use the current value or default to an empty string
-              initialStrings[key] = result.VariablesTask[key].value?.toLowerCase() || "";
+              initialStrings[key] =
+                result.VariablesTask[key].value?.toLowerCase() || "";
             } else {
               initialStrings[key] = result.VariablesTask[key].value || "";
             }
-            
+
             initialDownloadStates[key] = false;
           });
-          
+
           setVariableFiles(initialFiles);
           setVariableStrings(initialStrings);
           setIsDownloading(initialDownloadStates);
@@ -100,28 +103,14 @@ export default function AssignDetailedTaskContainer({ taskId }) {
       }
     };
 
-    const fetchRole = async () => {
-      try {
-        const { data } = await getUserDetail();
-        const user = data.user;
-        const roles = user?.role || [];
-        const capitalizedRole = roles.toUpperCase();
-        
-        if (isMounted) {
-          setRole(capitalizedRole);
-        }
-      } catch (error) {
-        console.error("Error fetching user detail:", error);
-      }
-    };
-
-    fetchTask();
-    fetchRole();
+    if (!authLoading) {
+      fetchTaskAndSetRole();
+    }
 
     return () => {
       isMounted = false;
     };
-  }, [taskId]);
+  }, [taskId, user, authLoading]);
 
   const hasDataToSend = () => {
     const hasFiles = Object.values(variableFiles).some(
@@ -140,42 +129,41 @@ export default function AssignDetailedTaskContainer({ taskId }) {
   };
 
   const handleSend = async () => {
-    const hasFiles = Object.values(variableFiles).some((files) => files.length > 0);
-    
-    // Get all dropdown variables, regardless of whether they've changed
+    const hasFiles = Object.values(variableFiles).some(
+      (files) => files.length > 0
+    );
+
     const allDropdownValues = {};
-    
+
     Object.entries(task?.VariablesTask || {}).forEach(([key, data]) => {
       if (isCheckVariable(key)) {
-        // Use the current value from variableStrings, or fall back to the original value
-        const currentValue = variableStrings[key] || data.value?.toLowerCase() || "";
-        
-        // Always include dropdown values, even if they haven't changed
-        allDropdownValues[key] = { 
-          type: "String", 
-          value: currentValue, 
-          valueInfo: {} 
+        const currentValue =
+          variableStrings[key] || data.value?.toLowerCase() || "";
+
+        allDropdownValues[key] = {
+          type: "String",
+          value: currentValue,
+          valueInfo: {},
         };
       }
     });
 
-    // Log the payload for debugging
     console.log("All dropdown values to send:", allDropdownValues);
-    
+
     const hasDropdowns = Object.keys(allDropdownValues).length > 0;
     const hasDownloads = hasDownloadedFiles;
 
-    // Check if we have any data to send
     if (!hasFiles && !hasDropdowns && !hasDownloads) {
-      toast.error("Please attach at least one file, select dropdown values, or download files");
+      toast.error(
+        "Please attach at least one file, select dropdown values, or download files"
+      );
       return;
     }
 
     setIsSending(true);
     try {
       const promises = [];
-      
-      // Handle file uploads
+
       if (hasFiles) {
         Object.entries(variableFiles)
           .filter(([, files]) => files.length > 0)
@@ -183,26 +171,24 @@ export default function AssignDetailedTaskContainer({ taskId }) {
             promises.push(sendTaskFiles(taskId, files, key));
           });
       }
-      
-      // Always send dropdown values if they exist
+
       if (hasDropdowns) {
         promises.push(sendDropdownValues(taskId, allDropdownValues));
       }
 
-      // Process results
       const results = await Promise.all(promises);
       const success = results.find((r) => r?.user?.success || r?.success);
-      
+
       if (success) {
         toast.success(success.user?.message || success.message || "Sent successfully");
-        
-        // Reset files
-        setVariableFiles(Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []])));
-        
-        // Refresh task data
+
+        setVariableFiles(
+          Object.fromEntries(Object.keys(variableFiles).map((k) => [k, []]))
+        );
+
         const updated = await getTaskById(taskId);
         setTask(updated || null);
-        
+
         if (updated?.VariablesTask) {
           const newStrings = {};
           Object.keys(updated.VariablesTask).forEach((k) => {
@@ -210,17 +196,17 @@ export default function AssignDetailedTaskContainer({ taskId }) {
           });
           setVariableStrings(newStrings);
         }
-        
+
         router.push("/task");
         return;
       }
-      
+
       const err = results.find((r) => r?.message);
       if (err) {
         toast.error(err.message);
         return;
       }
-      
+
       toast.error("Some uploads failed");
     } catch (e) {
       toast.error(e?.message || "Unexpected error occurred");
@@ -286,14 +272,16 @@ export default function AssignDetailedTaskContainer({ taskId }) {
 
   const handleDownload = (key, val) => {
     if (!val) return;
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(val)}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL}/inbox?fileName=${encodeURIComponent(
+      val
+    )}`;
     window.open(url, "_blank");
     setHasDownloadedFiles(true);
     toast.success(`Downloaded ${key.replace(/_/g, " ")}`);
   };
 
   const handleNavigateBack = () => router.push("/task");
-  
+
   const handleDelegateOpen = () => {
     setIsDelegateOpen(true);
   };
@@ -330,7 +318,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
 
       <DelegateTaskDialog
         taskId={taskId}
-        instanceId={task?.InstanceId} // Pass the Instance ID
+        instanceId={task?.InstanceId}
         open={isDelegateOpen}
         onOpenChange={setIsDelegateOpen}
       />

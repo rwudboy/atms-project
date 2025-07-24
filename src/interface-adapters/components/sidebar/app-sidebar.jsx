@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 
+// If you still need useAuthGuard for route protection beyond just fetching user data
 import useAuthGuard from "@/framework-drivers/hooks/useAuthGuard";
-import { useState, useEffect } from "react";
-import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
+import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import useAuth hook
 
 import {
   IconDashboard,
@@ -32,35 +32,20 @@ import {
 } from "@/interface-adapters/components/ui/sidebar";
 
 export function AppSidebar(props) {
-  const [name, setName] = useState("Loading...");
-  const [email, setEmail] = useState("Loading...");
-  const [hydrated, setHydrated] = useState(false);
-  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
-  const [isUserManagementOpen, setIsUserManagmentOpen] = useState(false);
-  const [isReferenceOpen, setIsReferenceOpen] = useState(false);
-  const [userRole, setUserRole] = useState(null);
+  const { user, loading: authLoading } = useAuth();
+  const loadingGuard = useAuthGuard();
 
-  useEffect(() => {
-    setHydrated(true);
-    const fetchUser = async () => {
-      try {
-        const { data } = await getUserDetail();
-        const userName = data?.user?.username || "Guest";
-        const userEmail = data?.user?.email || "no-email@example.com";
-        const role = data?.user?.role || [];
-        setName(userName);
-        setEmail(userEmail);
-        setUserRole(role);
-      } catch (error) {
-        console.error("Error fetching user detail:", error);
-      }
-    };
-    fetchUser();
-  }, []);
+  const [isProjectsOpen, setIsProjectsOpen] = React.useState(false);
+  const [isUserManagementOpen, setIsUserManagmentOpen] = React.useState(false);
+  const [isReferenceOpen, setIsReferenceOpen] = React.useState(false);
 
-  const loading = useAuthGuard();
-  if (loading) return <div className="flex justify-center items-center min-h-screen"></div>;
-  if (!hydrated) return null;
+  const name = user?.fullName || user?.username || "Guest";
+  const email = user?.email || "no-email@example.com";
+  const userRole = user?.role || ""; 
+
+  if (authLoading || loadingGuard) {
+    return <div className="flex justify-center items-center min-h-screen"></div>;
+  }
 
   const projectSubItems = [
     { title: "Project Instance", url: "/projectInstance", icon: IconFolder },
@@ -76,7 +61,7 @@ export function AppSidebar(props) {
 
   const userManagement = [
     { title: "User Profile", url: "/userProfile", icon: IconUsers },
-    { title: "User Role", url: "/userRole", icon: IconUserEdit },
+    { title: "User Role", url: "/userRole", icon: IconUserEdit }, // Assuming '/userRole' is for managing roles
   ];
 
   return (
@@ -100,12 +85,12 @@ export function AppSidebar(props) {
 
       <SidebarContent>
         <SidebarMenu className="px-4">
-          {userRole === "staff" ? (
+          {userRole.toLowerCase() === "staff" ? ( // Ensure case-insensitivity
             <>
               {/* User Profile */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/userProfile" className="flex items-center gap-2">
+                  <Link href={`/userProfile/${user?.username || ''}`} className="flex items-center gap-2"> {/* Link to specific user profile */}
                     <IconUsers className="size-5" />
                     User Profile
                   </Link>

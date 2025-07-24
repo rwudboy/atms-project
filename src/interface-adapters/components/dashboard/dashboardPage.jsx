@@ -1,22 +1,17 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { useEffect, useState } from "react"
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from "@/interface-adapters/components/ui/card"
-import {
-  User,
-  Users,
-  ListChecks,
-  LayoutDashboard,
-} from "lucide-react"
+} from "@/interface-adapters/components/ui/card";
+import { User, Users, ListChecks, LayoutDashboard } from "lucide-react";
 import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
-import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
+import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import useAuth
 
 // Animation variants
 const containerVariants = {
@@ -31,7 +26,7 @@ const containerVariants = {
       staggerChildren: 0.2,
     },
   },
-}
+};
 
 const itemVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -40,48 +35,50 @@ const itemVariants = {
     y: 0,
     transition: { duration: 0.4, ease: "easeOut" },
   },
-}
+};
 
 export default function DashboardPage() {
-  const [taskCount, setTaskCount] = useState(0)
-  const [userRole, setUserRole] = useState(null)
+  const { user, loading: authLoading } = useAuth(); // Get user and loading from useAuth
+  const [taskCount, setTaskCount] = useState(0);
+  // userRole will be derived directly from the 'user' object once available
+  const userRole = user?.role?.toLowerCase();
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const { data } = await getUserDetail();
-        const user = data.user;
-        const roles = user?.role || "No Role";
-        setUserRole(roles.toLowerCase());
-      } catch (error) {
-        console.error("Error fetching user role:", error);
+    const fetchTasks = async () => {
+      // Only fetch tasks if authLoading is false and user data is available
+      if (!authLoading && user) {
+        try {
+          const response = await getTasks();
+          if (response?.data?.status && Array.isArray(response.data.data)) {
+            if (userRole === "manager") {
+              // For managers: count tasks where Resolve is not 0
+              const unresolvedCount = response.data.data.filter(
+                (task) => task.Resolve !== 0
+              ).length;
+              setTaskCount(unresolvedCount);
+            } else {
+              // For other roles: count total tasks
+              setTaskCount(response.data.data.length);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching tasks:", error);
+        }
       }
     };
 
-    const fetchTasks = async () => {
-      try {
-        const response = await getTasks()
-        if (response?.data?.status && Array.isArray(response.data.data)) {
-          if (userRole === "manager") {
-            // For managers: count tasks where Resolve is not 0
-            const unresolvedCount = response.data.data.filter(task => task.Resolve !== 0).length
-            setTaskCount(unresolvedCount)
-          } else {
-            // For other roles: count total tasks
-            setTaskCount(response.data.data.length)
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching tasks:", error)
-      }
-    }
+    fetchTasks();
+  }, [authLoading, user, userRole]); // Depend on authLoading, user, and userRole
 
-    fetchUserRole().then(() => {
-      if (userRole !== null) {
-        fetchTasks()
-      }
-    })
-  }, [userRole])
+  // You might want to show a loading spinner or skeleton if authLoading is true
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="ml-2 text-lg text-muted-foreground">Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -103,7 +100,8 @@ export default function DashboardPage() {
             className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             variants={itemVariants}
           >
-            Monitor user activities, manage records, and maintain accountability across your systems with ease and clarity.
+            Monitor user activities, manage records, and maintain accountability
+            across your systems with ease and clarity.
           </motion.p>
         </motion.div>
 
@@ -117,39 +115,47 @@ export default function DashboardPage() {
             variants={containerVariants}
           >
             {[
-  {
-    title: "User Profile",
-    description: "Manage your personal account settings, security preferences, and user information to keep your profile up to date.",
-    href: "/userProfile",
-    icon: <User className="h-8 w-8" />,
-    showBadge: false,
-    badgeCount: 0,
-  },
-  {
-    title: "Workgroup",
-    description: "Collaborate with your team and access shared resources.",
-    href: "/workgroup",
-    icon: <Users className="h-8 w-8" />,
-    showBadge: false,
-    badgeCount: 0,
-  },
-  {
-    title: "Task",
-    description: "View, assign, and track all your tasks efficiently. Monitor progress and ensure timely completion of assignments.",
-    href: "/task",
-    icon: <ListChecks className="h-8 w-8" />,
-    showBadge: taskCount > 0,
-    badgeCount: taskCount,
-  },
-  ...(userRole !== "staff" ? [{
-    title: "Project Instance",
-    description: "Access and manage your project instances. Monitor system performance and configure project-specific settings.",
-    href: "/projectInstance",
-    icon: <LayoutDashboard className="h-8 w-8" />,
-    showBadge: false,
-    badgeCount: 0,
-  }] : []),
-].map((item, index) => (
+              {
+                title: "User Profile",
+                description:
+                  "Manage your personal account settings, security preferences, and user information to keep your profile up to date.",
+                href: "/userProfile",
+                icon: <User className="h-8 w-8" />,
+                showBadge: false,
+                badgeCount: 0,
+              },
+              {
+                title: "Workgroup",
+                description:
+                  "Collaborate with your team and access shared resources.",
+                href: "/workgroup",
+                icon: <Users className="h-8 w-8" />,
+                showBadge: false,
+                badgeCount: 0,
+              },
+              {
+                title: "Task",
+                description:
+                  "View, assign, and track all your tasks efficiently. Monitor progress and ensure timely completion of assignments.",
+                href: "/task",
+                icon: <ListChecks className="h-8 w-8" />,
+                showBadge: taskCount > 0,
+                badgeCount: taskCount,
+              },
+              ...(userRole !== "staff" // Use the derived userRole here
+                ? [
+                    {
+                      title: "Project Instance",
+                      description:
+                        "Access and manage your project instances. Monitor system performance and configure project-specific settings.",
+                      href: "/projectInstance",
+                      icon: <LayoutDashboard className="h-8 w-8" />,
+                      showBadge: false,
+                      badgeCount: 0,
+                    },
+                  ]
+                : []),
+            ].map((item, index) => (
               <Link href={item.href} passHref key={index}>
                 <motion.div variants={itemVariants} className="h-full">
                   <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-border hover:border-primary group flex flex-col justify-between">
@@ -169,7 +175,7 @@ export default function DashboardPage() {
                         <CardDescription className="text-base text-muted-foreground leading-relaxed">
                           {item.description}
                         </CardDescription>
-                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -179,5 +185,5 @@ export default function DashboardPage() {
         </motion.div>
       </div>
     </motion.div>
-  )
+  );
 }
