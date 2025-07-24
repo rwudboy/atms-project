@@ -15,6 +15,7 @@ import { Separator } from "@/interface-adapters/components/ui/separator"
 import { Users, User, Shield, X, Loader2, Plus } from "lucide-react"
 import { viewWorkgroup } from "@/application-business-layer/usecases/workgroup/view-workgroup"
 import { toast } from "sonner"
+import { useAuth } from "@/interface-adapters/context/AuthContext"
 
 export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, onRemoveUser, onClose, refetchWorkgroups }) {
   const [workgroup, setWorkgroup] = useState(null)
@@ -23,6 +24,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
   const [removedUsers, setRemovedUsers] = useState([])
   const [originalUsers, setOriginalUsers] = useState([])
   const [users, setUsers] = useState([])
+  
+  const { user } = useAuth()
+  const isStaff = user?.role?.toLowerCase() === "staff"
 
   useEffect(() => {
     if (open && workgroupId) {
@@ -62,6 +66,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
   }, [open, workgroupId])
 
   const handleRemoveUser = (userId, username) => {
+    // Only non-staff can remove users
+    if (isStaff) return;
+    
     setRemovedUsers(prev => [...prev, { id: userId, username }]);
     setUsers(prev => prev.filter(user => user.id !== userId));
 
@@ -69,6 +76,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
   }
 
   const handleRevokeRemoval = (userId, username) => {
+    // Only non-staff can revoke removals
+    if (isStaff) return;
+    
     setRemovedUsers(prev => prev.filter(user => user.id !== userId));
     setUsers(prev => [...prev, { id: userId, username }]);
 
@@ -76,6 +86,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
   }
 
   const handleSaveChanges = async () => {
+    // Only non-staff can save changes
+    if (isStaff) return;
+    
     if (removedUsers.length === 0) {
       toast.warning("No users to remove")
       return
@@ -90,15 +103,9 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
       onOpenChange(false)
       refetchWorkgroups()
     } catch (error) {
-      toast.error("Failed to remove users :",error.message)
+      toast.error("Failed to remove users :" + error.message)
       console.error("Error removing users:", error)
     }
-  }
-
-  const handleClose = () => {
-    setUsers(originalUsers)
-    setRemovedUsers([])
-    onOpenChange(false)
   }
 
   return (
@@ -177,19 +184,23 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                           <p className="font-medium">{username || "Unknown User"}</p>
                           <p className="text-sm text-muted-foreground">Member</p>
                           <Badge variant="outline" className="text-xs bg-green-100 text-green-600">
-  {user.role?.length > 0 ? user.role : "staff"}  {/* Use the full role value */}
-</Badge>
+                            {user.role?.length > 0 ? user.role : "staff"}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => handleRemoveUser(userId, username)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        
+                        {/* Only show remove button for non-staff users */}
+                        {!isStaff && (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => handleRemoveUser(userId, username)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     )
                   })
@@ -202,7 +213,8 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
               </div>
             </div>
 
-            {removedUsers.length > 0 && (
+            {/* Only show removed users section for non-staff */}
+            {!isStaff && removedUsers.length > 0 && (
               <>
                 <Separator />
                 <div className="space-y-4">
@@ -250,16 +262,17 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
 
             <Separator />
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleClose}>
-                Close
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleSaveChanges}
-                disabled={removedUsers.length === 0}
-              >
-                Save Changes
-              </Button>
+              
+              {/* Only show Save Changes button for non-staff */}
+              {!isStaff && (
+                <Button
+                  variant="destructive"
+                  onClick={handleSaveChanges}
+                  disabled={removedUsers.length === 0}
+                >
+                  Save Changes
+                </Button>
+              )}
             </div>
           </div>
         ) : (

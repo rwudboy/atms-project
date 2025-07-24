@@ -9,7 +9,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/interface-adapters/components/ui/table";
 import { Input } from "@/interface-adapters/components/ui/input";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, Building, Briefcase } from "lucide-react"; // Added Building and Briefcase icons
 import DiagramModal from "@/interface-adapters/components/modals/unassignTask/diagram-modal";
 
 export default function AssignTaskView({
@@ -47,6 +47,10 @@ export default function AssignTaskView({
     const nameB = (b.nama || "").toLowerCase();
     return nameA.localeCompare(nameB);
   });
+
+  // Get project and customer information from the first task in details
+  const projectName = selectedTaskDetails[0]?.projek || "—";
+  const customerName = selectedTaskDetails[0]?.customer || "—";
 
   // Button with notification badge component
   const ButtonWithBadge = ({ children, notificationCount, ...props }) => (
@@ -91,11 +95,26 @@ export default function AssignTaskView({
       <div className="container mx-auto py-10">
         <Card className="mb-6">
           <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
+            <div className="space-y-2 w-full">
               <CardTitle>Task Details</CardTitle>
-              <CardDescription>Details of tasks under the selected business key.</CardDescription>
+              <CardDescription>Details of tasks.</CardDescription>
+              
+              {/* Project and Customer Info Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm">
+                <div className="flex items-center">
+                  <Briefcase className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="text-muted-foreground mr-2">Project:</span>
+                  <span className="font-medium">{projectName}</span>
+                </div>
+                <div className="flex items-center">
+                  <Building className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="text-muted-foreground mr-2">Customer:</span>
+                  <span className="font-medium">{customerName}</span>
+                </div>
+              </div>
             </div>
-            <Button onClick={onBackToList} variant="outline">
+            
+            <Button onClick={onBackToList} variant="outline" className="md:self-start">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to List
             </Button>

@@ -30,6 +30,50 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/interface-adapters/components/ui/sidebar";
+import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
+
+// Skeleton loader
+const SidebarSkeletonLoader = () => (
+  <Sidebar>
+    <SidebarHeader>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <div className="flex items-center gap-2">
+              <Skeleton className="!size-5 rounded" />
+              <Skeleton className="w-16 h-5" />
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
+
+    <SidebarContent>
+      <SidebarMenu className="px-4">
+        {[...Array(5)].map((_, i) => (
+          <SidebarMenuItem key={i}>
+            <SidebarMenuButton asChild>
+              <div className="flex items-center gap-2">
+                <Skeleton className="size-5" />
+                <Skeleton className="w-24 h-4" />
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
+      </SidebarMenu>
+    </SidebarContent>
+
+    <SidebarFooter>
+      <div className="flex items-center gap-4 p-4">
+        <Skeleton className="size-9 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="w-24 h-4" />
+          <Skeleton className="w-16 h-3" />
+        </div>
+      </div>
+    </SidebarFooter>
+  </Sidebar>
+);
 
 export function AppSidebar(props) {
   const { user, loading: authLoading } = useAuth();
@@ -42,26 +86,30 @@ export function AppSidebar(props) {
   const name = user?.fullName || user?.username || "Guest";
   const email = user?.email || "no-email@example.com";
   const userRole = user?.role || ""; 
+  const userName = user?.username || '';
 
   if (authLoading || loadingGuard) {
-    return <div className="flex justify-center items-center min-h-screen"></div>;
+    return <SidebarSkeletonLoader />;
   }
 
+  const isStaff = userRole.toLowerCase() === "staff";
+
+  // For both staff and non-staff, but will filter for staff
   const projectSubItems = [
-    { title: "Project Instance", url: "/projectInstance", icon: IconFolder },
-    { title: "Archives", url: "/archives", icon: IconArchive },
-    { title: "Task", url: "/task", icon: IconInbox },
+    { title: "Project Instance", url: "/projectInstance", icon: IconFolder, staffVisible: false },
+    { title: "Archives", url: "/archives", icon: IconArchive, staffVisible: false },
+    { title: "Task", url: "/task", icon: IconInbox, staffVisible: true },
   ];
 
   const referenceItems = [
-    { title: "Customers", url: "/customer", icon: IconUsers },
-    { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup },
-    { title: "Roles", url: "/roles", icon: IconUserEdit },
+    { title: "Customers", url: "/customer", icon: IconUsers, staffVisible: false },
+    { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup, staffVisible: true },
+    { title: "Roles", url: "/roles", icon: IconUserEdit, staffVisible: false },
   ];
 
-  const userManagement = [
-    { title: "User Profile", url: "/userProfile", icon: IconUsers },
-    { title: "User Role", url: "/userRole", icon: IconUserEdit }, // Assuming '/userRole' is for managing roles
+  const userManagementItems = [
+    { title: "User Profile", url: isStaff ? `/userProfile/${userName}` : "/userProfile", icon: IconUsers, staffVisible: true },
+    { title: "User Role", url: "/userRole", icon: IconUserEdit, staffVisible: false },
   ];
 
   return (
@@ -85,126 +133,96 @@ export function AppSidebar(props) {
 
       <SidebarContent>
         <SidebarMenu className="px-4">
-          {userRole.toLowerCase() === "staff" ? ( // Ensure case-insensitivity
-            <>
-              {/* User Profile */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href={`/userProfile/${user?.username || ''}`} className="flex items-center gap-2"> {/* Link to specific user profile */}
-                    <IconUsers className="size-5" />
-                    User Profile
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+          {/* Dashboard - Always visible */}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <IconDashboard className="size-5" />
+                Dashboard
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
-              {/* Task */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/task" className="flex items-center gap-2">
-                    <IconInbox className="size-5" />
-                    Task
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+          {/* Projects */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
+              <IconFolder className="mr-2 size-5" />
+              <span>Projects</span>
+              {isProjectsOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
-              {/* Workgroup */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/workgroup" className="flex items-center gap-2">
-                    <IconUsersGroup className="size-5" />
-                    Workgroup
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </>
-          ) : (
-            <>
-              {/* Dashboard */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link href="/dashboard" className="flex items-center gap-2">
-                    <IconDashboard className="size-5" />
-                    Dashboard
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+          {isProjectsOpen &&
+            projectSubItems
+              .filter(item => !isStaff || item.staffVisible)
+              .map((item, index) => (
+                <SidebarMenuItem key={index}>
+                  <SidebarMenuButton asChild>
+                    <Link href={item.url} className="flex items-center gap-2 pl-8">
+                      <item.icon className="size-4" />
+                      {item.title}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
 
-              {/* Projects */}
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
-                  <IconFolder className="mr-2 size-5" />
-                  <span>Projects</span>
-                  {isProjectsOpen ? (
-                    <IconChevronUp className="ml-auto size-4" />
-                  ) : (
-                    <IconChevronDown className="ml-auto size-4" />
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+          {/* User Management */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
+              <IconUsers className="mr-2 size-5" />
+              <span>User Management</span>
+              {isUserManagementOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
-              {isProjectsOpen &&
-                projectSubItems.map((item, index) => (
-                  <SidebarMenuItem key={index}>
-                    <SidebarMenuButton asChild>
-                      <Link href={item.url} className="flex items-center gap-2 pl-8">
-                        <item.icon className="size-4" />
-                        {item.title}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+          {isUserManagementOpen &&
+            userManagementItems
+              .filter(item => !isStaff || item.staffVisible)
+              .map((item, index) => (
+                <SidebarMenuItem key={index}>
+                  <SidebarMenuButton asChild>
+                    <Link href={item.url} className="flex items-center gap-2 pl-8">
+                      <item.icon className="size-4" />
+                      {item.title}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
 
-              {/* User Management */}
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setIsUserManagmentOpen(!isUserManagementOpen)}>
-                  <IconUsers className="mr-2 size-5" />
-                  <span>User Management</span>
-                  {isUserManagementOpen ? (
-                    <IconChevronUp className="ml-auto size-4" />
-                  ) : (
-                    <IconChevronDown className="ml-auto size-4" />
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+          {/* Reference */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => setIsReferenceOpen(!isReferenceOpen)}>
+              <IconBook className="mr-2 size-5" />
+              <span>Reference</span>
+              {isReferenceOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
 
-              {isUserManagementOpen &&
-                userManagement.map((item, index) => (
-                  <SidebarMenuItem key={index}>
-                    <SidebarMenuButton asChild>
-                      <Link href={item.url} className="flex items-center gap-2 pl-8">
-                        <item.icon className="size-4" />
-                        {item.title}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-
-              {/* Reference */}
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setIsReferenceOpen(!isReferenceOpen)}>
-                  <IconBook className="mr-2 size-5" />
-                  <span>Reference</span>
-                  {isReferenceOpen ? (
-                    <IconChevronUp className="ml-auto size-4" />
-                  ) : (
-                    <IconChevronDown className="ml-auto size-4" />
-                  )}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {isReferenceOpen &&
-                referenceItems.map((item, index) => (
-                  <SidebarMenuItem key={index}>
-                    <SidebarMenuButton asChild>
-                      <Link href={item.url} className="flex items-center gap-2 pl-8">
-                        <item.icon className="size-4" />
-                        {item.title}
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-            </>
-          )}
+          {isReferenceOpen &&
+            referenceItems
+              .filter(item => !isStaff || item.staffVisible)
+              .map((item, index) => (
+                <SidebarMenuItem key={index}>
+                  <SidebarMenuButton asChild>
+                    <Link href={item.url} className="flex items-center gap-2 pl-8">
+                      <item.icon className="size-4" />
+                      {item.title}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
         </SidebarMenu>
       </SidebarContent>
 
