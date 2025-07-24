@@ -18,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/interface-adapters/components/ui/table"
-import { Search } from "lucide-react"
 import { toast } from "sonner"
 
 import { RoleViewModal } from "@/interface-adapters/components/modals/roles/view-roles"
@@ -29,10 +28,14 @@ import { updateRole } from "@/application-business-layer/usecases/roles/update-r
 import { getRoles } from "@/application-business-layer/usecases/roles/roles-usecase"
 import { viewRoles } from "@/application-business-layer/usecases/roles/view-roles"
 import { deleteRole } from "@/application-business-layer/usecases/roles/delete-roles"
-
-import AddRoleDrawer from "@/interface-adapters/components/roles/roles-drawer"
+import { Search, Eye, ShieldAlert } from "lucide-react";
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 export default function RolesPage() {
+    // --- AUTH MANAGEMENT ---
+  const { user } = useAuth();
+  const isStaff = user?.role?.toLowerCase() === "staff";
+
   const [roles, setRoles] = useState([])
   const [allRoles, setAllRoles] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -159,6 +162,23 @@ export default function RolesPage() {
     } finally {
       setIsDeleting(false)
     }
+  }
+
+    // Show access denied for staff users with the same style as customer page
+  if (isStaff) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader className="text-center">
+            <ShieldAlert className="mx-auto h-12 w-12 text-destructive opacity-75 mb-2" />
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription className="pt-2">
+              Staff members do not have permission to access the Roles page. 
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
   }
 
 

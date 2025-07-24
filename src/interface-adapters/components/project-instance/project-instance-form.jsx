@@ -161,7 +161,7 @@ export default function ProjectInstancePage() {
         <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle>Project Instances</CardTitle>
-            <CardDescription>View and claim available project instances.</CardDescription>
+            <CardDescription>View available project instances.</CardDescription>
           </div>
         </CardHeader>
       </Card>

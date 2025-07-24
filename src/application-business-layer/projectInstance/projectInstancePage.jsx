@@ -2,23 +2,30 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, ShieldAlert } from "lucide-react";
 
-// UI Components (Kept for overall layout)
+// UI Components
 import { Card, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
 
-// Use Cases (Application Layer)
+// Auth Context
+import { useAuth } from "@/interface-adapters/context/AuthContext";
+
+// Use Cases
 import { getProjects } from "@/application-business-layer/usecases/project-instance/get-project";
 import { getCustomers } from "@/application-business-layer/usecases/project-instance/get-customer";
 import { getDiagram } from "@/application-business-layer/usecases/project-instance/get-diagram";
 
-// Child Presentational Components
+// Child Components
 import ProjectInstanceSearch from "@/interface-adapters/components/project-instance/ProjectInstanceSearch";
 import ProjectInstanceList from "@/interface-adapters/components/project-instance/ProjectInstanceList";
 import ProjectInstanceModal from "@/interface-adapters/components/modals/project-instance/project-instance-modal";
 import DiagramModal from "@/interface-adapters/components/modals/project-instance/diagram-modal";
 
 export default function ProjectInstancePage() {
+  // --- AUTH MANAGEMENT ---
+  const { user } = useAuth();
+  const isStaff = user?.role?.toLowerCase() === "staff";
+
   // --- STATE MANAGEMENT ---
   const [instances, setInstances] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -86,7 +93,7 @@ export default function ProjectInstancePage() {
   };
 
   // --- DATA FETCHING ---
- useEffect(() => {
+  useEffect(() => {
     const fetchInstances = async () => {
       try {
         setLoading(true);
@@ -134,12 +141,31 @@ export default function ProjectInstancePage() {
   }, [searchTerm, allInstances]);
 
   // --- RENDER ---
+
+  // Show access denied for staff users with the same style as customer page
+  if (isStaff) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader className="text-center">
+            <ShieldAlert className="mx-auto h-12 w-12 text-destructive opacity-75 mb-2" />
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription className="pt-2">
+              Staff members do not have permission to access the Project Instances page. 
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // Regular content for non-staff users
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Project Instances</CardTitle>
-          <CardDescription>View and claim available project instances.</CardDescription>
+          <CardDescription>View available project instances.</CardDescription>
         </CardHeader>
       </Card>
 

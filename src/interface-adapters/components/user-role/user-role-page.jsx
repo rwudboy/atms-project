@@ -19,14 +19,17 @@ import {
   TableRow,
 } from "@/interface-adapters/components/ui/table";
 import { Badge } from "@/interface-adapters/components/ui/badge";
-import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
 import UserDetailModal from "@/interface-adapters/components/modals/user-role/user-detail-modal";
 import { DeleteUserRoleDialog } from "@/interface-adapters/components/modals/user-role/remove-role-modal";
+import { Search, ShieldAlert } from "lucide-react";
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 export default function UsersPage() {
   const [users, setUsers] = useState([]);
+    const { user } = useAuth();
+    const isStaff = user?.role?.toLowerCase() === "staff";
   const [allUsers, setAllUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -107,6 +110,22 @@ export default function UsersPage() {
     if (!status) return "ACTIVE";
     return status.toUpperCase();
   };
+  // Show access denied for staff users with the same style as customer page
+  if (isStaff) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader className="text-center">
+            <ShieldAlert className="mx-auto h-12 w-12 text-destructive opacity-75 mb-2" />
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription className="pt-2">
+              Staff members do not have permission to access the User Role page. 
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-10">

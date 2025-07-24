@@ -158,8 +158,8 @@ export default function UsersPage() {
       case "admin":
         return "destructive";
       case "manager":
-        return "secondary";
-      case "staff": // Changed from 'user' to 'staff' based on context in useAuth logic
+        return "default";
+      case "staff": 
         return "outline";
       default:
         return "default";
@@ -322,8 +322,8 @@ export default function UsersPage() {
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{user.email || "-"}</TableCell>
                     <TableCell>
-                      <Badge variant={getBadgeVariant(user.role)}>
-                        {capitalizeText(user.role)}
+                      <Badge variant={getBadgeVariant(user.Role)}>
+                        {capitalizeText(user.Role)}
                       </Badge>
                     </TableCell>
                     <TableCell>{user.posisi || "-"}</TableCell>

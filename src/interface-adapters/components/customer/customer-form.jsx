@@ -12,13 +12,14 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
 } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
-import { Search, Plus, Trash2, Edit } from "lucide-react";
+import { Search, Plus, Trash2, Edit, ShieldAlert } from "lucide-react";
 import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
 import { deleteCustomer } from "@/application-business-layer/usecases/customer/delete-customer";
 import { editCustomer } from "@/application-business-layer/usecases/customer/edit-customer";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
 import EditCustomerModal from "@/interface-adapters/components/modals/customer/edit-customer";
 import { toast } from "sonner";
+import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import AuthContext
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
@@ -30,6 +31,10 @@ export default function CustomersPage() {
   const [confirmDeleteStep, setConfirmDeleteStep] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState(null);
+  
+  // Get user role from AuthContext
+  const { user, loading: authLoading } = useAuth();
+  const isStaff = user?.role?.toLowerCase() === "staff";
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -38,8 +43,12 @@ export default function CustomersPage() {
       setCustomers(result);
       setLoading(false);
     };
-    fetchCustomers();
-  }, []);
+    
+    // Only fetch customers if user is not staff or if auth is still loading
+    if (!isStaff || authLoading) {
+      fetchCustomers();
+    }
+  }, [isStaff, authLoading]);
 
   const handleDeleteClick = (id) => {
     setCustomerToDelete(id);
@@ -95,6 +104,38 @@ export default function CustomersPage() {
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // If still loading auth, show a loading state
+  if (authLoading) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Customer References</CardTitle>
+            <CardDescription>Loading user permissions...</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // If user is staff, show access denied
+  if (isStaff) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader className="text-center">
+            <ShieldAlert className="mx-auto h-12 w-12 text-destructive opacity-75 mb-2" />
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription className="pt-2">
+              Staff members do not have permission to access the Customer page. 
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // Regular content for non-staff users
   return (
     <div className="container mx-auto py-10">
       <Card className="mb-6">
@@ -112,7 +153,7 @@ export default function CustomersPage() {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Search Customers</CardTitle>
+          <CardTitle>Search Customer</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -162,13 +203,12 @@ export default function CustomersPage() {
                     <TableCell>{customer.city}</TableCell>
                     <TableCell>{customer.country}</TableCell>
                     <TableCell>
-                     <Badge
-  variant={customer.status?.toLowerCase() === "active" ? "success" : "default"}
-  className="uppercase"
->
-  {customer.status}
-</Badge>
-
+                      <Badge
+                        variant={customer.status?.toLowerCase() === "active" ? "success" : "default"}
+                        className="uppercase"
+                      >
+                        {customer.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>{customer.category}</TableCell>
                     <TableCell className="text-right">
