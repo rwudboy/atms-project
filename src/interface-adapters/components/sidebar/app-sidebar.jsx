@@ -47,7 +47,7 @@ export function AppSidebar(props) {
         const { data } = await getUserDetail();
         const userName = data?.user?.username || "Guest";
         const userEmail = data?.user?.email || "no-email@example.com";
-        const role = data?.user.role?.[0] || null;
+        const role = data?.user?.role || [];
         setName(userName);
         setEmail(userEmail);
         setUserRole(role);
@@ -102,7 +102,7 @@ export function AppSidebar(props) {
         <SidebarMenu className="px-4">
           {userRole === "staff" ? (
             <>
-              {/* User Profile (no dropdown for staff) */}
+              {/* User Profile */}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/userProfile" className="flex items-center gap-2">
@@ -118,6 +118,16 @@ export function AppSidebar(props) {
                   <Link href="/task" className="flex items-center gap-2">
                     <IconInbox className="size-5" />
                     Task
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {/* Workgroup */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/workgroup" className="flex items-center gap-2">
+                    <IconUsersGroup className="size-5" />
+                    Workgroup
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

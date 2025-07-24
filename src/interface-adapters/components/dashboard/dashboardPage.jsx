@@ -11,6 +11,7 @@ import {
 } from "@/interface-adapters/components/ui/card"
 import {
   User,
+  Users,
   ListChecks,
   LayoutDashboard,
 } from "lucide-react"
@@ -50,9 +51,8 @@ export default function DashboardPage() {
       try {
         const { data } = await getUserDetail();
         const user = data.user;
-        const roles = user?.role || [];
-        const selectedRole = roles[0] || "guest";
-        setUserRole(selectedRole.toLowerCase());
+        const roles = user?.role || "No Role";
+        setUserRole(roles.toLowerCase());
       } catch (error) {
         console.error("Error fetching user role:", error);
       }
@@ -122,6 +122,14 @@ export default function DashboardPage() {
     description: "Manage your personal account settings, security preferences, and user information to keep your profile up to date.",
     href: "/userProfile",
     icon: <User className="h-8 w-8" />,
+    showBadge: false,
+    badgeCount: 0,
+  },
+  {
+    title: "Workgroup",
+    description: "Collaborate with your team and access shared resources.",
+    href: "/workgroup",
+    icon: <Users className="h-8 w-8" />,
     showBadge: false,
     badgeCount: 0,
   },

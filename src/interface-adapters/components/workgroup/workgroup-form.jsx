@@ -41,7 +41,6 @@ import AddUserModal from "@/interface-adapters/components/modals/workgroup/add-w
 import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-workgroup";
 import { onRemoveUser } from "@/application-business-layer/usecases/workgroup/remove-user";
 import { EditWorkgroupModal } from "@/interface-adapters/components/modals/workgroup/edit-workgroup";
-import AddWorkgroupDrawer from "@/interface-adapters/components/workgroup/workgroup-drawer";
 import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
 import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
 import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";

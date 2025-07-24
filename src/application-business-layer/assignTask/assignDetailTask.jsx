@@ -105,8 +105,7 @@ export default function AssignDetailedTaskContainer({ taskId }) {
         const { data } = await getUserDetail();
         const user = data.user;
         const roles = user?.role || [];
-        const selectedRole = roles[0] || "guest";
-        const capitalizedRole = selectedRole.toUpperCase();
+        const capitalizedRole = roles.toUpperCase();
         
         if (isMounted) {
           setRole(capitalizedRole);
