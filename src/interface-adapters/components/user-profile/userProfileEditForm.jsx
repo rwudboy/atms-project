@@ -40,6 +40,9 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState("");
 
+  // Check if status should be disabled (when user role is staff)
+  const isStatusDisabled = user.role === "staff";
+
   const validateAndSave = () => {
     // Validate phone number first
     if (userIsOwner && phoneNumber) {
@@ -70,7 +73,8 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
     const formData = {};
     const userUpdates = {};
 
-    if (status !== user.status) {
+    // Only include status in payload if it's not disabled and has changed
+    if (!isStatusDisabled && status !== user.status) {
       formData.status = status;
     }
 
@@ -84,7 +88,6 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
     if (userIsOwner && jabatan !== (user.posisi || "")) {
       userUpdates.jabatan = jabatan;
     }
-
 
     if (Object.keys(userUpdates).length > 0) {
       formData.user = userUpdates;
@@ -141,13 +144,19 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Unlock className="w-4 h-4" /><span>Account Status</span></label>
-              <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger className="bg-slate-50 w-full"><SelectValue placeholder="Select status" /></SelectTrigger>
+              <Select value={status} onValueChange={setStatus} disabled={isStatusDisabled}>
+                <SelectTrigger className="bg-slate-50 w-full disabled:opacity-60 disabled:cursor-not-allowed"><SelectValue placeholder="Select status" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="unlocked"><div className="flex items-center"><Unlock className="w-4 h-4 mr-2 text-green-600" />Unlocked</div></SelectItem>
                   <SelectItem value="locked"><div className="flex items-center"><Lock className="w-4 h-4 mr-2 text-red-600" />Locked</div></SelectItem>
                 </SelectContent>
               </Select>
+              {isStatusDisabled && (
+                <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
+                  <Info className="w-4 h-4" />
+                  <span>Staff users cannot modify account status.</span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -184,7 +193,6 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
               )}
             </div>
 
-
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2"><Briefcase className="w-4 h-4" /><span>Position</span></label>
               <Select value={jabatan} onValueChange={setJabatan} disabled={!userIsOwner}>
@@ -204,9 +212,6 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
                 </div>
               )}
             </div>
-
-
-
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 flex items-center space-x-2">

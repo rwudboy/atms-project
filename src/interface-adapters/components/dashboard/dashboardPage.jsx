@@ -68,9 +68,8 @@ export default function DashboardPage() {
     };
 
     fetchTasks();
-  }, [authLoading, user, userRole]); // Depend on authLoading, user, and userRole
+  }, [authLoading, user, userRole]); 
 
-  // You might want to show a loading spinner or skeleton if authLoading is true
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

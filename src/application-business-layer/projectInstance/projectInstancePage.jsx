@@ -113,7 +113,6 @@ export default function ProjectInstancePage() {
         setCustomers(options);
       } catch (error) {
         console.error("Failed to fetch customers:", error);
-        toast.error("Could not load customers.");
       }
     };
     fetchCustomers();

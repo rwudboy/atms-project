@@ -26,7 +26,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/interface-adapters/components/ui/dialog";
-import { Label } from "@/interface-adapters/components/ui/label";
 import {
   Search,
   Plus,
@@ -44,8 +43,10 @@ import { EditWorkgroupModal } from "@/interface-adapters/components/modals/workg
 import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
 import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
 import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";
+import { useAuth } from "@/interface-adapters/context/AuthContext"; 
 
 export default function WorkgroupsPage() {
+  const { user} = useAuth(); // Get auth info
   const [workgroups, setWorkgroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -62,6 +63,7 @@ export default function WorkgroupsPage() {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [workgroupToEdit, setWorkgroupToEdit] = useState(null);
+  const userRole = user?.role?.toLowerCase() || "";
 
   const fetchWorkgroups = async () => {
     setLoading(true);
@@ -165,6 +167,8 @@ export default function WorkgroupsPage() {
     setShowDetailModal(false);
   };
 
+
+
   return (
     <div className="container mx-auto py-10 space-y-6">
       <Card>
@@ -180,7 +184,7 @@ export default function WorkgroupsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Search Workgroups</CardTitle>
+          <CardTitle>Search Workgroup</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
@@ -190,7 +194,7 @@ export default function WorkgroupsPage() {
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by workgroup name or project..."
+              placeholder="Search by workgroup name..."
             />
           </div>
         </CardContent>
@@ -248,33 +252,37 @@ export default function WorkgroupsPage() {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenEditModal(wg)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleOpenAddUserModal(wg)}
-                        >
-                          <Users className="h-4 w-4 mr-1" />
-                          Add User
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => {
-                            setWorkgroupToDelete(wg);
-                            setShowDeleteDialog(true);
-                            setConfirmDeleteStep(false);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {!userRole.includes("staff") && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenEditModal(wg)}
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenAddUserModal(wg)}
+                            >
+                              <Users className="h-4 w-4 mr-1" />
+                              Add User
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                setWorkgroupToDelete(wg);
+                                setShowDeleteDialog(true);
+                                setConfirmDeleteStep(false);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -342,7 +350,7 @@ export default function WorkgroupsPage() {
       />
 
       {selectedWorkgroupForUser && (
-       <AddUserModal
+        <AddUserModal
           open={showAddUserModal}
           onOpenChange={setShowAddUserModal}
           workgroups={workgroups}
