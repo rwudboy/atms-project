@@ -87,6 +87,15 @@ export default function UsersPage() {
     setIsModalOpen(true);
   };
 
+    const capitalizeText = (text) => {
+    if (!text) return "-";
+    if (text.toLowerCase() === "locked" || text.toLowerCase() === "unlocked") {
+      return text.toUpperCase();
+    }
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
+
 
   const getBadgeVariant = (role) => {
     switch (role.toLowerCase()) {
@@ -194,15 +203,9 @@ export default function UsersPage() {
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{user.email || "-"}</TableCell>
                     <TableCell className="flex flex-wrap gap-1">
-                      {Array.isArray(user.Role) && user.Role.length > 0 ? (
-                        user.Role.map((role, idx) => (
-                          <Badge key={idx} variant={getBadgeVariant(role)}>
-                            {role}
-                          </Badge>
-                        ))
-                      ) : (
-                        <Badge variant="default">-</Badge>
-                      )}
+                      <Badge variant={getBadgeVariant(user.Role)}>
+                        {capitalizeText(user.Role || "unlocked")}
+                      </Badge>
                     </TableCell>
                     <TableCell>{user.posisi || "-"}</TableCell>
                     <TableCell>

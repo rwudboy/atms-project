@@ -13,6 +13,7 @@ import {
   User, Mail, Phone, Lock, Unlock, Save, X, AlertCircle, Briefcase, Info
 } from "lucide-react"
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 const JABATAN_LIST = [
   "Project Manager",
@@ -30,6 +31,10 @@ const JABATAN_LIST = [
 ];
 
 export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwner }) {
+
+
+  const { user: currentUser} = useAuth();
+ 
   const [status, setStatus] = useState(user.status || "unlocked");
   const [phoneNumber, setPhoneNumber] = useState(user.phoneNumber || "");
   const [phoneError, setPhoneError] = useState("");
@@ -40,8 +45,8 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
   const [passwordData, setPasswordData] = useState({ newPassword: "", confirmPassword: "" });
   const [passwordError, setPasswordError] = useState("");
 
-  // Check if status should be disabled (when user role is staff)
-  const isStatusDisabled = user.role === "staff";
+  // Check if status should be disabled (when user roles is staff)
+  const isStatusDisabled = currentUser.role === "staff";
 
   const validateAndSave = () => {
     // Validate phone number first
