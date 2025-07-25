@@ -3,9 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 
-// If you still need useAuthGuard for route protection beyond just fetching user data
 import useAuthGuard from "@/framework-drivers/hooks/useAuthGuard";
-import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import useAuth hook
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 import {
   IconDashboard,
@@ -93,6 +92,7 @@ export function AppSidebar(props) {
   }
 
   const isStaff = userRole.toLowerCase() === "staff";
+  const isAdmin = userRole.toLowerCase() === "admin";
 
   // For both staff and non-staff, but will filter for staff
   const projectSubItems = [
@@ -143,32 +143,36 @@ export function AppSidebar(props) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {/* Projects */}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
-              <IconFolder className="mr-2 size-5" />
-              <span>Projects</span>
-              {isProjectsOpen ? (
-                <IconChevronUp className="ml-auto size-4" />
-              ) : (
-                <IconChevronDown className="ml-auto size-4" />
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          {/* Projects section: hidden for admin */}
+          {!isAdmin && (
+            <>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
+                  <IconFolder className="mr-2 size-5" />
+                  <span>Projects</span>
+                  {isProjectsOpen ? (
+                    <IconChevronUp className="ml-auto size-4" />
+                  ) : (
+                    <IconChevronDown className="ml-auto size-4" />
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-          {isProjectsOpen &&
-            projectSubItems
-              .filter(item => !isStaff || item.staffVisible)
-              .map((item, index) => (
-                <SidebarMenuItem key={index}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url} className="flex items-center gap-2 pl-8">
-                      <item.icon className="size-4" />
-                      {item.title}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {isProjectsOpen &&
+                projectSubItems
+                  .filter(item => !isStaff || item.staffVisible)
+                  .map((item, index) => (
+                    <SidebarMenuItem key={index}>
+                      <SidebarMenuButton asChild>
+                        <Link href={item.url} className="flex items-center gap-2 pl-8">
+                          <item.icon className="size-4" />
+                          {item.title}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+            </>
+          )}
 
           {/* User Management */}
           <SidebarMenuItem>

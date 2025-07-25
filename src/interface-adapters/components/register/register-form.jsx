@@ -1,26 +1,16 @@
-"use client";
-
+"use client"
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { Eye, EyeOff } from "lucide-react";
-import { cn } from "@/interface-adapters/lib/utils";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { registerUserUseCase } from "@/application-business-layer/usecases/register/registerUser";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/interface-adapters/components/ui/select";
 import { ClipLoader } from "react-spinners";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/interface-adapters/components/ui/select";
+import { registerUser } from "@/application-business-layer/usecases/register/register-user";
+import { registerUserApiCall } from "@/framework-drivers/api/register/register-user";
 
-import { validateUserRegistration } from "@/enterprise-business-rules/validation/regisUserValidation";
-import { getPasswordStrength } from "@/enterprise-business-rules/validation/getPasswordStrength";
-
-export function RegisterForm({ className, ...props }) {
+export default function RegisterForm() {
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,72 +23,100 @@ export function RegisterForm({ className, ...props }) {
   const [showErrors, setShowErrors] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // This function determines the strength color and label.
+  const getPasswordStrength = (password) => {
+    let score = 0;
+
+    // If password is empty
+    if (password.length === 0) {
+      return { label: "Empty", percentage: 0, color: "bg-gray-300" };
+    }
+    
+    // Check length only
+    if (password.length < 6) {
+      return { label: "Very Weak", percentage: 25, color: "bg-red-500" };
+    }
+
+    // For each condition, give 1 point
+    if (/[A-Z]/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[a-z]/.test(password)) score++;
+
+    if (score < 2) {
+      return { label: "Weak", percentage: 50, color: "bg-red-500" };
+    } else if (score < 4) {
+      return { label: "Good", percentage: 75, color: "bg-yellow-500" };
+    } else {
+      return { label: "Strong", percentage: 100, color: "bg-green-500" };
+    }
+  };
+
   const passwordStrength = getPasswordStrength(password);
-  const strengthLabel = passwordStrength.label;
   const strengthColor = passwordStrength.color;
+  const strengthLabel = passwordStrength.label;
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setShowErrors(true);
+    setLoading(true);
 
- // RegisterForm.jsx
-const handleRegister = async (e) => {
-  e.preventDefault();
-  setShowErrors(true);
-  setLoading(true);
+    try {
+      // First validate with application layer
+      const validationResult = await registerUser({
+        fullName,
+        username,
+        password,
+        email,
+        birthDate: birth,
+        phoneNumber: phone,
+        position: jabatan
+      });
 
-  const newErrors = validateUserRegistration({
-    fullName,
-    username,
-    password,
-    email,
-    birth,
-    phone,
-    jabatan,
-  });
+      if (!validationResult.success) {
+        setErrors(validationResult.errors || {});
+        setLoading(false);
+        return;
+      }
 
-  setErrors(newErrors);
+      // Then call the API
+      const apiResult = await registerUserApiCall({
+        fullName,
+        username,
+        password,
+        email,
+        birth,
+        phone,
+        jabatan
+      });
 
-  if (Object.keys(newErrors).length > 0) {
-    setLoading(false);
-    return;
-  }
+      // Store the email in localStorage
+      localStorage.setItem('registeredEmail', email);
 
-  try {
-    await registerUserUseCase({
-      fullName,
-      username,
-      password,
-      email,
-      birth,
-      phone,
-      jabatan,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Registered Successfully!",
+        text: "Redirecting to OTP verification...",
+        timer: 2000,
+        showConfirmButton: false,
+      });
 
-    // Store the email in localStorage
-    localStorage.setItem('registeredEmail', email);
-
-    Swal.fire({
-      icon: "success",
-      title: "Registered Successfully!",
-      text: "Redirecting to OTP verification...",
-      timer: 2000,
-      showConfirmButton: false,
-    });
-
-    setTimeout(() => {
-      window.location.href = "/otp";
-    }, 2000);
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Registration Failed",
-      text: error.message,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      setTimeout(() => {
+        window.location.href = "/otp";
+      }, 2000);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Registration Failed",
+        text: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={handleRegister} className={cn("flex flex-col gap-6", className)} {...props}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Register to your account</h1>
         <p className="text-muted-foreground text-sm">Enter your credentials below</p>

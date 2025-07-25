@@ -9,9 +9,15 @@ import {
   CardDescription,
   CardTitle,
 } from "@/interface-adapters/components/ui/card";
-import { User, Users, ListChecks, LayoutDashboard } from "lucide-react";
+import {
+  User,
+  Users,
+  ListChecks,
+  LayoutDashboard,
+  ShieldCheck,
+} from "lucide-react";
 import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
-import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import useAuth
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 // Animation variants
 const containerVariants = {
@@ -38,26 +44,22 @@ const itemVariants = {
 };
 
 export default function DashboardPage() {
-  const { user, loading: authLoading } = useAuth(); // Get user and loading from useAuth
+  const { user, loading: authLoading } = useAuth();
   const [taskCount, setTaskCount] = useState(0);
-  // userRole will be derived directly from the 'user' object once available
   const userRole = user?.role?.toLowerCase();
 
   useEffect(() => {
     const fetchTasks = async () => {
-      // Only fetch tasks if authLoading is false and user data is available
       if (!authLoading && user) {
         try {
           const response = await getTasks();
           if (response?.data?.status && Array.isArray(response.data.data)) {
             if (userRole === "manager") {
-              // For managers: count tasks where Resolve is not 0
               const unresolvedCount = response.data.data.filter(
                 (task) => task.Resolve !== 0
               ).length;
               setTaskCount(unresolvedCount);
             } else {
-              // For other roles: count total tasks
               setTaskCount(response.data.data.length);
             }
           }
@@ -68,7 +70,7 @@ export default function DashboardPage() {
     };
 
     fetchTasks();
-  }, [authLoading, user, userRole]); 
+  }, [authLoading, user, userRole]);
 
   if (authLoading) {
     return (
@@ -107,7 +109,6 @@ export default function DashboardPage() {
         <motion.div className="space-y-10" variants={itemVariants}>
           <h2 className="text-4xl font-bold text-center">Quick Actions</h2>
 
-          {/* Grid of Cards - Centered 3 cards */}
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto"
             variants={containerVariants}
@@ -122,37 +123,47 @@ export default function DashboardPage() {
                 showBadge: false,
                 badgeCount: 0,
               },
-              {
-                title: "Workgroup",
-                description:
-                  "Collaborate with your team and access shared resources.",
-                href: "/workgroup",
-                icon: <Users className="h-8 w-8" />,
-                showBadge: false,
-                badgeCount: 0,
-              },
-              {
-                title: "Task",
-                description:
-                  "View, assign, and track all your tasks efficiently. Monitor progress and ensure timely completion of assignments.",
-                href: "/task",
-                icon: <ListChecks className="h-8 w-8" />,
-                showBadge: taskCount > 0,
-                badgeCount: taskCount,
-              },
-              ...(userRole !== "staff" // Use the derived userRole here
+              ...(userRole === "admin"
                 ? [
                     {
-                      title: "Project Instance",
+                      title: "Workgroup",
                       description:
-                        "Access and manage your project instances. Monitor system performance and configure project-specific settings.",
-                      href: "/projectInstance",
-                      icon: <LayoutDashboard className="h-8 w-8" />,
+                        "Collaborate with your team and access shared resources.",
+                      href: "/workgroup",
+                      icon: <Users className="h-8 w-8" />,
+                      showBadge: false,
+                      badgeCount: 0,
+                    },
+                    {
+                      title: "Role",
+                      description:
+                        "Manage user roles and permissions across the platform.",
+                      href: "/roles",
+                      icon: <ShieldCheck className="h-8 w-8" />,
                       showBadge: false,
                       badgeCount: 0,
                     },
                   ]
-                : []),
+                : [
+                    {
+                      title: "Task",
+                      description:
+                        "View, assign, and track all your tasks efficiently. Monitor progress and ensure timely completion of assignments.",
+                      href: "/task",
+                      icon: <ListChecks className="h-8 w-8" />,
+                      showBadge: taskCount > 0,
+                      badgeCount: taskCount,
+                    },
+                    {
+                      title: "Workgroup",
+                      description:
+                        "Collaborate with your team and access shared resources.",
+                      href: "/workgroup",
+                      icon: <Users className="h-8 w-8" />,
+                      showBadge: false,
+                      badgeCount: 0,
+                    },
+                  ]),
             ].map((item, index) => (
               <Link href={item.href} passHref key={index}>
                 <motion.div variants={itemVariants} className="h-full">
