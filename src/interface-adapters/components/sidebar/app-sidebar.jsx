@@ -97,7 +97,7 @@ export function AppSidebar(props) {
   // For both staff and non-staff, but will filter for staff
   const projectSubItems = [
     { title: "Project Instance", url: "/projectInstance", icon: IconFolder, staffVisible: false },
-    { title: "Archives", url: "/archives", icon: IconArchive, staffVisible: false },
+    { title: "Archives", url: "/archives", icon: IconArchive, staffVisible: true },
     { title: "Task", url: "/task", icon: IconInbox, staffVisible: true },
   ];
 
