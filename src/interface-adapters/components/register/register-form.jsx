@@ -1,11 +1,17 @@
-"use client"
+"use client";
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/interface-adapters/components/ui/button";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Label } from "@/interface-adapters/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/interface-adapters/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/interface-adapters/components/ui/select";
 import { ClipLoader } from "react-spinners";
 import { registerUser } from "@/application-business-layer/usecases/register/register-user";
 import { registerUserApiCall } from "@/framework-drivers/api/register/register-user";
@@ -23,38 +29,13 @@ export default function RegisterForm() {
   const [showErrors, setShowErrors] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // This function determines the strength color and label.
-  const getPasswordStrength = (password) => {
-    let score = 0;
-
-    // If password is empty
-    if (password.length === 0) {
-      return { label: "Empty", percentage: 0, color: "bg-gray-300" };
-    }
-    
-    // Check length only
-    if (password.length < 6) {
-      return { label: "Very Weak", percentage: 25, color: "bg-red-500" };
-    }
-
-    // For each condition, give 1 point
-    if (/[A-Z]/.test(password)) score++;
-    if (/[^a-zA-Z0-9]/.test(password)) score++;
-    if (/\d/.test(password)) score++;
-    if (/[a-z]/.test(password)) score++;
-
-    if (score < 2) {
-      return { label: "Weak", percentage: 50, color: "bg-red-500" };
-    } else if (score < 4) {
-      return { label: "Good", percentage: 75, color: "bg-yellow-500" };
-    } else {
-      return { label: "Strong", percentage: 100, color: "bg-green-500" };
-    }
-  };
-
-  const passwordStrength = getPasswordStrength(password);
-  const strengthColor = passwordStrength.color;
-  const strengthLabel = passwordStrength.label;
+  const getPasswordCriteriaStatus = (password) => ({
+    length: password.length >= 6,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    special: /[^a-zA-Z0-9]/.test(password),
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -62,7 +43,6 @@ export default function RegisterForm() {
     setLoading(true);
 
     try {
-      // First validate with application layer
       const validationResult = await registerUser({
         fullName,
         username,
@@ -70,7 +50,7 @@ export default function RegisterForm() {
         email,
         birthDate: birth,
         phoneNumber: phone,
-        position: jabatan
+        position: jabatan,
       });
 
       if (!validationResult.success) {
@@ -79,7 +59,6 @@ export default function RegisterForm() {
         return;
       }
 
-      // Then call the API
       const apiResult = await registerUserApiCall({
         fullName,
         username,
@@ -87,11 +66,10 @@ export default function RegisterForm() {
         email,
         birth,
         phone,
-        jabatan
+        jabatan,
       });
 
-      // Store the email in localStorage
-      localStorage.setItem('registeredEmail', email);
+      localStorage.setItem("registeredEmail", email);
 
       Swal.fire({
         icon: "success",
@@ -163,15 +141,28 @@ export default function RegisterForm() {
           </button>
         </div>
 
+        {/* Password Rules */}
         {password && (
-          <div className="mt-1">
-            <div className="h-2 w-full bg-gray-200 rounded">
-              <div
-                className={`${strengthColor} h-2 rounded`}
-                style={{ width: `${passwordStrength.percentage}%` }}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">{strengthLabel}</p>
+          <div className="mt-2 space-y-1">
+            {Object.entries(getPasswordCriteriaStatus(password)).map(([key, isValid]) => {
+              const labels = {
+                length: "Minimum 6 characters",
+                lowercase: "At least 1 lowercase letter",
+                uppercase: "At least 1 uppercase letter",
+                number: "At least 1 number",
+                special: "At least 1 special character",
+              };
+              const Icon = isValid ? CheckCircle : XCircle;
+              const iconColor = isValid ? "text-green-600" : "text-red-500";
+              const textColor = isValid ? "text-green-700" : "text-gray-600";
+
+              return (
+                <div key={key} className="flex items-center text-sm gap-2">
+                  <Icon size={16} className={iconColor} />
+                  <span className={textColor}>{labels[key]}</span>
+                </div>
+              );
+            })}
           </div>
         )}
         {showErrors && errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
