@@ -84,33 +84,96 @@ export function AppSidebar(props) {
 
   const name = user?.fullName || user?.username || "Guest";
   const email = user?.email || "no-email@example.com";
-  const userRole = user?.role || ""; 
-  const userName = user?.username || '';
+  const userRole = user?.role?.toLowerCase() || "";
+  const userName = user?.username || "";
 
   if (authLoading || loadingGuard) {
     return <SidebarSkeletonLoader />;
   }
 
-  const isStaff = userRole.toLowerCase() === "staff";
-  const isAdmin = userRole.toLowerCase() === "admin";
+  const isStaff = userRole === "staff";
+  const isManager = userRole === "manager";
+  const isAdmin = userRole === "admin";
 
-  // For both staff and non-staff, but will filter for staff
   const projectSubItems = [
-    { title: "Project Instance", url: "/projectInstance", icon: IconFolder, staffVisible: false },
-    { title: "Archives", url: "/archives", icon: IconArchive, staffVisible: true },
-    { title: "Task", url: "/task", icon: IconInbox, staffVisible: true },
+    {
+      title: "Project Instance",
+      url: "/projectInstance",
+      icon: IconFolder,
+      staffVisible: false,
+      managerVisible: true,
+      adminVisible: false,
+    },
+    {
+      title: "Archives",
+      url: "/archives",
+      icon: IconArchive,
+      staffVisible: true,
+      managerVisible: true,
+      adminVisible: false,
+    },
+    {
+      title: "Task",
+      url: "/task",
+      icon: IconInbox,
+      staffVisible: true,
+      managerVisible: true,
+      adminVisible: false,
+    },
   ];
 
   const referenceItems = [
-    { title: "Customers", url: "/customer", icon: IconUsers, staffVisible: false },
-    { title: "Workgroup", url: "/workgroup", icon: IconUsersGroup, staffVisible: true },
-    { title: "Roles", url: "/roles", icon: IconUserEdit, staffVisible: false },
+    {
+      title: "Customers",
+      url: "/customer",
+      icon: IconUsers,
+      staffVisible: false,
+      managerVisible: true,
+      adminVisible: false,
+    },
+    {
+      title: "Workgroup",
+      url: "/workgroup",
+      icon: IconUsersGroup,
+      staffVisible: true,
+      managerVisible: true,
+      adminVisible: true,
+    },
+    {
+      title: "Roles",
+      url: "/roles",
+      icon: IconUserEdit,
+      staffVisible: false,
+      managerVisible: false,
+      adminVisible: true,
+    },
   ];
 
   const userManagementItems = [
-    { title: "User Profile", url: isStaff ? `/userProfile/${userName}` : "/userProfile", icon: IconUsers, staffVisible: true },
-    { title: "User Role", url: "/userRole", icon: IconUserEdit, staffVisible: false },
+    {
+      title: "User Profile",
+      url: isStaff ? `/userProfile/${userName}` : "/userProfile",
+      icon: IconUsers,
+      staffVisible: true,
+      managerVisible: true,
+      adminVisible: true,
+    },
+    {
+      title: "User Role",
+      url: "/userRole",
+      icon: IconUserEdit,
+      staffVisible: false,
+      managerVisible: true,
+      adminVisible: true,
+    },
   ];
+
+  const checkVisibility = (item) => {
+    if (isStaff) return item.staffVisible;
+    if (isManager) return item.managerVisible;
+    if (isAdmin) return item.adminVisible;
+    return false;
+  };
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -119,11 +182,7 @@ export function AppSidebar(props) {
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link href="#" className="flex items-center gap-2">
-                <img
-                  src="/icon.jpg"
-                  alt="Logo"
-                  className="!size-5 object-cover rounded"
-                />
+                <img src="/icon.jpg" alt="Logo" className="!size-5 object-cover rounded" />
                 <span className="text-base font-semibold">ATMS.</span>
               </Link>
             </SidebarMenuButton>
@@ -143,36 +202,30 @@ export function AppSidebar(props) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {/* Projects section: hidden for admin */}
-          {!isAdmin && (
-            <>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
-                  <IconFolder className="mr-2 size-5" />
-                  <span>Projects</span>
-                  {isProjectsOpen ? (
-                    <IconChevronUp className="ml-auto size-4" />
-                  ) : (
-                    <IconChevronDown className="ml-auto size-4" />
-                  )}
+          {/* Projects */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
+              <IconFolder className="mr-2 size-5" />
+              <span>Projects</span>
+              {isProjectsOpen ? (
+                <IconChevronUp className="ml-auto size-4" />
+              ) : (
+                <IconChevronDown className="ml-auto size-4" />
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {isProjectsOpen &&
+            projectSubItems.filter(checkVisibility).map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url} className="flex items-center gap-2 pl-8">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
-              {isProjectsOpen &&
-                projectSubItems
-                  .filter(item => !isStaff || item.staffVisible)
-                  .map((item, index) => (
-                    <SidebarMenuItem key={index}>
-                      <SidebarMenuButton asChild>
-                        <Link href={item.url} className="flex items-center gap-2 pl-8">
-                          <item.icon className="size-4" />
-                          {item.title}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-            </>
-          )}
+            ))}
 
           {/* User Management */}
           <SidebarMenuItem>
@@ -188,18 +241,16 @@ export function AppSidebar(props) {
           </SidebarMenuItem>
 
           {isUserManagementOpen &&
-            userManagementItems
-              .filter(item => !isStaff || item.staffVisible)
-              .map((item, index) => (
-                <SidebarMenuItem key={index}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url} className="flex items-center gap-2 pl-8">
-                      <item.icon className="size-4" />
-                      {item.title}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            userManagementItems.filter(checkVisibility).map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url} className="flex items-center gap-2 pl-8">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
 
           {/* Reference */}
           <SidebarMenuItem>
@@ -215,18 +266,16 @@ export function AppSidebar(props) {
           </SidebarMenuItem>
 
           {isReferenceOpen &&
-            referenceItems
-              .filter(item => !isStaff || item.staffVisible)
-              .map((item, index) => (
-                <SidebarMenuItem key={index}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url} className="flex items-center gap-2 pl-8">
-                      <item.icon className="size-4" />
-                      {item.title}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+            referenceItems.filter(checkVisibility).map((item, index) => (
+              <SidebarMenuItem key={index}>
+                <SidebarMenuButton asChild>
+                  <Link href={item.url} className="flex items-center gap-2 pl-8">
+                    <item.icon className="size-4" />
+                    {item.title}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
         </SidebarMenu>
       </SidebarContent>
 
