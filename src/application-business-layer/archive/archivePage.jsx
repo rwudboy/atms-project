@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import { getProject } from "@/application-business-layer/usecases/archive/get-project";
 import { getTasks } from "@/application-business-layer/usecases/archive/get-task";
 import ArchiveView from "@/interface-adapters/components/archive/archiveView";
-import { useAuth } from "@/interface-adapters/context/AuthContext";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/interface-adapters/components/ui/card";
-import {ShieldAlert } from "lucide-react";
 
 
 // Business Functions
@@ -30,8 +27,6 @@ const ITEMS_PER_PAGE = 5;
 
 // Page Component
 export default function ArchivePage() {
-  const { user } = useAuth();
-  const isStaff = user?.role?.toLowerCase() === "staff";
   const [allArchives, setAllArchives] = useState([]);
   const [filteredArchives, setFilteredArchives] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,22 +85,7 @@ export default function ArchivePage() {
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentArchives = filteredArchives.slice(startIndex, endIndex);
 
-   // Show access denied for staff users with the same style as customer page
-  if (isStaff) {
-    return (
-      <div className="container mx-auto py-10">
-        <Card>
-          <CardHeader className="text-center">
-            <ShieldAlert className="mx-auto h-12 w-12 text-destructive opacity-75 mb-2" />
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription className="pt-2">
-              Staff members do not have permission to access the Archive page. 
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+ 
 
   return (
     <ArchiveView
