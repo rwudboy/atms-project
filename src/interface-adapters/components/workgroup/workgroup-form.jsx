@@ -46,7 +46,7 @@ import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup
 import { useAuth } from "@/interface-adapters/context/AuthContext"; 
 
 export default function WorkgroupsPage() {
-  const { user} = useAuth(); // Get auth info
+  const { user } = useAuth();
   const [workgroups, setWorkgroups] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -63,6 +63,7 @@ export default function WorkgroupsPage() {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [workgroupToEdit, setWorkgroupToEdit] = useState(null);
+
   const userRole = user?.role?.toLowerCase() || "";
 
   const fetchWorkgroups = async () => {
@@ -80,11 +81,8 @@ export default function WorkgroupsPage() {
   const handleRemoveUserFromWorkgroup = async (workgroupId, userId) => {
     try {
       const response = await onRemoveUser(workgroupId, userId);
-      if (response) {
-        return Promise.resolve();
-      } else {
-        throw new Error("Failed to remove user");
-      }
+      if (response) return Promise.resolve();
+      else throw new Error("Failed to remove user");
     } catch (error) {
       console.error("Error removing user from workgroup:", error);
       throw error;
@@ -98,11 +96,7 @@ export default function WorkgroupsPage() {
         setWorkgroups((prev) =>
           prev.map((wg) =>
             wg.uuid === updateData.id
-              ? {
-                ...wg,
-                name: updateData.body.name,
-                status: updateData.body.status,
-              }
+              ? { ...wg, name: updateData.body.name, status: updateData.body.status }
               : wg
           )
         );
@@ -152,7 +146,6 @@ export default function WorkgroupsPage() {
     setShowAddUserModal(true);
   };
 
-
   const handleOpenViewModal = (workgroupId) => {
     setSelectedWorkgroupId(workgroupId);
     setShowDetailModal(true);
@@ -166,8 +159,6 @@ export default function WorkgroupsPage() {
   const handleClose = () => {
     setShowDetailModal(false);
   };
-
-
 
   return (
     <div className="container mx-auto py-10 space-y-6">
@@ -270,17 +261,19 @@ export default function WorkgroupsPage() {
                               <Users className="h-4 w-4 mr-1" />
                               Add User
                             </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => {
-                                setWorkgroupToDelete(wg);
-                                setShowDeleteDialog(true);
-                                setConfirmDeleteStep(false);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {userRole !== "manager" && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => {
+                                  setWorkgroupToDelete(wg);
+                                  setShowDeleteDialog(true);
+                                  setConfirmDeleteStep(false);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
