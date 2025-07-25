@@ -44,7 +44,7 @@ const getDelegationClassName = (delegation) => {
     : "bg-gray-100 text-gray-800";
 };
 
-export default function UnassignTaskPage() {
+export default function AssignTaskPage() {
   const router = useRouter();
 
   // State

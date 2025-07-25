@@ -65,15 +65,16 @@ export function LoginForm({ className, ...props }) {
       await loginUser(email, password);
 
       Swal.fire({
-        icon: "success",
-        title: "Login Success!",
-        text: "You can now go in with your account.",
-        confirmButtonText: "OK",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = "/dashboard";
-        }
-      });
+  icon: "success",
+  title: "Login Success!",
+  text: "Redirecting to dashboard...",
+  timer: 1000,
+  showConfirmButton: false,
+  timerProgressBar: true,
+}).then(() => {
+  window.location.href = "/dashboard";
+});
+
 
       setEmail("");
       setPassword("");

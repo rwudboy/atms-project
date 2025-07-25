@@ -53,18 +53,27 @@ export default function AssignTaskView({
   const customerName = selectedTaskDetails[0]?.customer || "—";
 
   // Button with notification badge component
-  const ButtonWithBadge = ({ children, notificationCount, ...props }) => (
-    <div className="relative inline-block">
-      <Button {...props}>
-        {children}
-      </Button>
-      {notificationCount > 0 && (
-        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-          {notificationCount}
-        </span>
-      )}
-    </div>
-  );
+const ButtonWithBadge = ({ children, resolve = 0, pending = 0, ...props }) => (
+  <div className="relative inline-block">
+    <Button {...props}>
+      {children}
+    </Button>
+
+    {/* Resolve badge - green (top-left) */}
+    {resolve > 0 && (
+      <span className="absolute -top-2 -left-2 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow">
+        {resolve}
+      </span>
+    )}
+
+    {/* Pending badge - red (top-right) */}
+    {pending > 0 && (
+      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold shadow">
+        {pending}
+      </span>
+    )}
+  </div>
+);
 
   // Handle view diagram with loading state
   const handleViewDiagram = async (task) => {
@@ -258,7 +267,6 @@ export default function AssignTaskView({
                 sortedTasks.map((task, index) => {
                   const taskId = task.businessKey || index;
                   const isButtonLoading = viewButtonLoading[taskId];
-                  const resolveCount = task.Resolve || task.resolve || 0;
                   
                   return (
                     <TableRow key={taskId}>
@@ -274,7 +282,8 @@ export default function AssignTaskView({
                         <ButtonWithBadge 
                           onClick={() => onViewDetail(task)} 
                           disabled={isButtonLoading}
-                          notificationCount={resolveCount}
+                          resolve={task.Resolve || 0}
+  pending={task.pending || 0}
                         >
                           {isButtonLoading ? "Loading..." : "View"}
                         </ButtonWithBadge>
