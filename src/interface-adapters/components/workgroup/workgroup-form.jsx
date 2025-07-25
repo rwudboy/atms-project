@@ -28,7 +28,6 @@ import {
 } from "@/interface-adapters/components/ui/dialog";
 import {
   Search,
-  Plus,
   Trash2,
   Users,
   AlertCircle,
@@ -43,7 +42,7 @@ import { EditWorkgroupModal } from "@/interface-adapters/components/modals/workg
 import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
 import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
 import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";
-import { useAuth } from "@/interface-adapters/context/AuthContext"; 
+import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 export default function WorkgroupsPage() {
   const { user } = useAuth();
@@ -243,6 +242,7 @@ export default function WorkgroupsPage() {
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
+
                         {!userRole.includes("staff") && (
                           <>
                             <Button
@@ -253,14 +253,18 @@ export default function WorkgroupsPage() {
                               <Edit className="h-4 w-4 mr-1" />
                               Edit
                             </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleOpenAddUserModal(wg)}
-                            >
-                              <Users className="h-4 w-4 mr-1" />
-                              Add User
-                            </Button>
+
+                            {userRole === "manager" && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleOpenAddUserModal(wg)}
+                              >
+                                <Users className="h-4 w-4 mr-1" />
+                                Add User
+                              </Button>
+                            )}
+
                             {userRole !== "manager" && (
                               <Button
                                 variant="destructive"

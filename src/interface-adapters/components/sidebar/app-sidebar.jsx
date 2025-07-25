@@ -202,30 +202,35 @@ export function AppSidebar(props) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          {/* Projects */}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
-              <IconFolder className="mr-2 size-5" />
-              <span>Projects</span>
-              {isProjectsOpen ? (
-                <IconChevronUp className="ml-auto size-4" />
-              ) : (
-                <IconChevronDown className="ml-auto size-4" />
-              )}
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {isProjectsOpen &&
-            projectSubItems.filter(checkVisibility).map((item, index) => (
-              <SidebarMenuItem key={index}>
-                <SidebarMenuButton asChild>
-                  <Link href={item.url} className="flex items-center gap-2 pl-8">
-                    <item.icon className="size-4" />
-                    {item.title}
-                  </Link>
+          {!isAdmin && (
+            <>
+              {/* Projects */}
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => setIsProjectsOpen(!isProjectsOpen)}>
+                  <IconFolder className="mr-2 size-5" />
+                  <span>Projects</span>
+                  {isProjectsOpen ? (
+                    <IconChevronUp className="ml-auto size-4" />
+                  ) : (
+                    <IconChevronDown className="ml-auto size-4" />
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            ))}
+
+              {isProjectsOpen &&
+                projectSubItems.filter(checkVisibility).map((item, index) => (
+                  <SidebarMenuItem key={index}>
+                    <SidebarMenuButton asChild>
+                      <Link href={item.url} className="flex items-center gap-2 pl-8">
+                        <item.icon className="size-4" />
+                        {item.title}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+            </>
+          )}
+
 
           {/* User Management */}
           <SidebarMenuItem>

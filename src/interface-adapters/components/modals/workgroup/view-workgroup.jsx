@@ -26,6 +26,7 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
   const [users, setUsers] = useState([])
   
   const { user } = useAuth()
+  const isManager = user?.role?.toLowerCase() === "manager"
   const isStaff = user?.role?.toLowerCase() === "staff"
 
   useEffect(() => {
@@ -67,7 +68,6 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
 
   const handleRemoveUser = (userId, username) => {
     // Only non-staff can remove users
-    if (isStaff) return;
     
     setRemovedUsers(prev => [...prev, { id: userId, username }]);
     setUsers(prev => prev.filter(user => user.id !== userId));
@@ -77,7 +77,6 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
 
   const handleRevokeRemoval = (userId, username) => {
     // Only non-staff can revoke removals
-    if (isStaff) return;
     
     setRemovedUsers(prev => prev.filter(user => user.id !== userId));
     setUsers(prev => [...prev, { id: userId, username }]);
@@ -188,8 +187,8 @@ export default function WorkgroupDetailModal({ workgroupId, open, onOpenChange, 
                           </Badge>
                         </div>
                         
-                        {/* Only show remove button for non-staff users */}
-                        {!isStaff && (
+                        {/* Only show remove button for manager only */}
+                        {isManager && (
                           <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
