@@ -48,7 +48,7 @@ export default function ForgotPassword() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
               <p className="text-gray-600">
-                We've sent a password reset link to <span className="font-medium text-gray-900">{email}</span>
+                We've sent a temporary password to <span className="font-medium text-gray-900">{email}</span>
               </p>
             </div>
             <div className="space-y-4">
@@ -57,6 +57,12 @@ export default function ForgotPassword() {
                 Try again
               </Button>
             </div>
+             <div className="text-center text-sm">
+        Already have an account?{" "}
+        <a href="/login" className="underline underline-offset-4">
+          Login
+        </a>
+      </div>
           </CardContent>
         </Card>
       </div>
@@ -108,10 +114,10 @@ export default function ForgotPassword() {
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Sending reset link...
+                    Sending reset password...
                   </div>
                 ) : (
-                  "Send reset link"
+                  "Send reset password"
                 )}
               </Button>
             </form>
