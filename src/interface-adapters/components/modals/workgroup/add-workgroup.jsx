@@ -29,19 +29,27 @@ import clsx from "clsx";
 
 const getRoleIcon = (role) => {
   switch (role) {
-    case "admin": return <Crown className="h-3 w-3" />;
-    case "manager": return <Shield className="h-3 w-3" />;
-    case "user": return <UserCheck className="h-3 w-3" />;
-    default: return <User className="h-3 w-3" />;
+    case "admin":
+      return <Crown className="h-3 w-3" />;
+    case "manager":
+      return <Shield className="h-3 w-3" />;
+    case "user":
+      return <UserCheck className="h-3 w-3" />;
+    default:
+      return <User className="h-3 w-3" />;
   }
 };
 
 const getRoleColor = (role) => {
   switch (role) {
-    case "admin": return "bg-red-100 text-red-800";
-    case "manager": return "bg-blue-100 text-blue-800";
-    case "user": return "bg-green-100 text-green-800";
-    default: return "bg-gray-100 text-gray-800";
+    case "admin":
+      return "bg-red-100 text-red-800";
+    case "manager":
+      return "bg-blue-100 text-blue-800";
+    case "user":
+      return "bg-green-100 text-green-800";
+    default:
+      return "bg-gray-100 text-gray-800";
   }
 };
 
@@ -72,7 +80,10 @@ export default function AddUserModal({
       try {
         const res = await getUsers();
         const userData = res.user || res || [];
-        setUsers(Array.isArray(userData) ? userData : []);
+        const filtered = Array.isArray(userData)
+          ? userData.filter((u) => u.Role !== "admin")
+          : [];
+        setUsers(filtered);
       } catch {
         setUsers([]);
       }
@@ -99,28 +110,28 @@ export default function AddUserModal({
     );
   };
 
- const handleSubmit = async () => {
-  if (selectedUsers.length === 0 || !selectedWorkgroup) {
-    toast.error("Please select at least one user and a workgroup.");
-    return;
-  }
-
-  setIsSubmitting(true);
-  try {
-    const selectedData = users.filter((u) => selectedUsers.includes(u.id));
-    for (const user of selectedData) {
-      await AddUser(selectedWorkgroup, { uuid: user.id });
-      toast.success(`${user.namaLengkap} added to workgroup`);
+  const handleSubmit = async () => {
+    if (selectedUsers.length === 0 || !selectedWorkgroup) {
+      toast.error("Please select at least one user and a workgroup.");
+      return;
     }
-    onOpenChange(false);
-    refetchWorkgroups(); // Call this function to refetch the list
-  } catch (error) {
-    const errorMessage = error?.message || "Failed to add users";
-    toast.error(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    setIsSubmitting(true);
+    try {
+      const selectedData = users.filter((u) => selectedUsers.includes(u.id));
+      for (const user of selectedData) {
+        await AddUser(selectedWorkgroup, { uuid: user.id });
+        toast.success(`${user.namaLengkap} added to workgroup`);
+      }
+      onOpenChange(false);
+      refetchWorkgroups();
+    } catch (error) {
+      const errorMessage = error?.message || "Failed to add users";
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleClose = () => {
     setSelectedUsers([]);
@@ -213,18 +224,14 @@ export default function AddUserModal({
                             </Badge>
                           )}
                         </div>
-                        <div className="flex gap-1 flex-wrap">
-                          {Array.isArray(user.Role) &&
-                            user.Role.map((role, index) => (
-                              <Badge
-                                key={`${user.id}-${role}-${index}`}
-                                className={`text-[10px] px-2 py-0.5 flex items-center gap-1 ${getRoleColor(role)}`}
-                              >
-                                {getRoleIcon(role)}
-                                <span className="capitalize">{role}</span>
-                              </Badge>
-                            ))}
-                        </div>
+                        {user.Role && (
+                          <Badge
+                            className={`text-[10px] px-2 py-0.5 flex items-center gap-1 ${getRoleColor(user.Role)}`}
+                          >
+                            {getRoleIcon(user.Role)}
+                            <span className="capitalize">{user.Role}</span>
+                          </Badge>
+                        )}
                       </div>
                     </Card>
                   );
