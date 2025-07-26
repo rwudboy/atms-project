@@ -140,8 +140,8 @@ export default function UsersPage() {
     <div className="container mx-auto py-10">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>Manage system users and their profiles</CardDescription>
+          <CardTitle>User Role</CardTitle>
+          <CardDescription>Manage role user</CardDescription>
         </CardHeader>
       </Card>
 
