@@ -21,9 +21,9 @@ import {
 import { Search, Eye } from "lucide-react";
 import { toast } from "sonner";
 
-import { getProjects } from "@/application-business-layer/usecases/project-instance/get-project";
-import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
-import { getDiagram } from "@/application-business-layer/usecases/project-instance/get-diagram";
+import { getProjects } from "@/framework-drivers/api/project-instance/get-project";
+import { getCustomers } from "@/framework-drivers/api/customer/get-customer";
+import { getDiagram } from "@/framework-drivers/api/project-instance/get-diagram";
 import ProjectInstanceModal from "@/interface-adapters/components/modals/project-instance/project-instance-modal";
 import DiagramModal from "@/interface-adapters/components/modals/project-instance/diagram-modal";
 

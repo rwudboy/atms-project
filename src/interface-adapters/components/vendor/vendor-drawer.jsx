@@ -13,7 +13,7 @@ import {
 } from "@/interface-adapters/components/ui/drawer";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Button } from "@/interface-adapters/components/ui/button";
-import { addVendor } from "@/application-business-layer/usecases/vendor/add-vendor";
+import { addVendor } from "@/framework-drivers/api/vendor/add-vendor";
 import { toast } from "sonner";
 import { useIsMobile } from "@/framework-drivers/hooks/use-mobile";
 

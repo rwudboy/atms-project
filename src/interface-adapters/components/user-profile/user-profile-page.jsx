@@ -29,8 +29,8 @@ import {
 } from "@/interface-adapters/components/ui/dialog";
 import { Search, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
-import { DeleteUser } from "@/application-business-layer/usecases/user/deleteUser";
+import { getUsers } from "@/framework-drivers/api/user/getUserList";
+import { DeleteUser } from "@/framework-drivers/api/user/deleteUser";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/interface-adapters/context/AuthContext";
 

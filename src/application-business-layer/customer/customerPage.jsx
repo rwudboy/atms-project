@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
-import { deleteCustomer } from "@/application-business-layer/usecases/customer/delete-customer";
-import { editCustomer } from "@/application-business-layer/usecases/customer/edit-customer";
+import { getCustomers } from "@/framework-drivers/api/customer/get-customer";
+import { deleteCustomer } from "@/framework-drivers/api/customer/delete-customer";
+import { editCustomer } from "@/framework-drivers/api/customer/edit-customer";
 
 // Utility Functions
 const filterCustomers = (customers, searchTerm) => {

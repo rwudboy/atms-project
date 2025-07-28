@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
-import { getTaskByBusinessKey } from "@/application-business-layer/usecases/unassign-task/get-task-by-bk";
-import { getTaskById } from "@/application-business-layer/usecases/unassign-task/get-task-by-id";
-import { getDiagram } from "@/application-business-layer/usecases/unassign-task/get-diagram";
+import { getTasks } from "@/framework-drivers/api/assign-task/get-task";
+import { getTaskByBusinessKey } from "@/framework-drivers/api/unassign-task/get-task-by-bk";
+import { getTaskById } from "@/framework-drivers/api/unassign-task/get-task-by-id";
+import { getDiagram } from "@/framework-drivers/api/unassign-task/get-diagram";
 
 import AssignTaskView from "@/interface-adapters/components/assign-task/assignTaskView";
 

@@ -20,7 +20,7 @@ import {
 } from "@/interface-adapters/components/ui/table";
 import { Badge } from "@/interface-adapters/components/ui/badge";
 import { toast } from "sonner";
-import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
+import { getUsers } from "@/framework-drivers/api/user/getUserList";
 import UserDetailModal from "@/interface-adapters/components/modals/user-role/user-detail-modal";
 import { DeleteUserRoleDialog } from "@/interface-adapters/components/modals/user-role/remove-role-modal";
 import { Search, ShieldAlert } from "lucide-react";

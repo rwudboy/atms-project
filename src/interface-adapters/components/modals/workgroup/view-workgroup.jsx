@@ -13,7 +13,7 @@ import { Badge } from "@/interface-adapters/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/interface-adapters/components/ui/avatar"
 import { Separator } from "@/interface-adapters/components/ui/separator"
 import { Users, User, Shield, X, Loader2, Plus } from "lucide-react"
-import { viewWorkgroup } from "@/application-business-layer/usecases/workgroup/view-workgroup"
+import { viewWorkgroup } from "@/framework-drivers/api/workgroup/view-workgroup"
 import { toast } from "sonner"
 import { useAuth } from "@/interface-adapters/context/AuthContext"
 

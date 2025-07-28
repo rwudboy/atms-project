@@ -23,11 +23,11 @@ import { toast } from "sonner"
 import { RoleViewModal } from "@/interface-adapters/components/modals/roles/view-roles"
 import { EditRoleModal } from "@/interface-adapters/components/modals/roles/update-roles"
 import { DeleteRoleModal } from "@/interface-adapters/components/modals/roles/delete-roles"
-import { updateRole } from "@/application-business-layer/usecases/roles/update-roles"
+import { updateRole } from "@/framework-drivers/api/roles/update-roles"
 
-import { getRoles } from "@/application-business-layer/usecases/roles/roles-usecase"
-import { viewRoles } from "@/application-business-layer/usecases/roles/view-roles"
-import { deleteRole } from "@/application-business-layer/usecases/roles/delete-roles"
+import { getRoles } from "@/framework-drivers/api/roles/roles-usecase"
+import { viewRoles } from "@/framework-drivers/api/roles/view-roles"
+import { deleteRole } from "@/framework-drivers/api/roles/delete-roles"
 import { Search, Eye, ShieldAlert } from "lucide-react";
 import { useAuth } from "@/interface-adapters/context/AuthContext";
 

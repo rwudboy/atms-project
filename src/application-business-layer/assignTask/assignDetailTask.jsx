@@ -4,13 +4,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getTaskById } from "@/application-business-layer/usecases/assign-task/get-detailed-task";
+import { getTaskById } from "@/framework-drivers/api/assign-task/get-detailed-task";
 import {
   sendTaskFiles,
   sendDropdownValues,
-} from "@/application-business-layer/usecases/resolve/upload";
-import { UnclaimTask } from "@/application-business-layer/usecases/assign-task/unclaim-task";
-import { Complete } from "@/application-business-layer/usecases/complete/complete";
+} from "@/framework-drivers/api/resolve/upload";
+import { UnclaimTask } from "@/framework-drivers/api/assign-task/unclaim-task";
+import { Complete } from "@/framework-drivers/api/complete/complete";
 import AssignDetailedTaskView from "@/interface-adapters/components/assign-task/assignTaskDetails";
 import DelegateTaskDialog from "@/interface-adapters/components/modals/delegate/delegate-modal";
 import { useAuth } from "@/interface-adapters/context/AuthContext";

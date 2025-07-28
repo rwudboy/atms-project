@@ -17,8 +17,8 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/interface-adapters/components/ui/input-otp";
-import { resendOTPUseCase } from "@/application-business-layer/usecases/resend-otp/resendotp";
-import { otpUserUseCase } from "@/application-business-layer/usecases/otp/otpUser";
+import { resendOTPUseCase } from "@/framework-drivers/api/resend-otp/resendotp";
+import { otpUserUseCase } from "@/framework-drivers/api/otp/otpUser";
 
 const RESEND_DELAY = 5 * 60; // 5 minutes in seconds
 

@@ -14,8 +14,8 @@ import { Button } from "@/interface-adapters/components/ui/button";
 import { Check } from "lucide-react";
 import { cn } from "@/interface-adapters/lib/utils";
 import { useState, useEffect } from "react";
-import { getCustomers } from "@/application-business-layer/usecases/project-instance/get-customer";
-import { createProjects } from "@/application-business-layer/usecases/project-instance/create-project";
+import { getCustomers } from "@/framework-drivers/api/project-instance/get-customer";
+import { createProjects } from "@/framework-drivers/api/project-instance/create-project";
 import { toast } from "sonner";
 
 export default function ProjectInstanceModal({

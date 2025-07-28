@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getRoles } from "@/application-business-layer/usecases/roles/roles-usecase"
-import { viewRoles } from "@/application-business-layer/usecases/roles/view-roles"
-import { deleteRole } from "@/application-business-layer/usecases/roles/delete-roles"
+import { getRoles } from "@/framework-drivers/api/roles/roles-usecase"
+import { viewRoles } from "@/framework-drivers/api/roles/view-roles"
+import { deleteRole } from "@/framework-drivers/api/roles/delete-roles"
 import { useAuth } from "@/interface-adapters/context/AuthContext";
 import RolesView from "@/interface-adapters/components/roles/rolesPageView";
 import {

@@ -37,11 +37,11 @@ import {
 import { toast } from "sonner";
 import AddUserModal from "@/interface-adapters/components/modals/workgroup/add-workgroup";
 import WorkgroupDetailModal from "@/interface-adapters/components/modals/workgroup/view-workgroup";
-import { onRemoveUser } from "@/application-business-layer/usecases/workgroup/remove-user";
+import { onRemoveUser } from "@/framework-drivers/api/workgroup/remove-user";
 import { EditWorkgroupModal } from "@/interface-adapters/components/modals/workgroup/edit-workgroup";
-import { getWorkgroups } from "@/application-business-layer/usecases/workgroup/get-workgroup";
-import { updateWorkgroup } from "@/application-business-layer/usecases/workgroup/update-workgroup";
-import { deleteWorkgroup } from "@/application-business-layer/usecases/workgroup/delete-workgroup";
+import { getWorkgroups } from "@/framework-drivers/api/workgroup/get-workgroup";
+import { updateWorkgroup } from "@/framework-drivers/api/workgroup/update-workgroup";
+import { deleteWorkgroup } from "@/framework-drivers/api/workgroup/delete-workgroup";
 import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 export default function WorkgroupsPage() {

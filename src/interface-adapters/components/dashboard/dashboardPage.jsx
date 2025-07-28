@@ -16,7 +16,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
 } from "lucide-react";
-import { getTasks } from "@/application-business-layer/usecases/assign-task/get-task";
+import { getTasks } from "@/framework-drivers/api/assign-task/get-task";
 import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 // Animation variants

@@ -13,9 +13,9 @@ import {
 } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit, ShieldAlert } from "lucide-react";
-import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
-import { deleteCustomer } from "@/application-business-layer/usecases/customer/delete-customer";
-import { editCustomer } from "@/application-business-layer/usecases/customer/edit-customer";
+import { getCustomers } from "@/framework-drivers/api/customer/get-customer";
+import { deleteCustomer } from "@/framework-drivers/api/customer/delete-customer";
+import { editCustomer } from "@/framework-drivers/api/customer/edit-customer";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
 import EditCustomerModal from "@/interface-adapters/components/modals/customer/edit-customer";
 import { toast } from "sonner";

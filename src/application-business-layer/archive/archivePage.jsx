@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getProject } from "@/application-business-layer/usecases/archive/get-project";
-import { getTasks } from "@/application-business-layer/usecases/archive/get-task";
+import { getProject } from "@/framework-drivers/api/archive/get-project";
+import { getTasks } from "@/framework-drivers/api/archive/get-task";
 import ArchiveView from "@/interface-adapters/components/archive/archiveView";
 
 

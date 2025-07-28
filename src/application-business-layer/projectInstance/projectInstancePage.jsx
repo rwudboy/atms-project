@@ -11,9 +11,9 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/interface-adapte
 import { useAuth } from "@/interface-adapters/context/AuthContext";
 
 // Use Cases
-import { getProjects } from "@/application-business-layer/usecases/project-instance/get-project";
-import { getCustomers } from "@/application-business-layer/usecases/project-instance/get-customer";
-import { getDiagram } from "@/application-business-layer/usecases/project-instance/get-diagram";
+import { getProjects } from "@/framework-drivers/api/project-instance/get-project";
+import { getCustomers } from "@/framework-drivers/api/project-instance/get-customer";
+import { getDiagram } from "@/framework-drivers/api/project-instance/get-diagram";
 
 // Child Components
 import ProjectInstanceSearch from "@/interface-adapters/components/project-instance/ProjectInstanceSearch";

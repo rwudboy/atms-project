@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useState, useEffect, useContext } from "react";
-import { getUserDetail } from "@/application-business-layer/usecases/token/getUserDetail";
+import { getUserDetail } from "@/framework-drivers/api/token/getUserDetail";
 
 // Create Context
 const AuthContext = createContext(null);

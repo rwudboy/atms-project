@@ -22,8 +22,8 @@ import {
   Shield,
   UserCheck,
 } from "lucide-react";
-import { getUsers } from "@/application-business-layer/usecases/user/getUserList";
-import { AddUser } from "@/application-business-layer/usecases/workgroup/add-user-usecase";
+import { getUsers } from "@/framework-drivers/api/user/getUserList";
+import { AddUser } from "@/framework-drivers/api/workgroup/add-user-usecase";
 import { toast } from "sonner";
 import clsx from "clsx";
 

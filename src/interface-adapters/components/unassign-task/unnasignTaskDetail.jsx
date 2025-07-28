@@ -9,8 +9,8 @@ import { Separator } from "@/interface-adapters/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/interface-adapters/components/ui/avatar";
 import { Paperclip } from "lucide-react";
 import { toast } from "sonner";
-import { getTaskById } from "@/application-business-layer/usecases/unassign-task/get-task-by-id";
-import { ClaimTask } from "@/application-business-layer/usecases/unassign-task/claim-task";
+import { getTaskById } from "@/framework-drivers/api/unassign-task/get-task-by-id";
+import { ClaimTask } from "@/framework-drivers/api/unassign-task/claim-task";
 import { Skeleton } from "@/interface-adapters/components/ui/skeleton";
 
 export default function UnassignDetailedTask({ taskId }) {

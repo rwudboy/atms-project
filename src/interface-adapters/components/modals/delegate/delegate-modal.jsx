@@ -16,8 +16,8 @@ import { Card } from "@/interface-adapters/components/ui/card";
 import { Input } from "@/interface-adapters/components/ui/input";
 import { Textarea } from "@/interface-adapters/components/ui/textarea";
 import { UserCheck, Send, Upload, FileText, User } from "lucide-react";
-import { getUsers } from "@/application-business-layer/usecases/delegate/user-delegate";
-import { DelegateTask } from "@/application-business-layer/usecases/assign-task/delegate-task";
+import { getUsers } from "@/framework-drivers/api/delegate/user-delegate";
+import { DelegateTask } from "@/framework-drivers/api/assign-task/delegate-task";
 import { toast } from "sonner";
 import clsx from "clsx";
 
