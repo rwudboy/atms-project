@@ -152,7 +152,7 @@ export function AppSidebar(props) {
   const userManagementItems = [
     {
       title: "User Profile",
-      url: isStaff ? `/userProfile/${userName}` : "/userProfile",
+      url: isStaff || isManager? `/userProfile/${userName}` : "/userProfile",
       icon: IconUsers,
       staffVisible: true,
       managerVisible: true,
@@ -163,7 +163,7 @@ export function AppSidebar(props) {
       url: "/userRole",
       icon: IconUserEdit,
       staffVisible: false,
-      managerVisible: true,
+      managerVisible: false,
       adminVisible: true,
     },
   ];

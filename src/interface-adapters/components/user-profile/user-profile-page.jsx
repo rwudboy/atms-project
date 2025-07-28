@@ -33,12 +33,12 @@ import { getUsers } from "@/framework-drivers/api/user/getUserList";
 import { DeleteUser } from "@/framework-drivers/api/user/deleteUser";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/interface-adapters/context/AuthContext";
+import usePagination from "@/framework-drivers/hooks/usePagination";
 
 export default function UsersPage() {
   const router = useRouter();
   const { user: currentUser, loading: authLoading } = useAuth();
 
-  const [users, setUsers] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoadingUsersList, setIsLoadingUsersList] = useState(true);
@@ -48,9 +48,16 @@ export default function UsersPage() {
     isDeleting: false,
   });
 
+  const {
+    currentPage,
+    paginatedData,
+    setData,
+    PaginationControls,
+  } = usePagination({ itemsPerPage: 5 });
+
   useEffect(() => {
     if (!authLoading) {
-      if (currentUser?.role?.toLowerCase() === "staff") {
+      if (currentUser?.role?.toLowerCase() === "staff" ||currentUser?.role?.toLowerCase() === "manager" ) {
         router.push(`/userProfile/${currentUser.username}`);
         return;
       }
@@ -63,18 +70,18 @@ export default function UsersPage() {
     try {
       const response = await getUsers();
       if (Array.isArray(response)) {
-        setUsers(response);
         setAllUsers(response);
+        setData(response); // sync pagination
       } else {
         toast.error("Invalid response format.");
-        setUsers([]);
         setAllUsers([]);
+        setData([]);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users.");
-      setUsers([]);
       setAllUsers([]);
+      setData([]);
     } finally {
       setIsLoadingUsersList(false);
     }
@@ -82,7 +89,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!searchTerm.trim()) {
-      setUsers(allUsers);
+      setData(allUsers);
       return;
     }
 
@@ -91,10 +98,10 @@ export default function UsersPage() {
       (user) =>
         user.username.toLowerCase().includes(lower) ||
         user.email.toLowerCase().includes(lower) ||
-        user.role?.toLowerCase().includes(lower) 
+        user.role?.toLowerCase().includes(lower)
     );
-    setUsers(filtered);
-  }, [searchTerm, allUsers]);
+    setData(filtered);
+  }, [searchTerm, allUsers, setData]);
 
   const handleEdit = (user) => {
     if (user.username) {
@@ -112,13 +119,12 @@ export default function UsersPage() {
 
   const handleDelete = async (userId) => {
     setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
-
     try {
       await DeleteUser(userId);
 
       const updatedUsers = allUsers.filter((user) => user.id !== userId);
       setAllUsers(updatedUsers);
-      setUsers(
+      setData(
         updatedUsers.filter(
           (user) =>
             !searchTerm.trim() ||
@@ -129,12 +135,7 @@ export default function UsersPage() {
       );
 
       toast.success("User deleted successfully");
-
-      setDeleteDialog({
-        open: false,
-        user: null,
-        isDeleting: false,
-      });
+      setDeleteDialog({ open: false, user: null, isDeleting: false });
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user");
@@ -159,7 +160,7 @@ export default function UsersPage() {
         return "destructive";
       case "manager":
         return "default";
-      case "staff": 
+      case "staff":
         return "outline";
       default:
         return "default";
@@ -218,15 +219,12 @@ export default function UsersPage() {
         <CardContent>
           <div className="space-y-4">
             <div className="grid grid-cols-6 gap-4 pb-4 border-b">
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded animate-pulse"></div>
+              ))}
             </div>
 
-            {[...Array(8)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <div
                 key={i}
                 className="grid grid-cols-6 gap-4 py-4 border-b border-gray-100"
@@ -284,7 +282,7 @@ export default function UsersPage() {
           <div>
             <CardTitle>User List</CardTitle>
             <CardDescription>
-              Showing {users.length} of {allUsers.length} users
+              Showing {paginatedData.length} of {allUsers.length} users
             </CardDescription>
           </div>
         </CardHeader>
@@ -310,14 +308,14 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : users.length === 0 ? (
+              ) : paginatedData.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-4">
                     No users found.
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
+                paginatedData.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.username}</TableCell>
                     <TableCell>{user.email || "-"}</TableCell>
@@ -353,6 +351,7 @@ export default function UsersPage() {
               )}
             </TableBody>
           </Table>
+          <PaginationControls />
         </CardContent>
       </Card>
 

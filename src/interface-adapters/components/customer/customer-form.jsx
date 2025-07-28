@@ -13,13 +13,14 @@ import {
 } from "@/interface-adapters/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/interface-adapters/components/ui/alert";
 import { Search, Plus, Trash2, Edit, ShieldAlert } from "lucide-react";
-import { getCustomers } from "@/framework-drivers/api/customer/get-customer";
-import { deleteCustomer } from "@/framework-drivers/api/customer/delete-customer";
-import { editCustomer } from "@/framework-drivers/api/customer/edit-customer";
+import { getCustomers } from "@/application-business-layer/usecases/customer/get-customer";
+import { deleteCustomer } from "@/application-business-layer/usecases/customer/delete-customer";
+import { updateCustomer } from "@/application-business-layer/usecases/customer/update-customer";
 import AddCustomerDrawer from "@/interface-adapters/components/customer/customer-drawer";
 import EditCustomerModal from "@/interface-adapters/components/modals/customer/edit-customer";
 import { toast } from "sonner";
-import { useAuth } from "@/interface-adapters/context/AuthContext"; // Import AuthContext
+import { useAuth } from "@/interface-adapters/context/AuthContext";
+import usePagination from "@/framework-drivers/hooks/usePagination";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([]);
@@ -35,6 +36,21 @@ export default function CustomersPage() {
   // Get user role from AuthContext
   const { user, loading: authLoading } = useAuth();
   const isStaff = user?.role?.toLowerCase() === "staff";
+
+  // Pagination setup
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    setData,
+    handlePageChange,
+    PaginationControls,
+  } = usePagination({ itemsPerPage: 5 }); // Adjust itemsPerPage as needed
+
+  // Update pagination data when customers change
+  useEffect(() => {
+    setData(customers);
+  }, [customers, setData]);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -82,7 +98,7 @@ export default function CustomersPage() {
 
   const handleUpdateCustomer = async (customerId, formData) => {
     try {
-      await editCustomer(customerId, formData);
+      await updateCustomer(customerId, formData);
       setCustomers(customers.map(customer =>
         customer.id === customerId ? { ...customer, ...formData } : customer
       ));
@@ -100,7 +116,7 @@ export default function CustomersPage() {
     setCustomers(updatedCustomers);
   };
 
-  const filteredCustomers = customers.filter((customer) =>
+  const filteredCustomers = paginatedData.filter((customer) =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -226,6 +242,7 @@ export default function CustomersPage() {
               )}
             </TableBody>
           </Table>
+          <PaginationControls />
         </CardContent>
       </Card>
 

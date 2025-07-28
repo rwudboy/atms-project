@@ -245,18 +245,8 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                                         <span>-</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <User className="h-4 w-4 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">Assignee:</span>
-                                                        <span>-</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
                                                         <Calendar className="h-4 w-4 text-muted-foreground" />
                                                         <span className="text-muted-foreground">Created:</span>
-                                                        <span>-</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Clock className="h-4 w-4 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">Due Date:</span>
                                                         <span>-</span>
                                                     </div>
                                                 </div>

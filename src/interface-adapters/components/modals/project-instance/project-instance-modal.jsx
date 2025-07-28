@@ -17,6 +17,7 @@ import { useState, useEffect } from "react";
 import { getCustomers } from "@/framework-drivers/api/project-instance/get-customer";
 import { createProjects } from "@/framework-drivers/api/project-instance/create-project";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react"; 
 
 export default function ProjectInstanceModal({
   isOpen,
@@ -30,6 +31,8 @@ export default function ProjectInstanceModal({
   setSelectedCustomer,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // add this
+
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [allCustomers, setAllCustomers] = useState([]);
@@ -76,7 +79,8 @@ export default function ProjectInstanceModal({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+     setIsSubmitting(true);
+     
     const result = await createProjects({
       key: selectedKey,
       businessKey: contractNumber,
@@ -171,12 +175,19 @@ export default function ProjectInstanceModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={!contractNumber || !selectedCustomer}
-            >
-              Start Process
-            </Button>
+      <Button
+  type="submit"
+  disabled={!contractNumber || !selectedCustomer || isSubmitting}
+>
+  {isSubmitting ? (
+    <>
+      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      Starting...
+    </>
+  ) : (
+    "Start Process"
+  )}
+</Button>
           </DialogFooter>
         </form>
       </DialogContent>
