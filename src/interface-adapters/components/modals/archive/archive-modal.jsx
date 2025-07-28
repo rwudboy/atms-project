@@ -66,26 +66,23 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
         }
     }, [isOpen, archive])
 
-   
-
     const handleDownload = (task) => {
-  try {
-    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/atribut/${task.id}/download`
+        try {
+            const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/atribut/${task.id}/download`
 
-    // Optionally show a toast before download starts
-    toast.success(`Download started for task: ${task.id}`)
+            // Optionally show a toast before download starts
+            toast.success(`Download started for task: ${task.id}`)
 
-    // Open the download URL in a new tab or initiate it directly
-    window.open(downloadUrl, '_blank') // or remove '_blank' to download in same tab
+            // Open the download URL in a new tab or initiate it directly
+            window.open(downloadUrl, '_blank') // or remove '_blank' to download in same tab
 
-    // Optionally show a toast after trigger (note: doesn't guarantee download finished)
-    toast.success("File download triggered")
-  } catch (error) {
-    console.error("Error triggering file download:", error)
-    toast.error("Failed to start file download: " + error.message)
-  }
-}
-
+            // Optionally show a toast after trigger (note: doesn't guarantee download finished)
+            toast.success("File download triggered")
+        } catch (error) {
+            console.error("Error triggering file download:", error)
+            toast.error("Failed to start file download: " + error.message)
+        }
+    }
 
     const getFileIcon = (fileType) => {
         const extension = fileType?.split('.').pop()?.toLowerCase()
@@ -106,22 +103,22 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
     }
 
     const formatTimeStamp = (timestamp) => {
-  if (!timestamp) return "Not set"
-  
-  const date = typeof timestamp === "number" ? new Date(timestamp) : new Date(timestamp)
-  
-  if (isNaN(date.getTime())) {
-    return "Invalid date"
-  }
-  
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
+        if (!timestamp) return "Not set"
+        
+        const date = typeof timestamp === "number" ? new Date(timestamp) : new Date(timestamp)
+        
+        if (isNaN(date.getTime())) {
+            return "Invalid date"
+        }
+        
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        })
+    }
 
     const SkeletonTaskCard = () => (
         <Card className="border-l-4 border-l-muted">
@@ -207,9 +204,9 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                 <CardTitle className="text-sm font-medium">Status</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <Badge variant={archive.status === "UNLOCKED" ? "success" : "default"}>
-    {archive.status?.toUpperCase()}
-  </Badge>
+                                <Badge variant={archive.status === "active" ? "success" : "default"}>
+                                    {archive.status?.toUpperCase()}
+                                </Badge>
                             </CardContent>
                         </Card>
                     </div>
@@ -302,21 +299,14 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                                                 <span className="text-muted-foreground">
                                                                     Owner:
                                                                 </span>
-                                                                <span>{task.owner || "Unassigned"}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <User className="h-4 w-4 text-muted-foreground" />
-                                                                <span className="text-muted-foreground">
-                                                                    Assignee:
-                                                                </span>
-                                                                <span>{task.assignee || "Unassigned"}</span>
+                                                                <span>{task.createBy || "Unknown"}</span>
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                                                 <span className="text-muted-foreground">
                                                                     Created:
                                                                 </span>
-                                                                <span>{formatTimeStamp(task.createBy)}</span>
+                                                                <span>{formatTimeStamp(task.createAt)}</span>
                                                             </div>
                                                             {task.followUp && (
                                                                 <div className="flex items-center gap-2">
@@ -324,7 +314,7 @@ export default function ArchiveDetailModal({ isOpen, onClose, archive }) {
                                                                     <span className="text-muted-foreground">
                                                                         Follow Up:
                                                                     </span>
-                                                                    <span>{formatDate(task.followUp)}</span>
+                                                                    <span>{formatTimeStamp(task.followUp)}</span>
                                                                 </div>
                                                             )}
                                                             {task.delegation && (

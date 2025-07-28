@@ -221,11 +221,6 @@ export default function UsersPage() {
                       >
                         Edit
                       </Button>
-                      <DeleteUserRoleDialog username={user.username} onSuccess={fetchUsers}>
-                        <Button variant="destructive" size="sm">
-                          Remove
-                        </Button>
-                      </DeleteUserRoleDialog>
                     </TableCell>
                   </TableRow>
                 ))
