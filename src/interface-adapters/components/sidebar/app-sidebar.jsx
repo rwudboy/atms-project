@@ -163,7 +163,7 @@ export function AppSidebar(props) {
       url: "/userRole",
       icon: IconUserEdit,
       staffVisible: false,
-      managerVisible: false,
+      managerVisible: true,
       adminVisible: true,
     },
   ];
