@@ -46,7 +46,7 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
   const [passwordError, setPasswordError] = useState("");
 
   // Check if status should be disabled (when user roles is staff)
-  const isStatusDisabled = currentUser.role === "staff";
+  const isStatusDisabled = currentUser.role === "staff"
 
   const validateAndSave = () => {
     // Validate phone number first
@@ -159,7 +159,7 @@ export default function UserProfileEditForm({ user, onSave, onCancel, userIsOwne
               {isStatusDisabled && (
                 <div className="flex items-center space-x-2 text-yellow-700 text-xs p-2 bg-yellow-50 rounded-md mt-2">
                   <Info className="w-4 h-4" />
-                  <span>Staff users cannot modify account status.</span>
+                  <span>Cannot modify account status.</span>
                 </div>
               )}
             </div>

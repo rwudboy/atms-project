@@ -57,7 +57,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (currentUser?.role?.toLowerCase() === "staff" ||currentUser?.role?.toLowerCase() === "manager" ) {
+      if (currentUser?.role?.toLowerCase() === "staff") {
         router.push(`/userProfile/${currentUser.username}`);
         return;
       }
